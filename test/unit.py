@@ -5,7 +5,7 @@ from unittest import TestCase
 from hamcrest import assert_that, is_not, is_, contains_string
 
 from doublex import Spy, ProxySpy, Stub, Mock
-from doublex import called, called_with, ANY_ARG, record, meets_expectations
+from doublex import called, called_with, ANY_ARG, meets_expectations
 from doublex import ApiMismatch, WrongApiUsage, UnexpectedBehavior
 
 
@@ -138,31 +138,31 @@ class StubTests(TestCase):
         self.stub = Stub()
 
     def test_record_invocation(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.foo().returns(2)
 
         assert_that(self.stub.foo(), 2)
 
     def test_record_invocation_with_args(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.foo(1, param='hi').returns(2)
 
         assert_that(self.stub.foo(1, param='hi'), 2)
 
     def test_record_invocation_with_wrong_args_returns_None(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.foo(1, param='hi').returns(2)
 
         assert_that(self.stub.foo(1, param='wrong'), is_(None))
 
     def test_not_stubbed_method_returns_None(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.foo().returns(True)
 
         assert_that(self.stub.bar(), is_(None))
 
     def test_ANY_ARG(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.foo(ANY_ARG).returns(True)
 
         assert_that(self.stub.foo(), True)
@@ -170,7 +170,7 @@ class StubTests(TestCase):
         assert_that(self.stub.foo('hi', param=3.0), True)
 
     def test_raises(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.foo().raises(KeyError)
 
         try:
@@ -185,14 +185,14 @@ class VerifiedStubTests(TestCase):
         self.stub = Stub(Collaborator)
 
     def test_stubbing_a_existing_method(self):
-        with record(self.stub):
+        with self.stub:
             self.stub.hello().returns("bye")
 
         assert_that(self.stub.hello(), "bye")
 
     def test_stubbing_a_non_existing_method_raises_error(self):
         try:
-            with record(self.stub):
+            with self.stub:
                 self.stub.wrong().returns("bye")
 
         except ApiMismatch, e:
@@ -201,7 +201,7 @@ class VerifiedStubTests(TestCase):
 
     def test_stubbing_with_wrong_args_raises_error(self):
         try:
-            with record(self.stub):
+            with self.stub:
                 self.stub.hello(1).returns("bye")
 
         except ApiMismatch, e:
@@ -368,26 +368,26 @@ class pyDoubles__ProxySpyTests(TestCase):
             self.assertIn("foo", str(e))
 
     def test_stub_out_method(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(3)
 
         self.assertEquals(3, self.spy.one_arg_method(5))
 
     def test_stub_method_was_called(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(3)
 
         self.spy.one_arg_method(5)
         assert_that(self.spy.one_arg_method, called_with(5))
 
     def test_stub_out_method_returning_a_list(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns([1, 2, 3])
 
         assert_that(self.spy.one_arg_method(5), [1, 2, 3])
 
     def test_stub_method_returning_list_was_called(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns([1, 2, 3])
 
         self.spy.one_arg_method(5)
@@ -395,13 +395,13 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.one_arg_method, called_with(5))
 
     def test_stub_out_method_with_args(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(2).returns(3)
 
         assert_that(self.spy.one_arg_method(2), 3)
 
     def test_stub_method_with_args_was_called(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(2).returns(3)
 
         self.spy.one_arg_method(2)
@@ -409,14 +409,14 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.one_arg_method, called_with(2))
 
     def test_stub_out_method_with_args_calls_actual(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(2).returns(3)
 
         assert_that(self.spy.one_arg_method(4), 4)
         assert_that(self.spy.one_arg_method, called_with(4))
 
     def test_stub_out_method_with_several_inputs(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(2).returns(3)
             self.spy.one_arg_method(3).returns(4)
 
@@ -424,7 +424,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.one_arg_method(3), 4)
 
     def test_recorded_calls_work_on_several_stubs(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(2).returns(3)
             self.spy.one_arg_method(3).returns(4)
 
@@ -434,7 +434,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.one_arg_method, called_with(3))
 
     def test_matching_stub_definition_is_used(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(1000)
             self.spy.one_arg_method(2).returns(3)
 
@@ -442,14 +442,14 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.one_arg_method(8), 1000)
 
     def test_stub_with_kwargs(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.kwarg_method(key_param=2).returns(3)
 
         assert_that(self.spy.kwarg_method(key_param=2), 3)
         assert_that(self.spy.kwarg_method(key_param=6), 6)
 
     def test_stub_raising_exception(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.hello().raises(SomeException)
 
         try:
@@ -459,7 +459,7 @@ class pyDoubles__ProxySpyTests(TestCase):
             pass
 
     def test_stub_returning_what_receives(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.method_one(ANY_ARG).returns_input()
 
         assert_that(self.spy.method_one(20), 20)
@@ -467,7 +467,7 @@ class pyDoubles__ProxySpyTests(TestCase):
     # Different that pyDoubles. ApiMismatch raises at setup
     def test_stub_returning_what_receives_when_no_params(self):
         try:
-            with record(self.spy):
+            with self.spy:
                 self.spy.hello().returns_input()
 
             self.fail("ApiMismatch should be raised")
@@ -475,7 +475,7 @@ class pyDoubles__ProxySpyTests(TestCase):
             pass
 
     def test_be_able_to_return_objects(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(Collaborator())
 
         collaborator = self.spy.one_arg_method(1)
@@ -483,7 +483,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(collaborator.one_arg_method(1), 1)
 
     def test_any_arg_matcher(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.two_args_method(1, ANY_ARG).returns(1000)
 
         assert_that(self.spy.two_args_method(1, 2), 1000)
@@ -497,7 +497,7 @@ class pyDoubles__ProxySpyTests(TestCase):
 #        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
 
     def test_any_arg_matcher_was_called(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.two_args_method(1, 2).returns(1000)
 
         self.spy.two_args_method(1, 2)
@@ -505,7 +505,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.two_args_method, called_with(1, ANY_ARG))
 
     def test_stub_works_with_alias_method(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(1).returns(1000)
 
         self.spy.alias_method(1)
@@ -618,7 +618,7 @@ class pyDoubles__SpyTests(TestCase):
         assert_that(self.spy.one_arg_method, called_with(non_ascii))
 
     def test_stub_methods_can_be_handled_separately(self):
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(1).returns(1000)
             self.spy.two_args_method(5, 5).returns(2000)
 
@@ -646,7 +646,7 @@ class pyDoubles__SpyTests(TestCase):
                 raise Exception('should not happen')
 
         obj = CallableObj()
-        with record(self.spy):
+        with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(obj)
 
         self.assertEquals(obj, self.spy.one_arg_method(1),
@@ -671,13 +671,13 @@ class pyDoubles__MockTests(TestCase):
             assert_that(str(e), contains_string("No one"))
 
     def test_define_expectation_and_call_method(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.hello()
 
         self.assertTrue(self.mock.hello() is None)
 
     def test_define_several_expectatiosn(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.hello()
             self.mock.one_arg_method(ANY_ARG)
 
@@ -685,13 +685,13 @@ class pyDoubles__MockTests(TestCase):
         self.assertTrue(self.mock.one_arg_method(1) is None)
 
     def test_define_expectation_args(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1)
 
         self.assertTrue(self.mock.one_arg_method(1) is None)
 
     def test_define_expectation_args_and_fail(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1)
 
         try:
@@ -701,7 +701,7 @@ class pyDoubles__MockTests(TestCase):
             pass
 
     def test_several_expectations_with_args(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1)
             self.mock.two_args_method(2, 3)
 
@@ -709,26 +709,26 @@ class pyDoubles__MockTests(TestCase):
         self.assertTrue(self.mock.two_args_method(2, 3) is None)
 
     def test_expect_call_returning_value(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1).returns(1000)
 
         self.assertEquals(1000, self.mock.one_arg_method(1))
 
     def test_assert_expectations_are_satisfied(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.hello()
 
         assert_that(self.mock, is_not(meets_expectations()))
 
     def test_assert_satisfied_when_it_really_is(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.hello()
 
         self.mock.hello()
         assert_that(self.mock, meets_expectations())
 
     def test_number_of_calls_matter(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.hello()
 
         self.mock.hello()
@@ -741,7 +741,7 @@ class pyDoubles__MockTests(TestCase):
         pass
 
     def test_expectations_on_synonyms(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(ANY_ARG)
 
         self.mock.alias_method(1)
@@ -749,7 +749,7 @@ class pyDoubles__MockTests(TestCase):
         assert_that(self.mock, meets_expectations())
 
     def test_several_expectations_with_different_args(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1)
             self.mock.one_arg_method(2)
 
@@ -759,7 +759,7 @@ class pyDoubles__MockTests(TestCase):
         assert_that(self.mock, is_not(meets_expectations()))
 
     def test_expect_several_times(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1).times(2)
 
         self.mock.one_arg_method(1)
@@ -767,7 +767,7 @@ class pyDoubles__MockTests(TestCase):
         assert_that(self.mock, is_not(meets_expectations()))
 
     def test_expect_several_times_matches_exactly(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1).times(2)
 
         self.mock.one_arg_method(1)
@@ -776,7 +776,7 @@ class pyDoubles__MockTests(TestCase):
         assert_that(self.mock, meets_expectations())
 
     def test_expect_several_times_without_args_definition(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(ANY_ARG).times(2)
 
         self.mock.one_arg_method(1)
@@ -786,7 +786,7 @@ class pyDoubles__MockTests(TestCase):
 
     def test_defend_agains_less_than_2_times(self):
         try:
-            with record(self.mock):
+            with self.mock:
                 self.mock.one_arg_method(ANY_ARG).times(1)
 
             self.fail('times cant be less than 2')
@@ -794,7 +794,7 @@ class pyDoubles__MockTests(TestCase):
             pass
 
     def test_times_and_return_value(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(ANY_ARG).returns(1000).times(2)
 
         self.assertEquals(1000, self.mock.one_arg_method(1))
@@ -803,7 +803,7 @@ class pyDoubles__MockTests(TestCase):
         assert_that(self.mock, meets_expectations())
 
     def test_times_and_return_value_and_input_args(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(10).returns(1000).times(2)
 
         self.assertEquals(1000, self.mock.one_arg_method(10))
@@ -817,8 +817,8 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
         self.mock = Mock()
 
     def test_mock_can_work_from_empty_object(self):
-        with record(self.mock):
-            self.mock.hello()
+        with self.mock as mock:
+            mock.hello()
 
         self.mock.hello()
 
@@ -829,7 +829,7 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
         pass
 
     def test_several_expectations_in_empty_mock(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.hello()
             self.mock.one_arg_method(1)
 
@@ -839,7 +839,7 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
         assert_that(self.mock, meets_expectations())
 
     def test_several_expectations_with_args_in_empty_mock(self):
-        with record(self.mock):
+        with self.mock:
             self.mock.one_arg_method(1)
             self.mock.one_arg_method(2)
 

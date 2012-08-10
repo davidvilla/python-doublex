@@ -11,13 +11,14 @@ from .const import *
 class Stub(object):
     def __init__(self, collaborator=None):
         self.proxy = internal.create_proxy(collaborator)
-        self.ready()
+        self.recording = False
         self.stubs = internal.InvocationSet()
 
-    def record(self):
+    def __enter__(self):
         self.recording = True
+        return self
 
-    def ready(self):
+    def __exit__(self, *args):
         self.recording = False
 
     def invoke(self, invocation):
@@ -108,10 +109,3 @@ def called_with(*args, **kargs):
 
 def meets_expectations():
     return internal.MockMeetsExpectations()
-
-
-@contextmanager
-def record(double):
-    double.record()
-    yield
-    double.ready()
