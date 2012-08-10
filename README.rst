@@ -100,3 +100,7 @@ ProxySpy
 
  assert_that(sender.say(), "hi")
  assert_that(sender.say, called())
+
+
+
+...Working on stubbed spies...
