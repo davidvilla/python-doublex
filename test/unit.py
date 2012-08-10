@@ -7,6 +7,7 @@ from hamcrest import assert_that, is_not, is_, contains_string
 from doublex import Spy, ProxySpy, Stub, Mock
 from doublex import called, called_with, ANY_ARG, meets_expectations
 from doublex import ApiMismatch, WrongApiUsage, UnexpectedBehavior
+from doublex import method_returning, method_raising
 
 
 class EmptySpyTests(TestCase):
@@ -861,30 +862,29 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
         assert_that(self.mock, meets_expectations())
 
 
-#class pyDoubles__StubMethodsTests(unittest.TestCase):
-#
-#    def setUp(self):
-#        self.collaborator = Collaborator()
-#
-#    def test_method_returning_value(self):
-#        self.collaborator.hello = method_returning("bye")
-#
-#        self.assertEquals("bye", self.collaborator.hello())
-#
-#    def test_method_args_returning_value(self):
-#        self.collaborator.one_arg_method = method_returning("bye")
-#
-#        self.assertEquals("bye", self.collaborator.one_arg_method(1))
-#
-#    def test_method_raising_exception(self):
-#        self.collaborator.hello = method_raising(SomeException())
-#        try:
-#            self.collaborator.hello()
-#            self.fail("exception not raised")
-#        except SomeException:
-#            pass
-#
-#
+class pyDoubles__StubMethodsTests(TestCase):
+    def setUp(self):
+        self.collaborator = Collaborator()
+
+    def test_method_returning_value(self):
+        self.collaborator.hello = method_returning("bye")
+
+        self.assertEquals("bye", self.collaborator.hello())
+
+    def test_method_args_returning_value(self):
+        self.collaborator.one_arg_method = method_returning("bye")
+
+        self.assertEquals("bye", self.collaborator.one_arg_method(1))
+
+    def test_method_raising_exception(self):
+        self.collaborator.hello = method_raising(SomeException())
+        try:
+            self.collaborator.hello()
+            self.fail("exception not raised")
+        except SomeException:
+            pass
+
+
 #class pyDoubles__MatchersTests(unittest.TestCase):
 #
 #    def setUp(self):

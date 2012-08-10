@@ -112,10 +112,13 @@ ProxySpy
      smtp.helo()
      smtp.mail(ANY_ARG)
      smtp.rcpt("bill@apple.com")
+     smtp.data(ANY_ARG).returns(True).times(2)
 
  smtp.helo()
  smtp.mail("poormen@home.net")
  smtp.rcpt("bill@apple.com")
+ smtp.data("somebody there?")
+ smtp.data("I am afraid..")
 
  assert_that(smtp, meets_expectations())
 

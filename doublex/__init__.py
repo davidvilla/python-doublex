@@ -106,3 +106,17 @@ def called_with(*args, **kargs):
 
 def meets_expectations():
     return internal.MockMeetsExpectations()
+
+
+def method_returning(value):
+    with Stub() as stub:
+        method = internal.Method(stub, 'unnamed')
+        method(ANY_ARG).returns(value)
+        return method
+
+
+def method_raising(exception):
+    with Stub() as stub:
+        method = internal.Method(stub, 'unnamed')
+        method(ANY_ARG).raises(exception)
+        return method
