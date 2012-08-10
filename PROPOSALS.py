@@ -18,8 +18,7 @@ DESIGN_PRINCIPLES = '''
 
 class StubWishes(TestCase):
     def test_programming_a_stub_invoking_it(self):
-        stub = Stub()
-        with record(stub):
+        with Stub() as stub:
             stub.foo('hi').returns(10)
             stub.hello(ANY_ARG).returns(False)
             stub.bye().raises(SomeException)
@@ -36,7 +35,7 @@ class SpyWishes(TestCase):
         assert_that(sender.send_mail, called())
         assert_that(sender.send_mail, called().times(2))
         assert_that(sender.send_mail, called_with('foo@bar.net'))
-
+_
         # these may be just aliases for hamcrest.is_not (sintactic molasses)
         assert_that(sender.close, was_not(called()))
         assert_that(sender.close, never(called()))
@@ -51,7 +50,7 @@ class SpyWishes(TestCase):
 class MockWishes(TestCase):
     def test_programming_a_mock_invoking_it(self):
         sender = Mock()
-        with record(sender):
+        with sender:
             sender.send_mail()  # inoked without args
             sender.send_mail(ANY_ARG)  # any invocation
             sender.send_mail('wrong_mail').returns(FAILURE)
@@ -63,7 +62,7 @@ class MockWishes(TestCase):
 
     def test_lossy_invocation_order(self):
         sender = SmoothMock()
-        with record(sender):
+        with sender:
             sender.send_mail('FOO@cat.net')
             sender.send_mail('bar@example.net')
 

@@ -16,14 +16,14 @@ Design principles
 - Compatible with old and new style classes
 
 
-Empty Stub
-----------
+"empty Stub"
+------------
 
 ::
 
  # given
  stub = Stub()
- with record(stub):
+ with stub:
      stub.foo('hi').returns(10)
      stub.hello(ANY_ARG).returns(False)
      stub.bye().raises(SomeException)
@@ -35,8 +35,8 @@ Empty Stub
  assert_that(result, 10)
 
 
-Verified Stub
--------------
+"verified" Stub
+---------------
 
 ::
 
@@ -44,33 +44,34 @@ Verified Stub
      def foo(self):
          return "foo"
 
- stub = Stub(Collaborator)
- with record(stub):
+ with Stub(Collaborator) as stub
      stub.foo().raises(SomeException)
      stub.bar().returns(True)  # raises ApiMismatch exception
      stub.foo(1).returns(2)    # raises ApiMismatch exception
 
 
-Empty Spy
----------
+"empty" Spy
+-----------
 
 ::
 
  # given
- sender = Spy()
+ with Spy() as sender:
+     sender.helo().returns("OK")
 
  # when
  sender.send_mail('hi')
  sender.send_mail('foo@bar.net')
 
  # then
+ assert_that(sender.helo(), "OK")
  assert_that(sender.send_mail, called())
  assert_that(sender.send_mail, called().times(2))
  assert_that(sender.send_mail, called_with('foo@bar.net'))
 
 
-Verified Spy
-------------
+"verified" Spy
+--------------
 
 ::
 
@@ -102,5 +103,39 @@ ProxySpy
  assert_that(sender.say, called())
 
 
+"empty" Mock
+------------
 
-...Working on stubbed spies...
+::
+
+with Mock() as smtp:
+    smtp.helo()
+    smtp.mail(ANY_ARG)
+    smtp.rcpt("bill@apple.com")
+
+smtp.helo()
+smtp.mail("poormen@home.net")
+smtp.rcpt("bill@apple.com")
+
+assert_that(smtp, meets_expectations())
+
+
+"verified" Mock
+---------------
+
+::
+
+class SMTP:
+    def helo(self):
+        [...]
+    def mail(self, address):
+        [...]
+    def rcpt(self, address):
+        [...]
+
+with Mock(STMP) as smtp:
+    smtp.wrong()  # raises ApiMismatch exception
+    smtp.mail()   # raises ApiMismatch exception
+
+
+...Working on stub methods...

@@ -43,9 +43,6 @@ class Stub(object):
             return self.do_perform_invocation(invocation)
 
     def do_perform_invocation(self, invocation):
-#        try:
-#            return self.perform_stubbed(invocation)
-#        except NotStubbedInvocation:
         return None
 
     def perform_stubbed(self, invocation):

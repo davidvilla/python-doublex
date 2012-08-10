@@ -143,6 +143,18 @@ class StubTests(TestCase):
 
         assert_that(self.stub.foo(), 2)
 
+    def test_using_alias_in_context(self):
+        with self.stub as stub:
+            stub.foo().returns(2)
+
+        assert_that(self.stub.foo(), 2)
+
+    def test_creating_double_with_context(self):
+        with Stub() as stub:
+            stub.foo().returns(2)
+
+        assert_that(stub.foo(), 2)
+
     def test_record_invocation_with_args(self):
         with self.stub:
             self.stub.foo(1, param='hi').returns(2)
