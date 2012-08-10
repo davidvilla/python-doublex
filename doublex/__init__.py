@@ -12,7 +12,7 @@ class Stub(object):
     def __init__(self, collaborator=None):
         self.proxy = internal.create_proxy(collaborator)
         self.ready()
-        self.stubbed_invocations = []
+        self.stubs = internal.InvocationSet()
 
     def record(self):
         self.recording = True
@@ -21,28 +21,44 @@ class Stub(object):
         self.recording = False
 
     def invoke(self, invocation):
+        self.manage_invocation(invocation)
+        if not self.recording:
+            return self.perform_invocation(invocation)
+
+    def manage_invocation(self, invocation):
         self.proxy.assert_match_signature(invocation)
         if self.recording:
-            self.stubbed_invocations.append(invocation)
+            self.stubs.append(invocation)
         else:
-            return self.do_invoke(invocation)
+            self.do_manage_invocation(invocation)
 
-    def do_invoke(self):
-        raise NotImplementedError
+    def do_manage_invocation(self, invocation):
+        pass
 
-    def lookup_stub_invocation(self, invocation):
-        i = self.stubbed_invocations.index(invocation)
-        return self.stubbed_invocations[i]
+    def perform_invocation(self, invocation):
+        if invocation in self.stubs:
+            return self.perform_stubbed(invocation)
+        else:
+            return self.do_perform_invocation(invocation)
+
+    def do_perform_invocation(self, invocation):
+#        try:
+#            return self.perform_stubbed(invocation)
+#        except NotStubbedInvocation:
+        return None
+
+    def perform_stubbed(self, invocation):
+        context = self.stubs.lookup(invocation).context
+        if context.exception is not None:
+            raise context.exception
+
+        return context.output
 
     def __getattr__(self, key):
         self.proxy.assert_has_method(key)
 
-        method = self.create_method(key)
-        setattr(self, key, method)
+        method = internal.Method(self, key)
         return method
-
-    def create_method(self, name):
-        return internal.StubbedMethod(self, name)
 
 
 class Spy(Stub):
@@ -50,7 +66,7 @@ class Spy(Stub):
         super(Spy, self).__init__(collaborator)
         self.invocations = []
 
-    def do_invoke(self, invocation):
+    def do_manage_invocation(self, invocation):
         self.invocations.append(invocation)
 
     def was_called(self, invocation, times):
@@ -64,9 +80,6 @@ class Spy(Stub):
 
         return retval
 
-    def create_method(self, name):
-        return internal.SpiedMethod(self, name)
-
 
 class ProxySpy(Spy):
     def __init__(self, collaborator):
@@ -74,8 +87,7 @@ class ProxySpy(Spy):
             "ProxySpy argument must be an instance"
         super(ProxySpy, self).__init__(collaborator)
 
-    def do_invoke(self, invocation):
-        super(ProxySpy, self).do_invoke(invocation)
+    def do_perform_invocation(self, invocation):
         return self.proxy.perform_invocation(invocation)
 
 

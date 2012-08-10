@@ -7,7 +7,6 @@ from hamcrest import assert_that, is_not, is_, contains_string
 from doublex import Spy, ProxySpy, Stub
 from doublex import called, called_with, ANY_ARG, record
 from doublex import ApiMismatch, WrongApiUsage
-import doublex.tools as tools
 
 
 class EmptySpyTests(TestCase):
@@ -219,6 +218,10 @@ class Actor(object):
 #- pyDoubles migrated tests -#
 #----------------------------#
 
+class SomeException(Exception):
+    pass
+
+
 class Collaborator:
     """
     The original object we double in tests
@@ -362,128 +365,151 @@ class pyDoubles__ProxySpyTests(TestCase):
         try:
             assert_that(self.spy.kwarg_method, called_with("bar"))
         except AssertionError, e:
-#            print e
             self.assertIn("foo", str(e))
 
-#    def test_stub_out_method(self):
-#        with record(self.spy):
-#            self.spy.one_arg_method(ANY_ARG).returns(3)
-#
-#        self.assertEquals(3, self.spy.one_arg_method(5))
+    def test_stub_out_method(self):
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns(3)
 
-#    def test_stub_method_was_called(self):
-#        when(self.spy.one_arg_method).then_return(3)
-#        self.spy.one_arg_method(5)
-#        assert_that_was_called(self.spy.one_arg_method).with_args(5)
+        self.assertEquals(3, self.spy.one_arg_method(5))
+
+    def test_stub_method_was_called(self):
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns(3)
+
+        self.spy.one_arg_method(5)
+        assert_that(self.spy.one_arg_method, called_with(5))
+
+    def test_stub_out_method_returning_a_list(self):
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns([1, 2, 3])
+
+        assert_that(self.spy.one_arg_method(5), [1, 2, 3])
+
+    def test_stub_method_returning_list_was_called(self):
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns([1, 2, 3])
+
+        self.spy.one_arg_method(5)
+
+        assert_that(self.spy.one_arg_method, called_with(5))
+
+    def test_stub_out_method_with_args(self):
+        with record(self.spy):
+            self.spy.one_arg_method(2).returns(3)
+
+        assert_that(self.spy.one_arg_method(2), 3)
+
+    def test_stub_method_with_args_was_called(self):
+        with record(self.spy):
+            self.spy.one_arg_method(2).returns(3)
+
+        self.spy.one_arg_method(2)
+
+        assert_that(self.spy.one_arg_method, called_with(2))
+
+    def test_stub_out_method_with_args_calls_actual(self):
+        with record(self.spy):
+            self.spy.one_arg_method(2).returns(3)
+
+        assert_that(self.spy.one_arg_method(4), 4)
+        assert_that(self.spy.one_arg_method, called_with(4))
+
+    def test_stub_out_method_with_several_inputs(self):
+        with record(self.spy):
+            self.spy.one_arg_method(2).returns(3)
+            self.spy.one_arg_method(3).returns(4)
+
+        assert_that(self.spy.one_arg_method(2), 3)
+        assert_that(self.spy.one_arg_method(3), 4)
+
+    def test_recorded_calls_work_on_several_stubs(self):
+        with record(self.spy):
+            self.spy.one_arg_method(2).returns(3)
+            self.spy.one_arg_method(3).returns(4)
+
+        self.spy.one_arg_method(2)
+        self.spy.one_arg_method(3)
+        assert_that(self.spy.one_arg_method, called_with(2))
+        assert_that(self.spy.one_arg_method, called_with(3))
+
+    def test_matching_stub_definition_is_used(self):
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns(1000)
+            self.spy.one_arg_method(2).returns(3)
+
+        assert_that(self.spy.one_arg_method(2), 3)
+        assert_that(self.spy.one_arg_method(8), 1000)
+
+    def test_stub_with_kwargs(self):
+        with record(self.spy):
+            self.spy.kwarg_method(key_param=2).returns(3)
+
+        assert_that(self.spy.kwarg_method(key_param=2), 3)
+        assert_that(self.spy.kwarg_method(key_param=6), 6)
+
+    def test_stub_raising_exception(self):
+        with record(self.spy):
+            self.spy.hello().raises(SomeException)
+
+        try:
+            self.spy.hello()
+            self.fail("not raised")
+        except SomeException:
+            pass
+
+    def test_stub_returning_what_receives(self):
+        with record(self.spy):
+            self.spy.method_one(ANY_ARG).returns_input()
+
+        assert_that(self.spy.method_one(20), 20)
+
+    # Different that pyDoubles. ApiMismatch raises at setup
+    def test_stub_returning_what_receives_when_no_params(self):
+        try:
+            with record(self.spy):
+                self.spy.hello().returns_input()
+
+            self.fail("ApiMismatch should be raised")
+        except ApiMismatch:
+            pass
+
+    def test_be_able_to_return_objects(self):
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns(Collaborator())
+
+        collaborator = self.spy.one_arg_method(1)
+
+        assert_that(collaborator.one_arg_method(1), 1)
+
+    def test_any_arg_matcher(self):
+        with record(self.spy):
+            self.spy.two_args_method(1, ANY_ARG).returns(1000)
+
+        assert_that(self.spy.two_args_method(1, 2), 1000)
+        assert_that(self.spy.two_args_method(1, 5), 1000)
+
+#       TODO: implement this:
+#       Not supported by pyDoubles
+#    def test_any_arg_matcher_with_kwargs(self):
+#        when(self.spy.kwarg_method).with_args(key_param=ANY_ARG).then_return(1000)
 #
-#    def test_stub_out_method_returning_a_list(self):
-#        when(self.spy.one_arg_method).then_return([1, 2, 3])
-#
-#        self.assertEquals([1, 2, 3], self.spy.one_arg_method(5))
-#
-#    def test_stub_method_returning_list_was_called(self):
-#        when(self.spy.one_arg_method).then_return([1, 2, 3])
-#        self.spy.one_arg_method(5)
-#        assert_that_was_called(self.spy.one_arg_method).with_args(5)
-#
-#    def test_stub_out_method_with_args(self):
-#        when(self.spy.one_arg_method).with_args(2).then_return(3)
-#
-#        self.assertEquals(3, self.spy.one_arg_method(2))
-#
-#    def test_stub_method_with_args_was_called(self):
-#        when(self.spy.one_arg_method).with_args(2).then_return(3)
-#        self.spy.one_arg_method(2)
-#
-#        assert_that_was_called(self.spy.one_arg_method).with_args(2)
-#
-#    def test_stub_out_method_with_args_calls_actual(self):
-#        when(self.spy.one_arg_method).with_args(2).then_return(3)
-#
-#        self.assertEquals(4, self.spy.one_arg_method(4))
-#
-#        assert_that_was_called(self.spy.one_arg_method).with_args(4)
-#
-#    def test_stub_out_method_with_several_inputs(self):
-#        when(self.spy.one_arg_method).with_args(2).then_return(3)
-#        when(self.spy.one_arg_method).with_args(3).then_return(4)
-#
-#        self.assertEquals(3, self.spy.one_arg_method(2))
-#        self.assertEquals(4, self.spy.one_arg_method(3))
-#
-#    def test_recorded_calls_work_on_several_stubs(self):
-#        when(self.spy.one_arg_method).with_args(2).then_return(3)
-#        when(self.spy.one_arg_method).with_args(3).then_return(4)
-#
-#        self.spy.one_arg_method(2)
-#        self.spy.one_arg_method(3)
-#        assert_that_was_called(self.spy.one_arg_method).with_args(2)
-#        assert_that_was_called(self.spy.one_arg_method).with_args(3)
-#
-#    def test_matching_stub_definition_is_used(self):
-#        when(self.spy.one_arg_method).then_return(1000)
-#        when(self.spy.one_arg_method).with_args(2).then_return(3)
-#        self.assertEquals(3, self.spy.one_arg_method(2))
-#        self.assertEquals(1000, self.spy.one_arg_method(8))
-#
-#    def test_stub_with_kwargs(self):
-#        when(self.spy.kwarg_method).with_args(key_param=2
-#                                            ).then_return(3)
-#
-#        self.assertEquals(3, self.spy.kwarg_method(key_param=2))
-#        self.assertEquals(6, self.spy.kwarg_method(key_param=6))
-#
-#    def test_stub_raising_exception(self):
-#        when(self.spy.hello).then_raise(SomeException())
-#        try:
-#            self.spy.hello()
-#            self.fail("not raised")
-#        except SomeException:
-#            pass
-#
-#    def test_stub_returning_what_receives(self):
-#        when(self.spy.method_one).then_return_input()
-#
-#        self.assertEquals(20, self.spy.method_one(20))
-#
-#    def test_stub_returning_what_receives_when_no_params(self):
-#        when(self.spy.hello).then_return_input()
-#
-#        self.failUnlessRaises(ApiMismatch, self.spy.hello)
-#
-#    def test_be_able_to_return_objects(self):
-#        when(self.spy.one_arg_method).then_return(Collaborator())
-#
-#        collaborator = self.spy.one_arg_method(1)
-#
-#        self.assertEquals(1, collaborator.one_arg_method(1))
-#
-#    def test_any_arg_matcher(self):
-#        when(self.spy.two_args_method).with_args(1, ANY_ARG).then_return(1000)
-#
-#        self.assertEquals(1000, self.spy.two_args_method(1, 2))
-#        self.assertEquals(1000, self.spy.two_args_method(1, 5))
-#
-## TODO: implement this:
-##    def test_any_arg_matcher_with_kwargs(self):
-##        when(self.spy.kwarg_method).with_args(key_param=ANY_ARG).then_return(1000)
-##
-##        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
-#
-#    def test_any_arg_matcher_was_called(self):
-#        when(self.spy.two_args_method).with_args(1, 2).then_return(1000)
-#
-#        self.spy.two_args_method(1, 2)
-#
-#        assert_that_was_called(self.spy.two_args_method
-#                               ).with_args(1, ANY_ARG)
-#
-#    def test_stub_works_with_alias_method(self):
-#        when(self.spy.one_arg_method).with_args(1).then_return(1000)
-#
-#        self.spy.alias_method(1)
-#        assert_that_was_called(self.spy.one_arg_method
-#                               ).with_args(1)
+#        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
+
+    def test_any_arg_matcher_was_called(self):
+        with record(self.spy):
+            self.spy.two_args_method(1, 2).returns(1000)
+
+        self.spy.two_args_method(1, 2)
+
+        assert_that(self.spy.two_args_method, called_with(1, ANY_ARG))
+
+    def test_stub_works_with_alias_method(self):
+        with record(self.spy):
+            self.spy.one_arg_method(1).returns(1000)
+
+        self.spy.alias_method(1)
+        assert_that(self.spy.one_arg_method, called_with(1))
 
     def test_was_never_called(self):
         assert_that(self.spy.one_arg_method, is_not(called()))
@@ -591,31 +617,422 @@ class pyDoubles__SpyTests(TestCase):
 
         assert_that(self.spy.one_arg_method, called_with(non_ascii))
 
-#    def test_stub_methods_can_be_handled_separately(self):
-#        when(self.spy.one_arg_method).with_args(1).then_return(1000)
-#        when(self.spy.two_args_method).with_args(5, 5).then_return(2000)
-#        handle1 = self.spy.one_arg_method
-#        handle2 = self.spy.two_args_method
-#        self.assertEquals(1000, handle1(1))
-#        self.assertEquals(2000, handle2(5, 5))
-#
-#        assert_that_was_called(handle1).with_args(1)
-#        assert_that_was_called(handle2).with_args(5, 5)
+    def test_stub_methods_can_be_handled_separately(self):
+        with record(self.spy):
+            self.spy.one_arg_method(1).returns(1000)
+            self.spy.two_args_method(5, 5).returns(2000)
 
-#    #SAME as VerifiedSpyTests.test_check_unexisting_method
-#    def test_assert_was_called_with_method_not_in_the_api(self):
-#        self.failUnlessRaises(ApiMismatch,
-#            assert_that_was_called, self.spy.unexisting_method)
+        handle1 = self.spy.one_arg_method
+        handle2 = self.spy.two_args_method
 
-#    def test_do_not_call_callable_object_if_wasnt_generated_by_the_framework(self):
-#        class CallableObj():
-#            just_testing = True
+        self.assertEquals(1000, handle1(1))
+        self.assertEquals(2000, handle2(5, 5))
+        assert_that(handle1, called_with(1))
+        assert_that(handle2, called_with(5, 5))
+
+    #SAME as VerifiedSpyTests.test_check_unexisting_method
+    def test_assert_was_called_with_method_not_in_the_api(self):
+        try:
+            assert_that(self.spy.unexisting_method, called())
+            self.fail("ApiMismatch should be raised")
+        except ApiMismatch:
+            pass
+
+    def test_do_not_call_callable_object_if_wasnt_generated_by_the_framework(self):
+        class CallableObj():
+            just_testing = True
+
+            def __call__(self, *args, **kwargs):
+                raise Exception('should not happen')
+
+        obj = CallableObj()
+        with record(self.spy):
+            self.spy.one_arg_method(ANY_ARG).returns(obj)
+
+        self.assertEquals(obj, self.spy.one_arg_method(1),
+                          "Wrong returned object")
+
+
+#class pyDoubles__MockTests(TestCase):
+#    def setUp(self):
+#        self.mock = Mock(Collaborator)
 #
-#            def __call__(self, *args, **kwargs):
-#                raise Exception('should not happen')
+#    def test_fail_on_unexpected_call(self):
+#        try:
+#            self.mock.hello()
+#            self.fail('UnexpectedBehavior should be raised')
+#        except UnexpectedBehavior:
+#            pass
 #
-#        obj = CallableObj()
-#        when(self.spy.one_arg_method).then_return(obj)
+#    def test_fail_on_unexpected_call_msg_is_human_readable(self):
+#        try:
+#            self.mock.hello()
+#        except UnexpectedBehavior, e:
+#            for arg in e.args:
+#                if re.search("No one", arg):
+#                    return
+#            self.fail("No enough readable exception message")
 #
-#        self.assertEquals(obj, self.spy.one_arg_method(1),
-#                       "Wrong returned object")
+#    def test_define_expectation_and_call_method(self):
+#        expect_call(self.mock.hello)
+#        self.assertTrue(self.mock.hello() is None)
+#
+#    def test_define_several_expectatiosn(self):
+#        expect_call(self.mock.hello)
+#        expect_call(self.mock.one_arg_method)
+#
+#        self.assertTrue(self.mock.hello() is None)
+#        self.assertTrue(self.mock.one_arg_method(1) is None)
+#
+#    def test_define_expectation_args(self):
+#        expect_call(self.mock.one_arg_method).with_args(1)
+#        self.assertTrue(self.mock.one_arg_method(1) is None)
+#
+#    def test_define_expectation_args_and_fail(self):
+#        expect_call(self.mock.one_arg_method).with_args(1)
+#        try:
+#            self.mock.one_arg_method(2)
+#            self.fail('Unexpected call')
+#        except UnexpectedBehavior:
+#            pass
+#
+#    def test_several_expectations_with_args(self):
+#        expect_call(self.mock.one_arg_method).with_args(1)
+#        expect_call(self.mock.two_args_method).with_args(2, 3)
+#
+#        self.assertTrue(self.mock.one_arg_method(1) is None)
+#        self.assertTrue(self.mock.two_args_method(2, 3) is None)
+#
+#    def test_expect_call_returning_value(self):
+#        expect_call(self.mock.one_arg_method).with_args(1).returning(1000)
+#
+#        self.assertEquals(1000, self.mock.one_arg_method(1))
+#
+#    def test_assert_expectations_are_satisfied(self):
+#        expect_call(self.mock.hello)
+#        try:
+#            self.mock.assert_that_is_satisfied()
+#            self.fail('Not satisfied!')
+#        except UnexpectedBehavior:
+#            pass
+#
+#    def test_assert_expectations_alternative(self):
+#        expect_call(self.mock.hello)
+#        try:
+#            self.mock.assert_expectations()
+#            self.fail('Not satisfied')
+#        except UnexpectedBehavior:
+#            pass
+#
+#    def test_assert_satisfied_when_it_really_is(self):
+#        expect_call(self.mock.hello)
+#        self.mock.hello()
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_number_of_calls_matter(self):
+#        expect_call(self.mock.hello)
+#        self.mock.hello()
+#        self.mock.hello()
+#        self.failUnlessRaises(UnexpectedBehavior,
+#                        self.mock.assert_that_is_satisfied)
+#
+#    def test_using_when_or_expect_call_without_double(self):
+#        self.failUnlessRaises(WrongApiUsage,
+#                        expect_call, Collaborator())
+#
+#    def test_expectations_on_synonyms(self):
+#        expect_call(self.mock.one_arg_method)
+#
+#        self.mock.alias_method(1)
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_several_expectations_with_different_args(self):
+#        expect_call(self.mock.one_arg_method).with_args(1)
+#        expect_call(self.mock.one_arg_method).with_args(2)
+#
+#        self.mock.one_arg_method(1)
+#        self.mock.one_arg_method(1)
+#
+#        self.failUnlessRaises(UnexpectedBehavior,
+#            self.mock.assert_that_is_satisfied)
+#
+#    def test_expect_several_times(self):
+#        expect_call(self.mock.one_arg_method).with_args(1).times(2)
+#
+#        self.mock.one_arg_method(1)
+#
+#        self.failUnlessRaises(UnexpectedBehavior,
+#            self.mock.assert_that_is_satisfied)
+#
+#    def test_expect_several_times_matches_exactly(self):
+#        expect_call(self.mock.one_arg_method).with_args(1).times(2)
+#
+#        self.mock.one_arg_method(1)
+#        self.mock.one_arg_method(1)
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_expect_several_times_without_args_definition(self):
+#        expect_call(self.mock.one_arg_method).times(2)
+#
+#        self.mock.one_arg_method(1)
+#        self.mock.one_arg_method(1)
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_defend_agains_less_than_2_times(self):
+#        try:
+#            expect_call(self.mock.one_arg_method).times(1)
+#            self.fail('times cant be less than 2')
+#        except WrongApiUsage:
+#            pass
+#
+#    def test_times_and_return_value(self):
+#        expect_call(self.mock.one_arg_method).returning(1000).times(2)
+#
+#        self.assertEquals(1000, self.mock.one_arg_method(1))
+#        self.assertEquals(1000, self.mock.one_arg_method(1))
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_times_and_return_value_and_input_args(self):
+#        expect_call(self.mock.one_arg_method).with_args(10).returning(1000).times(2)
+#
+#        self.assertEquals(1000, self.mock.one_arg_method(10))
+#        self.assertEquals(1000, self.mock.one_arg_method(10))
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#
+#class pyDoubles__MockFromEmptyObjectTests(unittest.TestCase):
+#    def setUp(self):
+#        self.mock = empty_mock()
+#
+#    def test_mock_can_work_from_empty_object(self):
+#        expect_call(self.mock.hello)
+#
+#        self.mock.hello()
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_mock_without_args_is_empty_mock(self):
+#        self.mock = mock()
+#        expect_call(self.mock.hello)
+#
+#        self.mock.hello()
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_several_expectations_in_empty_mock(self):
+#        expect_call(self.mock.hello)
+#        expect_call(self.mock.one_arg_method).with_args(1)
+#
+#        self.mock.hello()
+#        self.mock.one_arg_method(1)
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#    def test_several_expectations_with_args_in_empty_mock(self):
+#        expect_call(self.mock.one_arg_method).with_args(1)
+#        expect_call(self.mock.one_arg_method).with_args(2)
+#
+#        self.assertTrue(self.mock.one_arg_method(1) is None)
+#        self.assertTrue(self.mock.one_arg_method(2) is None)
+#
+#        self.mock.assert_that_is_satisfied()
+#
+#
+#class pyDoubles__StubMethodsTests(unittest.TestCase):
+#
+#    def setUp(self):
+#        self.collaborator = Collaborator()
+#
+#    def test_method_returning_value(self):
+#        self.collaborator.hello = method_returning("bye")
+#
+#        self.assertEquals("bye", self.collaborator.hello())
+#
+#    def test_method_args_returning_value(self):
+#        self.collaborator.one_arg_method = method_returning("bye")
+#
+#        self.assertEquals("bye", self.collaborator.one_arg_method(1))
+#
+#    def test_method_raising_exception(self):
+#        self.collaborator.hello = method_raising(SomeException())
+#        try:
+#            self.collaborator.hello()
+#            self.fail("exception not raised")
+#        except SomeException:
+#            pass
+#
+#
+#class pyDoubles__MatchersTests(unittest.TestCase):
+#
+#    def setUp(self):
+#        self.spy = spy(Collaborator())
+#
+#    def test_str_cotaining_with_exact_match(self):
+#        when(self.spy.one_arg_method).with_args(
+#                    str_containing("abc")).then_return(1000)
+#
+#        self.assertEquals(1000, self.spy.one_arg_method("abc"))
+#
+#    def test_str_containing_with_substr(self):
+#        when(self.spy.one_arg_method).with_args(
+#                    str_containing("abc")).then_return(1000)
+#
+#        self.assertEquals(1000, self.spy.one_arg_method("XabcX"))
+#
+#    def test_str_containing_with_substr_unicode(self):
+#        when(self.spy.one_arg_method).with_args(
+#                    str_containing("abc")).then_return(1000)
+#
+#        self.assertEquals(1000, self.spy.one_arg_method(u"XabcñX"))
+#
+#    def test_str_containing_but_matcher_not_used(self):
+#        when(self.spy.one_arg_method).with_args(
+#                        "abc").then_return(1000)
+#
+#        self.assertNotEquals(1000, self.spy.one_arg_method("XabcX"))
+#
+#    def test_was_called_and_substr_matcher(self):
+#        self.spy.one_arg_method("XabcX")
+#
+#        assert_that_was_called(self.spy.one_arg_method).with_args(
+#                                    str_containing("abc"))
+#
+#    def test_str_not_containing(self):
+#        when(self.spy.one_arg_method).with_args(
+#                        str_not_containing("abc")).then_return(1000)
+#
+#        self.assertNotEquals(1000, self.spy.one_arg_method("abc"))
+#
+#    def test_str_not_containing_stubs_anything_else(self):
+#        when(self.spy.one_arg_method).with_args(
+#                        str_not_containing("abc")).then_return(1000)
+#
+#        self.assertEquals(1000, self.spy.one_arg_method("xxx"))
+#
+#    def test_str_not_containing_was_called(self):
+#        self.spy.one_arg_method("abc")
+#        assert_that_was_called(self.spy.one_arg_method).with_args(
+#                                str_not_containing("xxx"))
+#
+#    def test_several_matchers(self):
+#        when(self.spy.two_args_method).with_args(
+#                        str_containing("abc"),
+#                        str_containing("xxx")).then_return(1000)
+#
+#        self.assertNotEquals(1000,
+#                    self.spy.two_args_method("abc", "yyy"))
+#
+#    def test_str_length_matcher(self):
+#        when(self.spy.one_arg_method).with_args(
+#                        str_length(5)).then_return(1000)
+#
+#        self.assertEquals(1000,
+#                    self.spy.one_arg_method("abcde"))
+#
+#    def test_matchers_when_passed_arg_is_none(self):
+#        when(self.spy.one_arg_method).with_args(
+#                        str_length(5)).then_return(1000)
+#        self.assertTrue(self.spy.one_arg_method(None) is None)
+#
+#    def test_compare_objects_is_not_possible_without_eq_operator(self):
+#        class SomeObject():
+#            field1 = field2 = None
+#
+#        obj = SomeObject()
+#        obj2 = SomeObject()
+#        self.spy.one_arg_method(obj)
+#
+#        try:
+#            assert_that_method(self.spy.one_arg_method).was_called().with_args(obj2)
+#            self.fail('they should not match')
+#        except ArgsDontMatch:
+#            pass
+#
+#    def test_if_doesnt_match_message_is_human_redable(self):
+#        self.spy.one_arg_method("XabcX")
+#
+#        try:
+#            assert_that_was_called(self.spy.one_arg_method).with_args(
+#                                    str_containing("xxx"))
+#
+#        except ArgsDontMatch, e:
+#            self.assertTrue("xxx" in str(e.args), str(e.args))
+#            self.assertTrue("string containing" in str(e.args))
+#
+#    def test_obj_with_field_matcher(self):
+#        obj = Collaborator()
+#        obj.id = 20
+#        self.spy.one_arg_method(obj)
+#        assert_that_method(self.spy.one_arg_method
+#            ).was_called().with_args(obj_with_fields({'id': 20}))
+#
+#    def test_obj_with_several_fields_matcher(self):
+#        obj = Collaborator()
+#        obj.id = 21
+#        self.spy.one_arg_method(obj)
+#        try:
+#            assert_that_method(
+#                self.spy.one_arg_method).was_called().with_args(
+#                obj_with_fields({
+#                            'id': 20,
+#                            'test_field': 'OK'}))
+#            self.fail('Wrong assertion, id field is different')
+#        except ArgsDontMatch:
+#            pass
+#
+#    def test_obj_with_field_defends_agains_wrong_usage(self):
+#        self.spy.one_arg_method(Collaborator())
+#        try:
+#            assert_that_method(
+#                self.spy.one_arg_method).was_called().with_args(
+#                obj_with_fields('id = 20'))
+#            self.fail('Wrong assertion, argument should be a dictionary')
+#        except WrongApiUsage:
+#            pass
+#
+#
+#class pyDoubles__CustomMatchersTest(unittest.TestCase):
+#
+#    def setUp(self):
+#        self.spy = spy(Collaborator())
+#
+#    def test_use_custom_matcher(self):
+#        class CustomMatcher(PyDoublesMatcher):
+#            matcher_name = "test matcher"
+#
+#            def __init__(self, arg):
+#                self.defined_arg = arg
+#
+#            def matches(self, item):
+#                return True
+#
+#        when(self.spy.one_arg_method).with_args(
+#            CustomMatcher('zzz')).then_return(1000)
+#        self.assertEquals(1000, self.spy.one_arg_method('xx'))
+#
+#    def test_custom_matcher_do_not_follow_convention(self):
+#        class CustomMatcher(PyDoublesMatcher):
+#            def matches(self, item):
+#                return False
+#
+#        self.spy.one_arg_method(1)
+#        try:
+#            assert_that_was_called(self.spy.one_arg_method).with_args(
+#                                   CustomMatcher())
+#            self.fail('args dont match!')
+#        except ArgsDontMatch:
+#            pass
+#
+
+# Tests:
+# - ANY_ARG for non args method
+
+# Features:
+# - classmethod
+# - staticmethod
+# - property

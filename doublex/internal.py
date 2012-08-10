@@ -1,6 +1,7 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
 import inspect
+import exceptions
 
 from hamcrest.core.base_matcher import BaseMatcher
 
@@ -8,6 +9,27 @@ import tools
 import safeunicode
 from .exc import *
 from .const import *
+
+
+class InvocationSet(object):
+    def __init__(self):
+        self.invocations = []
+
+    def append(self, invocation):
+        self.invocations.append(invocation)
+
+    def __contains__(self, invocation):
+        return invocation in self.invocations
+
+    def lookup(self, invocation):
+        if not invocation in self.invocations:
+            raise LookupError
+
+        i = self.invocations.index(invocation)
+        return self.invocations[i]
+
+    def __repr__(self):
+        return str(self.invocations)
 
 
 def create_proxy(collaborator):
@@ -23,6 +45,9 @@ class DummyProxy(object):
 
     def assert_match_signature(self, invocation):
         pass
+
+    def same_method(self, name1, name2):
+        return name1 == name2
 
 
 class Proxy(object):
@@ -70,58 +95,45 @@ class Proxy(object):
     def add_class_prefix(self, name, args=''):
         return "%s.%s%s" % (self.collaborator_class.__name__, name, args)
 
+    def same_method(self, name1, name2):
+        return getattr(self.collaborator, name1) == \
+            getattr(self.collaborator, name2)
+
     def perform_invocation(self, invocation):
         method = getattr(self.collaborator, invocation.name)
         return method(*invocation.context.args,
                        **invocation.context.kargs)
 
 
-class StubbedMethod(object):
-    def __init__(self, stub, name):
-        self.stub = stub
-        self.name = name
-
-    def __call__(self, *args, **kargs):
-        invocation = Invocation(self.stub, self.name,
-                                InvocationContext(*args, **kargs))
-
-        if self.stub.recording:
-            return invocation
-
-        try:
-            context = self.stub.lookup_stub_invocation(invocation).context
-            if context.exception is not None:
-                raise context.exception
-
-            return context.output
-        except ValueError:
-            return None
-
-    def __repr__(self):
-        return "<StubMethod %s()>" % self.name
-
-
-class SpiedMethod(object):
+class Method(object):
     def __init__(self, double, name):
         self.double = double
         self.name = name
 
     def __call__(self, *args, **kargs):
-        invocation = Invocation(self.double, self.name, InvocationContext(*args, **kargs))
-        return invocation.call()
+        invocation = Invocation(self.double, self.name,
+                                InvocationContext(*args, **kargs))
+
+        if self.double.recording:
+            return invocation
+
+        return self.double.invoke(invocation)
 
     def was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
         return invocation.was_called(times)
 
     def __repr__(self):
+        indent = ' ' * 8
+        invocations = self.double.get_invocations_to(self.name)
+        if not invocations:
+            return "method '%s' never invoked" % self.name
+
         retval = "invoked this way:\n"
-        for i in self.double.get_invocations_to(self.name):
-            retval += "          %s\n" % i
+        for i in invocations:
+            retval += "%s%s\n" % (indent, i)
 
         return retval
-
-
 
 
 class Invocation(object):
@@ -140,13 +152,19 @@ class Invocation(object):
         self.context.output = value
         self.call()
 
+    def returns_input(self):
+        if not self.context.args:
+            raise ApiMismatch
+
+        self.returns(self.context.args)
+
     def raises(self, value):
         self.context.exception = value
         self.call()
 
     def __eq__(self, other):
-#        print self, other
-        return (self.name, self.context) == (other.name, other.context)
+        return self.double.proxy.same_method(self.name, other.name) and \
+            self.context == other.context
 
     def __repr__(self):
         return "%s%s" % (self.name, self.context)
@@ -178,7 +196,7 @@ class MethodCalled(BaseMatcher):
         self._times = times
 
     def _matches(self, method):
-        if not isinstance(method, SpiedMethod):
+        if not isinstance(method, Method):
             raise WrongApiUsage
 
         return method.was_called(self.context, self._times)

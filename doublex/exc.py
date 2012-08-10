@@ -7,3 +7,7 @@ class ApiMismatch(Exception):
 
 class WrongApiUsage(Exception):
     pass
+
+
+class NotStubbedInvocation(Exception):
+    pass
