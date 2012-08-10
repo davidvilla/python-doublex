@@ -14,12 +14,20 @@ class Spy(object):
         self.proxy = create_collaborator_proxy(collaborator)
         self.invocations = []
 
-    def add_invocation(self, invocation):
+    def invoke(self, invocation):
         self.proxy.assert_match_signature(invocation)
         self.invocations.append(invocation)
 
     def was_called(self, invocation, times):
         return self.invocations.count(invocation) >= times
+
+    def get_invocations_to(self, name):
+        retval = []
+        for i in self.invocations:
+            if i.name == name:
+                retval.append(i)
+
+        return retval
 
     def __getattr__(self, key):
         self.proxy.assert_has_method(key)
@@ -27,6 +35,17 @@ class Spy(object):
         method = Method(self, key)
         setattr(self, key, method)
         return method
+
+
+class ProxySpy(Spy):
+    def __init__(self, collaborator):
+        assert not inspect.isclass(collaborator), \
+            "ProxySpy argument must be an instance"
+        super(ProxySpy, self).__init__(collaborator)
+
+    def invoke(self, invocation):
+        super(ProxySpy, self).invoke(invocation)
+        return self.proxy.perform_invocation(invocation)
 
 
 def create_collaborator_proxy(collaborator):
@@ -46,16 +65,14 @@ class DummyCollaboratorProxy(object):
 
 class CollaboratorProxy(object):
     def __init__(self, collaborator):
-        self.collaborator = self.get_class(collaborator)
+        self.collaborator = collaborator
+        self.collaborator_class = self.get_class(collaborator)
 
     def get_class(self, something):
-        if isinstance(something, (types.ClassType, type)):
+        if inspect.isclass(something):
             return something
-
-        if isinstance(something, (types.InstanceType, object)):
+        else:
             return something.__class__
-
-        raise Exception("collaborator must be class or instance")
 
     def assert_match_signature(self, invocation):
         self.assert_has_method(invocation.name)
@@ -89,7 +106,12 @@ class CollaboratorProxy(object):
             raise ApiMismatch(reason)
 
     def add_class_prefix(self, name, args=''):
-        return "%s.%s%s" % (self.collaborator.__name__, name, args)
+        return "%s.%s%s" % (self.collaborator_class.__name__, name, args)
+
+    def perform_invocation(self, invocation):
+        method = getattr(self.collaborator, invocation.name)
+        return method(*invocation.context.args,
+                       **invocation.context.kargs)
 
 
 class Method(object):
@@ -98,7 +120,7 @@ class Method(object):
         self.name = name
 
     def __call__(self, *args, **kargs):
-        self.double.add_invocation(
+        return self.double.invoke(
             Invocation(self.name, InvocationContext(*args, **kargs)))
 
     def was_called(self, context, times):
@@ -106,7 +128,11 @@ class Method(object):
             Invocation(self.name, context), times)
 
     def __repr__(self):
-        return "Method(%s)" % self.name
+        retval = "invoked this way:\n"
+        for i in self.double.get_invocations_to(self.name):
+            retval += "          %s\n" % i
+
+        return retval
 
 
 class Invocation(object):
@@ -136,7 +162,7 @@ class InvocationContext(object):
         return (self.args, self.kargs) == (other.args, other.kargs)
 
     def __str__(self):
-        return str(InvocationFormatter(self.args, self.kargs))
+        return str(InvocationFormatter(self))
 
 
 class MethodCalled(BaseMatcher):
@@ -145,10 +171,15 @@ class MethodCalled(BaseMatcher):
         self._times = times
 
     def _matches(self, method):
+        if not isinstance(method, Method):
+            raise WrongApiUsage
+
         return method.was_called(self.context, self._times)
 
     def describe_to(self, description):
-        description.append_text('method called ')
+        description.append_text('method called with ')
+        description.append_text(str(self.context))
+        description.append_text(' ')
         if self._times > 1:
             description.append_text('%s times ' % self._times)
 
@@ -171,10 +202,14 @@ class ApiMismatch(Exception):
     pass
 
 
+class WrongApiUsage(Exception):
+    pass
+
+
 class InvocationFormatter(object):
-    def __init__(self, args, kargs):
-        self.args = args
-        self.kargs = kargs
+    def __init__(self, context):
+        self.args = context.args
+        self.kargs = context.kargs
         self.output = None
 
     def __str__(self):

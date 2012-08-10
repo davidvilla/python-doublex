@@ -36,8 +36,9 @@ class SpyWishes(TestCase):
         assert_that(sender.send_mail, called().times(2))
         assert_that(sender.send_mail, called_with('foo@bar.net'))
 
-        # was_not is just an alias for hamcrest.is_not (sintactic molasses)
+        # these may be just aliases for hamcrest.is_not (sintactic molasses)
         assert_that(sender.close, was_not(called()))
+        assert_that(sender.close, never(called()))
 
     def test_checking_interface(self):
         sender = Spy(Sender)  # arg may be a class (instance is not required)
