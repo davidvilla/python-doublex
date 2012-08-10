@@ -18,7 +18,8 @@ DESIGN_PRINCIPLES = '''
 
 class StubWishes(TestCase):
     def test_programming_a_stub_invoking_it(self):
-        with Stub() as stub:
+        stub = Stub()
+        with record(stub):
             stub.foo('hi').returns(10)
             stub.hello(ANY_ARG).returns(False)
             stub.bye().raises(SomeException)
@@ -30,7 +31,7 @@ class SpyWishes(TestCase):
     def test_hamcrest_assertions(self):
         sender = Spy()  # empty spy
 
-        sender.foo('hi')
+        sender.send_mail('hi')
 
         assert_that(sender.send_mail, called())
         assert_that(sender.send_mail, called().times(2))
@@ -44,12 +45,13 @@ class SpyWishes(TestCase):
         sender = Spy(Sender)  # arg may be a class (instance is not required)
 
     def test_proxy_as_config(self):
-        sender = Spy(Sender, proxy=True)
+        sender = ProxySpy(Sender())
 
 
 class MockWishes(TestCase):
     def test_programming_a_mock_invoking_it(self):
-        with Mock() as sender:
+        sender = Mock()
+        with record(sender):
             sender.send_mail()  # inoked without args
             sender.send_mail(ANY_ARG)  # any invocation
             sender.send_mail('wrong_mail').returns(FAILURE)

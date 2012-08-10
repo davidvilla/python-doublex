@@ -2,10 +2,10 @@
 
 from unittest import TestCase
 
-from hamcrest import assert_that, is_not, is_
+from hamcrest import assert_that, is_not, is_, contains_string
 
-from doublex import Spy, ProxySpy
-from doublex import called, called_with, ANY_ARG
+from doublex import Spy, ProxySpy, Stub
+from doublex import called, called_with, ANY_ARG, record
 from doublex import ApiMismatch, WrongApiUsage
 import doublex.tools as tools
 
@@ -64,6 +64,14 @@ class EmptySpyTests(TestCase):
         assert_that(self.spy.foo, called().times(4))
         assert_that(self.spy.foo, called_with(ANY_ARG).times(4))
 
+    def test_mixed_args(self):
+        self.spy.send_mail('hi')
+        self.spy.send_mail('foo@bar.net')
+
+        assert_that(self.spy.send_mail, called())
+        assert_that(self.spy.send_mail, called().times(2))
+        assert_that(self.spy.send_mail, called_with('foo@bar.net'))
+
     def test_called_with_several_types_and_kargs(self):
         self.spy.foo(3.0, [1, 2], 'hi', color='red', width=10)
 
@@ -95,14 +103,16 @@ class VerifiedSpyTests(TestCase):
             self.spy.wrong()
             self.fail('ApiMismatch should be raised')
         except ApiMismatch as e:
-            self.assertIn(str(e), "No such method: Collaborator.wrong")
+            expected = "No such method: Collaborator.wrong"
+            assert_that(str(e), contains_string(expected))
 
     def test_check_unexisting_method(self):
         try:
             assert_that(self.spy.wrong, called())
             self.fail('ApiMismatch should be raised')
         except ApiMismatch as e:
-            self.assertIn(str(e), "No such method: Collaborator.wrong")
+            expected = "No such method: Collaborator.wrong"
+            assert_that(str(e), contains_string(expected))
 
     def test_create_from_oldstyle_class(self):
         self.spy = Spy(Collaborator)
@@ -122,6 +132,82 @@ class ProxySpyTest(TestCase):
     def test_given_argument_can_not_be_newstyle_class(self):
         self.failUnlessRaises(AssertionError,
                               ProxySpy, Actor)
+
+
+class StubTests(TestCase):
+    def setUp(self):
+        self.stub = Stub()
+
+    def test_record_invocation(self):
+        with record(self.stub):
+            self.stub.foo().returns(2)
+
+        assert_that(self.stub.foo(), 2)
+
+    def test_record_invocation_with_args(self):
+        with record(self.stub):
+            self.stub.foo(1, param='hi').returns(2)
+
+        assert_that(self.stub.foo(1, param='hi'), 2)
+
+    def test_record_invocation_with_wrong_args_returns_None(self):
+        with record(self.stub):
+            self.stub.foo(1, param='hi').returns(2)
+
+        assert_that(self.stub.foo(1, param='wrong'), is_(None))
+
+    def test_not_stubbed_method_returns_None(self):
+        with record(self.stub):
+            self.stub.foo().returns(True)
+
+        assert_that(self.stub.bar(), is_(None))
+
+    def test_ANY_ARG(self):
+        with record(self.stub):
+            self.stub.foo(ANY_ARG).returns(True)
+
+        assert_that(self.stub.foo(), True)
+        assert_that(self.stub.foo(1), True)
+        assert_that(self.stub.foo('hi', param=3.0), True)
+
+    def test_raises(self):
+        with record(self.stub):
+            self.stub.foo().raises(KeyError)
+
+        try:
+            self.stub.foo()
+            self.fail("It should raise KeyError")
+        except KeyError:
+            pass
+
+
+class VerifiedStubTests(TestCase):
+    def setUp(self):
+        self.stub = Stub(Collaborator)
+
+    def test_stubbing_a_existing_method(self):
+        with record(self.stub):
+            self.stub.hello().returns("bye")
+
+        assert_that(self.stub.hello(), "bye")
+
+    def test_stubbing_a_non_existing_method_raises_error(self):
+        try:
+            with record(self.stub):
+                self.stub.wrong().returns("bye")
+
+        except ApiMismatch, e:
+            expected = "No such method: Collaborator.wrong"
+            assert_that(str(e), contains_string(expected))
+
+    def test_stubbing_with_wrong_args_raises_error(self):
+        try:
+            with record(self.stub):
+                self.stub.hello(1).returns("bye")
+
+        except ApiMismatch, e:
+            expected = "Mismatching positional arguments"
+            assert_that(str(e), contains_string(expected))
 
 
 class Actor(object):
@@ -280,10 +366,11 @@ class pyDoubles__ProxySpyTests(TestCase):
             self.assertIn("foo", str(e))
 
 #    def test_stub_out_method(self):
-#        when(self.spy.one_arg_method).then_return(3)
+#        with record(self.spy):
+#            self.spy.one_arg_method(ANY_ARG).returns(3)
 #
 #        self.assertEquals(3, self.spy.one_arg_method(5))
-#
+
 #    def test_stub_method_was_called(self):
 #        when(self.spy.one_arg_method).then_return(3)
 #        self.spy.one_arg_method(5)
@@ -503,10 +590,6 @@ class pyDoubles__SpyTests(TestCase):
         self.spy.one_arg_method(non_ascii)
 
         assert_that(self.spy.one_arg_method, called_with(non_ascii))
-
-#        pyDoubles:
-#        assert_that_was_called(self.spy.one_arg_method).with_args(
-#                                                        non_ascii)
 
 #    def test_stub_methods_can_be_handled_separately(self):
 #        when(self.spy.one_arg_method).with_args(1).then_return(1000)

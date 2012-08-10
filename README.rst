@@ -1,6 +1,102 @@
 python-doublex
 ==============
 
-This is a try to improve and simplify pyDoubles[1]
+This is a try to improve and simplify pyDoubles[1] codebase and API
 
 [1] https://bitbucket.org/carlosble/pydoubles
+
+
+Design principles
+-----------------
+
+- Doubles have not public api specific methods. It avoid silent misspelling.
+- non-proxified doubles does not require collaborator instances, they may use classes
+- hamcrest.assert_that used for all assertions
+- Mock invocation order is required by default
+- Compatible with old and new style classes
+
+
+Empty Stub
+----------
+
+::
+
+ # given
+ stub = Stub()
+ with record(stub):
+     stub.foo('hi').returns(10)
+     stub.hello(ANY_ARG).returns(False)
+     stub.bye().raises(SomeException)
+
+ # when
+ result = stub.foo()
+
+ # then
+ assert_that(result, 10)
+
+
+Verified Stub
+-------------
+
+::
+
+ class Collaborator:
+     def foo(self):
+         return "foo"
+
+ stub = Stub(Collaborator)
+ with record(stub):
+     stub.foo().raises(SomeException)
+     stub.bar().returns(True)  # raises ApiMismatch exception
+     stub.foo(1).returns(2)    # raises ApiMismatch exception
+
+
+Empty Spy
+---------
+
+::
+
+ # given
+ sender = Spy()
+
+ # when
+ sender.send_mail('hi')
+ sender.send_mail('foo@bar.net')
+
+ # then
+ assert_that(sender.send_mail, called())
+ assert_that(sender.send_mail, called().times(2))
+ assert_that(sender.send_mail, called_with('foo@bar.net'))
+
+
+Verified Spy
+------------
+
+::
+
+ class Sender:
+     def say(self):
+         return "hi"
+
+     def send_mail(self, address, force=True):
+         [some amazing code]
+
+ sender = Spy(Sender)
+
+ sender.bar()        # raises ApiMismatch exception
+ sender.send_mail()  # raises ApiMismatch exception
+ sender.send_mail(wrong=1)         # raises ApiMismatch exception
+ sender.send_mail('foo', wrong=1)  # raises ApiMismatch exception
+
+
+ProxySpy
+--------
+
+::
+
+ sender = Spy(Sender())  # must give an instance
+
+ sender.say('boo!')  # raises ApiMismatch exception
+
+ assert_that(sender.say(), "hi")
+ assert_that(sender.say, called())
