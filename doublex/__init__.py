@@ -5,6 +5,7 @@ import inspect
 
 from hamcrest.core.base_matcher import BaseMatcher
 
+import tools
 import safeunicode
 
 
@@ -69,8 +70,8 @@ class CollaboratorProxy(object):
 #        print "keywords:", argspec.keywords
 #        print "defaults:", argspec.defaults
 
-        positionals = self.count_positionals(argspec)
-        keywords = self.get_keywords(argspec)
+        positionals = tools.inspect_count_positionals(argspec)
+        keywords = tools.inspect_get_keywords(argspec)
 
 #        print keywords
 
@@ -81,20 +82,6 @@ class CollaboratorProxy(object):
             raise ApiMismatch(reason)
 
 #        print invocation, argspec
-
-    def count_positionals(self, argspec):
-        if argspec.defaults is None:
-            ndefaults = 0
-        else:
-            ndefaults = len(argspec.defaults)
-
-        return len(argspec.args) - ndefaults - 1
-
-    def get_keywords(self, argspec):
-        if argspec.defaults is None:
-            return []
-
-        return argspec.args[-len(argspec.defaults):]
 
     def assert_has_method(self, name):
         if not hasattr(self.collaborator, name):
