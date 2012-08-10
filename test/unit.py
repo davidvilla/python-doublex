@@ -877,7 +877,7 @@ class pyDoubles__StubMethodsTests(TestCase):
         self.assertEquals("bye", self.collaborator.one_arg_method(1))
 
     def test_method_raising_exception(self):
-        self.collaborator.hello = method_raising(SomeException())
+        self.collaborator.hello = method_raising(SomeException)
         try:
             self.collaborator.hello()
             self.fail("exception not raised")

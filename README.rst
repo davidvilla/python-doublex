@@ -141,4 +141,17 @@ ProxySpy
      smtp.mail()   # raises ApiMismatch exception
 
 
+stub methods
+------------
+
+::
+
+ collaborator = Collaborator()
+ collaborator.foo = method_returning("bye")
+ assertEquals("bye", self.collaborator.foo())
+
+ collaborator.foo = method_raising(SomeException)
+ collaborator.foo()  # raises SomeException
+
+
 ...Working on stub methods...
