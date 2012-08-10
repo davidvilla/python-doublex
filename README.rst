@@ -108,16 +108,16 @@ ProxySpy
 
 ::
 
-with Mock() as smtp:
-    smtp.helo()
-    smtp.mail(ANY_ARG)
-    smtp.rcpt("bill@apple.com")
+ with Mock() as smtp:
+     smtp.helo()
+     smtp.mail(ANY_ARG)
+     smtp.rcpt("bill@apple.com")
 
-smtp.helo()
-smtp.mail("poormen@home.net")
-smtp.rcpt("bill@apple.com")
+ smtp.helo()
+ smtp.mail("poormen@home.net")
+ smtp.rcpt("bill@apple.com")
 
-assert_that(smtp, meets_expectations())
+ assert_that(smtp, meets_expectations())
 
 
 "verified" Mock
@@ -125,17 +125,17 @@ assert_that(smtp, meets_expectations())
 
 ::
 
-class SMTP:
-    def helo(self):
-        [...]
-    def mail(self, address):
-        [...]
-    def rcpt(self, address):
-        [...]
+ class SMTP:
+     def helo(self):
+         [...]
+     def mail(self, address):
+         [...]
+     def rcpt(self, address):
+         [...]
 
-with Mock(STMP) as smtp:
-    smtp.wrong()  # raises ApiMismatch exception
-    smtp.mail()   # raises ApiMismatch exception
+ with Mock(STMP) as smtp:
+     smtp.wrong()  # raises ApiMismatch exception
+     smtp.mail()   # raises ApiMismatch exception
 
 
 ...Working on stub methods...
