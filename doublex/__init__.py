@@ -56,9 +56,7 @@ class Stub(object):
 
     def __getattr__(self, key):
         self.proxy.assert_has_method(key)
-
-        method = internal.Method(self, key)
-        return method
+        return internal.Method(self, key)
 
 
 class Spy(Stub):
@@ -91,6 +89,13 @@ class ProxySpy(Spy):
         return self.proxy.perform_invocation(invocation)
 
 
+class Mock(Spy):
+    def do_manage_invocation(self, invocation):
+        super(Mock, self).do_manage_invocation(invocation)
+        if not invocation in self.stubs:
+            raise UnexpectedBehavior(self.stubs)
+
+
 def called():
     return internal.MethodCalled(
         internal.InvocationContext(ANY_ARG))
@@ -99,6 +104,10 @@ def called():
 def called_with(*args, **kargs):
     return internal.MethodCalled(
         internal.InvocationContext(*args, **kargs))
+
+
+def meets_expectations():
+    return internal.MockMeetsExpectations()
 
 
 @contextmanager

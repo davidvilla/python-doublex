@@ -11,25 +11,19 @@ from .exc import *
 from .const import *
 
 
-class InvocationSet(object):
-    def __init__(self):
-        self.invocations = []
-
-    def append(self, invocation):
-        self.invocations.append(invocation)
-
-    def __contains__(self, invocation):
-        return invocation in self.invocations
-
+class InvocationSet(list):
     def lookup(self, invocation):
-        if not invocation in self.invocations:
+        if not invocation in self:
             raise LookupError
 
-        i = self.invocations.index(invocation)
-        return self.invocations[i]
+        i = self.index(invocation)
+        return self[i]
 
     def __repr__(self):
-        return str(self.invocations)
+        if not self:
+            return "No one"
+
+        return super(InvocationSet, self).__repr__()
 
 
 def create_proxy(collaborator):
@@ -114,10 +108,12 @@ class Method(object):
         invocation = Invocation(self.double, self.name,
                                 InvocationContext(*args, **kargs))
 
+        retval = self.double.invoke(invocation)
+
         if self.double.recording:
             return invocation
 
-        return self.double.invoke(invocation)
+        return retval
 
     def was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
@@ -142,25 +138,29 @@ class Invocation(object):
         self.name = name
         self.context = context
 
-    def call(self):
-        return self.double.invoke(self)
-
     def was_called(self, times):
         return self.double.was_called(self, times)
 
     def returns(self, value):
         self.context.output = value
-        self.call()
+        return self
 
     def returns_input(self):
         if not self.context.args:
             raise ApiMismatch
 
         self.returns(self.context.args)
+        return self
 
     def raises(self, value):
         self.context.exception = value
-        self.call()
+
+    def times(self, n):
+        if n < 2:
+            raise WrongApiUsage()
+
+        for i in range(1, n):
+            self.double.invoke(self)
 
     def __eq__(self, other):
         return self.double.proxy.same_method(self.name, other.name) and \
@@ -188,28 +188,6 @@ class InvocationContext(object):
 
     def __str__(self):
         return str(InvocationFormatter(self))
-
-
-class MethodCalled(BaseMatcher):
-    def __init__(self, context, times=1):
-        self.context = context
-        self._times = times
-
-    def _matches(self, method):
-        if not isinstance(method, Method):
-            raise WrongApiUsage
-
-        return method.was_called(self.context, self._times)
-
-    def describe_to(self, description):
-        description.append_text('method called with ')
-        description.append_text(str(self.context))
-        description.append_text(' ')
-        if self._times > 1:
-            description.append_text('%s times ' % self._times)
-
-    def times(self, n):
-        return MethodCalled(self.context, times=n)
 
 
 class InvocationFormatter(object):
@@ -248,3 +226,39 @@ class InvocationFormatter(object):
                  for key, val in sorted(kargs.items())]
 
         return str.join(', ', items)
+
+
+class MethodCalled(BaseMatcher):
+    def __init__(self, context, times=1):
+        self.context = context
+        self._times = times
+
+    def _matches(self, method):
+        if not isinstance(method, Method):
+            raise WrongApiUsage()
+
+        return method.was_called(self.context, self._times)
+
+    def describe_to(self, description):
+        description.append_text('method called with ')
+        description.append_text(str(self.context))
+        description.append_text(' ')
+        if self._times > 1:
+            description.append_text('%s times ' % self._times)
+
+    def times(self, n):
+        return MethodCalled(self.context, times=n)
+
+
+class MockMeetsExpectations(BaseMatcher):
+    def _matches(self, mock):
+#        if not instance(mock, Mock):
+#            raise WrongApiUsage()
+
+#        print mock.stubs
+#        print mock.invocations
+#        print mock.stubs == mock.invocations
+        return mock.stubs == mock.invocations
+
+    def describe_to(self, description):
+        description.append_text('invocations ')

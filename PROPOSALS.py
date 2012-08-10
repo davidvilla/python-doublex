@@ -59,18 +59,24 @@ class MockWishes(TestCase):
 
         mock.foo('bye')
 
-        with self.assertRaises(UnexpectedBehavior):
-            assert_expectations(mock)  # hamcrest matcher for that?
+        assert_that(mock, meets_expectations())
 
     def test_lossy_invocation_order(self):
-        with Mock(smooth=True) as sender:
+        sender = SmoothMock()
+        with record(sender):
             sender.send_mail('FOO@cat.net')
             sender.send_mail('bar@example.net')
 
         sender.send_mail('bar@example.net')
         sender.send_mail('FOO@cat.net')
 
-        assert_expectations(mock)
+        assert_that(mock, meets_expectations())
 
     def test_checking_interface(self):
         sender = Mock(Sender)  # arg may be a class (instance is not required)
+
+
+# Future features:
+# - classmethod
+# - staticmethod
+# - property

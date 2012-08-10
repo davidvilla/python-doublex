@@ -9,5 +9,5 @@ class WrongApiUsage(Exception):
     pass
 
 
-class NotStubbedInvocation(Exception):
+class UnexpectedBehavior(Exception):
     pass

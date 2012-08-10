@@ -4,9 +4,9 @@ from unittest import TestCase
 
 from hamcrest import assert_that, is_not, is_, contains_string
 
-from doublex import Spy, ProxySpy, Stub
-from doublex import called, called_with, ANY_ARG, record
-from doublex import ApiMismatch, WrongApiUsage
+from doublex import Spy, ProxySpy, Stub, Mock
+from doublex import called, called_with, ANY_ARG, record, meets_expectations
+from doublex import ApiMismatch, WrongApiUsage, UnexpectedBehavior
 
 
 class EmptySpyTests(TestCase):
@@ -653,196 +653,202 @@ class pyDoubles__SpyTests(TestCase):
                           "Wrong returned object")
 
 
-#class pyDoubles__MockTests(TestCase):
-#    def setUp(self):
-#        self.mock = Mock(Collaborator)
-#
-#    def test_fail_on_unexpected_call(self):
-#        try:
-#            self.mock.hello()
-#            self.fail('UnexpectedBehavior should be raised')
-#        except UnexpectedBehavior:
-#            pass
-#
-#    def test_fail_on_unexpected_call_msg_is_human_readable(self):
-#        try:
-#            self.mock.hello()
-#        except UnexpectedBehavior, e:
-#            for arg in e.args:
-#                if re.search("No one", arg):
-#                    return
-#            self.fail("No enough readable exception message")
-#
-#    def test_define_expectation_and_call_method(self):
-#        expect_call(self.mock.hello)
-#        self.assertTrue(self.mock.hello() is None)
-#
-#    def test_define_several_expectatiosn(self):
-#        expect_call(self.mock.hello)
-#        expect_call(self.mock.one_arg_method)
-#
-#        self.assertTrue(self.mock.hello() is None)
-#        self.assertTrue(self.mock.one_arg_method(1) is None)
-#
-#    def test_define_expectation_args(self):
-#        expect_call(self.mock.one_arg_method).with_args(1)
-#        self.assertTrue(self.mock.one_arg_method(1) is None)
-#
-#    def test_define_expectation_args_and_fail(self):
-#        expect_call(self.mock.one_arg_method).with_args(1)
-#        try:
-#            self.mock.one_arg_method(2)
-#            self.fail('Unexpected call')
-#        except UnexpectedBehavior:
-#            pass
-#
-#    def test_several_expectations_with_args(self):
-#        expect_call(self.mock.one_arg_method).with_args(1)
-#        expect_call(self.mock.two_args_method).with_args(2, 3)
-#
-#        self.assertTrue(self.mock.one_arg_method(1) is None)
-#        self.assertTrue(self.mock.two_args_method(2, 3) is None)
-#
-#    def test_expect_call_returning_value(self):
-#        expect_call(self.mock.one_arg_method).with_args(1).returning(1000)
-#
-#        self.assertEquals(1000, self.mock.one_arg_method(1))
-#
-#    def test_assert_expectations_are_satisfied(self):
-#        expect_call(self.mock.hello)
-#        try:
-#            self.mock.assert_that_is_satisfied()
-#            self.fail('Not satisfied!')
-#        except UnexpectedBehavior:
-#            pass
-#
-#    def test_assert_expectations_alternative(self):
-#        expect_call(self.mock.hello)
-#        try:
-#            self.mock.assert_expectations()
-#            self.fail('Not satisfied')
-#        except UnexpectedBehavior:
-#            pass
-#
-#    def test_assert_satisfied_when_it_really_is(self):
-#        expect_call(self.mock.hello)
-#        self.mock.hello()
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_number_of_calls_matter(self):
-#        expect_call(self.mock.hello)
-#        self.mock.hello()
-#        self.mock.hello()
-#        self.failUnlessRaises(UnexpectedBehavior,
-#                        self.mock.assert_that_is_satisfied)
-#
-#    def test_using_when_or_expect_call_without_double(self):
-#        self.failUnlessRaises(WrongApiUsage,
-#                        expect_call, Collaborator())
-#
-#    def test_expectations_on_synonyms(self):
-#        expect_call(self.mock.one_arg_method)
-#
-#        self.mock.alias_method(1)
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_several_expectations_with_different_args(self):
-#        expect_call(self.mock.one_arg_method).with_args(1)
-#        expect_call(self.mock.one_arg_method).with_args(2)
-#
-#        self.mock.one_arg_method(1)
-#        self.mock.one_arg_method(1)
-#
-#        self.failUnlessRaises(UnexpectedBehavior,
-#            self.mock.assert_that_is_satisfied)
-#
-#    def test_expect_several_times(self):
-#        expect_call(self.mock.one_arg_method).with_args(1).times(2)
-#
-#        self.mock.one_arg_method(1)
-#
-#        self.failUnlessRaises(UnexpectedBehavior,
-#            self.mock.assert_that_is_satisfied)
-#
-#    def test_expect_several_times_matches_exactly(self):
-#        expect_call(self.mock.one_arg_method).with_args(1).times(2)
-#
-#        self.mock.one_arg_method(1)
-#        self.mock.one_arg_method(1)
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_expect_several_times_without_args_definition(self):
-#        expect_call(self.mock.one_arg_method).times(2)
-#
-#        self.mock.one_arg_method(1)
-#        self.mock.one_arg_method(1)
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_defend_agains_less_than_2_times(self):
-#        try:
-#            expect_call(self.mock.one_arg_method).times(1)
-#            self.fail('times cant be less than 2')
-#        except WrongApiUsage:
-#            pass
-#
-#    def test_times_and_return_value(self):
-#        expect_call(self.mock.one_arg_method).returning(1000).times(2)
-#
-#        self.assertEquals(1000, self.mock.one_arg_method(1))
-#        self.assertEquals(1000, self.mock.one_arg_method(1))
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_times_and_return_value_and_input_args(self):
-#        expect_call(self.mock.one_arg_method).with_args(10).returning(1000).times(2)
-#
-#        self.assertEquals(1000, self.mock.one_arg_method(10))
-#        self.assertEquals(1000, self.mock.one_arg_method(10))
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#
-#class pyDoubles__MockFromEmptyObjectTests(unittest.TestCase):
-#    def setUp(self):
-#        self.mock = empty_mock()
-#
-#    def test_mock_can_work_from_empty_object(self):
-#        expect_call(self.mock.hello)
-#
-#        self.mock.hello()
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_mock_without_args_is_empty_mock(self):
-#        self.mock = mock()
-#        expect_call(self.mock.hello)
-#
-#        self.mock.hello()
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_several_expectations_in_empty_mock(self):
-#        expect_call(self.mock.hello)
-#        expect_call(self.mock.one_arg_method).with_args(1)
-#
-#        self.mock.hello()
-#        self.mock.one_arg_method(1)
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#    def test_several_expectations_with_args_in_empty_mock(self):
-#        expect_call(self.mock.one_arg_method).with_args(1)
-#        expect_call(self.mock.one_arg_method).with_args(2)
-#
-#        self.assertTrue(self.mock.one_arg_method(1) is None)
-#        self.assertTrue(self.mock.one_arg_method(2) is None)
-#
-#        self.mock.assert_that_is_satisfied()
-#
-#
+class pyDoubles__MockTests(TestCase):
+    def setUp(self):
+        self.mock = Mock(Collaborator)
+
+    def test_fail_on_unexpected_call(self):
+        try:
+            self.mock.hello()
+            self.fail('UnexpectedBehavior should be raised')
+        except UnexpectedBehavior:
+            pass
+
+    def test_fail_on_unexpected_call_msg_is_human_readable(self):
+        try:
+            self.mock.hello()
+        except UnexpectedBehavior, e:
+            assert_that(str(e), contains_string("No one"))
+
+    def test_define_expectation_and_call_method(self):
+        with record(self.mock):
+            self.mock.hello()
+
+        self.assertTrue(self.mock.hello() is None)
+
+    def test_define_several_expectatiosn(self):
+        with record(self.mock):
+            self.mock.hello()
+            self.mock.one_arg_method(ANY_ARG)
+
+        self.assertTrue(self.mock.hello() is None)
+        self.assertTrue(self.mock.one_arg_method(1) is None)
+
+    def test_define_expectation_args(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1)
+
+        self.assertTrue(self.mock.one_arg_method(1) is None)
+
+    def test_define_expectation_args_and_fail(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1)
+
+        try:
+            self.mock.one_arg_method(2)
+            self.fail('Unexpected call')
+        except UnexpectedBehavior:
+            pass
+
+    def test_several_expectations_with_args(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1)
+            self.mock.two_args_method(2, 3)
+
+        self.assertTrue(self.mock.one_arg_method(1) is None)
+        self.assertTrue(self.mock.two_args_method(2, 3) is None)
+
+    def test_expect_call_returning_value(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1).returns(1000)
+
+        self.assertEquals(1000, self.mock.one_arg_method(1))
+
+    def test_assert_expectations_are_satisfied(self):
+        with record(self.mock):
+            self.mock.hello()
+
+        assert_that(self.mock, is_not(meets_expectations()))
+
+    def test_assert_satisfied_when_it_really_is(self):
+        with record(self.mock):
+            self.mock.hello()
+
+        self.mock.hello()
+        assert_that(self.mock, meets_expectations())
+
+    def test_number_of_calls_matter(self):
+        with record(self.mock):
+            self.mock.hello()
+
+        self.mock.hello()
+        self.mock.hello()
+
+        assert_that(self.mock, is_not(meets_expectations()))
+
+    # this is not possible in doublex
+    def test_using_when_or_expect_call_without_double(self):
+        pass
+
+    def test_expectations_on_synonyms(self):
+        with record(self.mock):
+            self.mock.one_arg_method(ANY_ARG)
+
+        self.mock.alias_method(1)
+
+        assert_that(self.mock, meets_expectations())
+
+    def test_several_expectations_with_different_args(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1)
+            self.mock.one_arg_method(2)
+
+        self.mock.one_arg_method(1)
+        self.mock.one_arg_method(1)
+
+        assert_that(self.mock, is_not(meets_expectations()))
+
+    def test_expect_several_times(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1).times(2)
+
+        self.mock.one_arg_method(1)
+
+        assert_that(self.mock, is_not(meets_expectations()))
+
+    def test_expect_several_times_matches_exactly(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1).times(2)
+
+        self.mock.one_arg_method(1)
+        self.mock.one_arg_method(1)
+
+        assert_that(self.mock, meets_expectations())
+
+    def test_expect_several_times_without_args_definition(self):
+        with record(self.mock):
+            self.mock.one_arg_method(ANY_ARG).times(2)
+
+        self.mock.one_arg_method(1)
+        self.mock.one_arg_method(1)
+
+        assert_that(self.mock, meets_expectations())
+
+    def test_defend_agains_less_than_2_times(self):
+        try:
+            with record(self.mock):
+                self.mock.one_arg_method(ANY_ARG).times(1)
+
+            self.fail('times cant be less than 2')
+        except WrongApiUsage:
+            pass
+
+    def test_times_and_return_value(self):
+        with record(self.mock):
+            self.mock.one_arg_method(ANY_ARG).returns(1000).times(2)
+
+        self.assertEquals(1000, self.mock.one_arg_method(1))
+        self.assertEquals(1000, self.mock.one_arg_method(1))
+
+        assert_that(self.mock, meets_expectations())
+
+    def test_times_and_return_value_and_input_args(self):
+        with record(self.mock):
+            self.mock.one_arg_method(10).returns(1000).times(2)
+
+        self.assertEquals(1000, self.mock.one_arg_method(10))
+        self.assertEquals(1000, self.mock.one_arg_method(10))
+
+        assert_that(self.mock, meets_expectations())
+
+
+class pyDoubles__MockFromEmptyObjectTests(TestCase):
+    def setUp(self):
+        self.mock = Mock()
+
+    def test_mock_can_work_from_empty_object(self):
+        with record(self.mock):
+            self.mock.hello()
+
+        self.mock.hello()
+
+        assert_that(self.mock, meets_expectations())
+
+    # Not applicable to doublex
+    def test_mock_without_args_is_empty_mock(self):
+        pass
+
+    def test_several_expectations_in_empty_mock(self):
+        with record(self.mock):
+            self.mock.hello()
+            self.mock.one_arg_method(1)
+
+        self.mock.hello()
+        self.mock.one_arg_method(1)
+
+        assert_that(self.mock, meets_expectations())
+
+    def test_several_expectations_with_args_in_empty_mock(self):
+        with record(self.mock):
+            self.mock.one_arg_method(1)
+            self.mock.one_arg_method(2)
+
+        self.assertTrue(self.mock.one_arg_method(1) is None)
+        self.assertTrue(self.mock.one_arg_method(2) is None)
+
+        assert_that(self.mock, meets_expectations())
+
+
 #class pyDoubles__StubMethodsTests(unittest.TestCase):
 #
 #    def setUp(self):
@@ -1030,9 +1036,4 @@ class pyDoubles__SpyTests(TestCase):
 #
 
 # Tests:
-# - ANY_ARG for non args method
-
-# Features:
-# - classmethod
-# - staticmethod
-# - property
+# - ANY_ARG for non args invocations: (1, ANY_ARG)
