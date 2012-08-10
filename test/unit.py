@@ -3,7 +3,7 @@
 from unittest import TestCase
 
 from hamcrest import *
-from doublex import Spy, called, called_with, ApiMismatch
+from doublex import Spy, called, called_with, ApiMismatch, ANY_ARG
 
 
 class EmptySpyTests(TestCase):
@@ -40,16 +40,25 @@ class EmptySpyTests(TestCase):
 
         assert_that(self.spy.foo, is_not(called_with()))
 
-    def test_called_with_args(self):
+    def test_called_with_specified_args(self):
         self.spy.foo(1)
 
         assert_that(self.spy.foo, called_with(1))
 
-    def test_not_called_with_these_args(self):
+    def test_not_called_with_specified_args(self):
         self.spy.foo()
         self.spy.foo(2)
 
         assert_that(self.spy.foo, is_not(called_with(1)))
+
+    def test__called__and__called_with__any_args_is_the_same(self):
+        self.spy.foo()
+        self.spy.foo(3)
+        self.spy.foo('hi')
+        self.spy.foo(None)
+
+        assert_that(self.spy.foo, called().times(4))
+        assert_that(self.spy.foo, called_with(ANY_ARG).times(4))
 
     def test_called_with_several_types_and_kargs(self):
         self.spy.foo(3.0, [1, 2], 'hi', color='red', width=10)

@@ -7,12 +7,12 @@ class Spy(object):
     def __init__(self, collaborator=None):
         self.collaborator = collaborator
 
-    def assert_collaborator_iface(self, key):
+    def assert_match_collaborator(self, key):
         if self.collaborator is not None and not hasattr(self.collaborator, key):
             raise ApiMismatch()
 
     def __getattr__(self, key):
-        self.assert_collaborator_iface(key)
+        self.assert_match_collaborator(key)
 
         method = Method(key)
         setattr(self, key, method)
