@@ -1,11 +1,16 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
+__all__ = ["Stub", "Spy", "ProxySpy", "Mock",
+           "called", "called_with", "meets_expectations",
+           "method_returning", "method_raising",
+           "ApiMismatch",  "WrongApiUsage", "UnexpectedBehavior"]
+
 import inspect
 
 from .internal import ANY_ARG, create_proxy, \
     InvocationSet, InvocationContext, \
     Method, MethodCalled, MockMeetsExpectations
-from .exc import *
+from .exc import ApiMismatch, WrongApiUsage, UnexpectedBehavior
 
 
 class Stub(object):
