@@ -16,7 +16,7 @@ Design principles
 - Compatible with old and new style classes
 
 
-"empty Stub"
+"empty" Stub
 ------------
 
 ::
