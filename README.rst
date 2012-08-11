@@ -168,7 +168,7 @@ invocations::
  assert_that(spy.foo, called_with(has_length(less_than(5))))
  assert_that(spy.foo, is_not(called_with(has_length(greater_than(5)))))
 
-and for stubbed calls:
+and for stubbed calls::
 
  with Spy() as spy:
      spy.foo(has_length(less_than(4))).returns('<4')
