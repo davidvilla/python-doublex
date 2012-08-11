@@ -3,6 +3,7 @@
 from unittest import TestCase
 
 from hamcrest import assert_that, is_not, is_, contains_string
+from hamcrest.library.text.stringcontainsinorder import *
 
 from doublex import Spy, ProxySpy, Stub, Mock
 from doublex import called, called_with, ANY_ARG, meets_expectations
@@ -103,7 +104,7 @@ class VerifiedSpyTests(TestCase):
             self.spy.wrong()
             self.fail('ApiMismatch should be raised')
         except ApiMismatch as e:
-            expected = "No such method: Collaborator.wrong"
+            expected = "Not such method: Collaborator.wrong"
             assert_that(str(e), contains_string(expected))
 
     def test_check_unexisting_method(self):
@@ -111,7 +112,7 @@ class VerifiedSpyTests(TestCase):
             assert_that(self.spy.wrong, called())
             self.fail('ApiMismatch should be raised')
         except ApiMismatch as e:
-            expected = "No such method: Collaborator.wrong"
+            expected = "Not such method: Collaborator.wrong"
             assert_that(str(e), contains_string(expected))
 
     def test_create_from_oldstyle_class(self):
@@ -209,7 +210,7 @@ class VerifiedStubTests(TestCase):
                 self.stub.wrong().returns("bye")
 
         except ApiMismatch, e:
-            expected = "No such method: Collaborator.wrong"
+            expected = "Not such method: Collaborator.wrong"
             assert_that(str(e), contains_string(expected))
 
     def test_stubbing_with_wrong_args_raises_error(self):
@@ -218,9 +219,85 @@ class VerifiedStubTests(TestCase):
                 self.stub.hello(1).returns("bye")
 
         except ApiMismatch, e:
-            expected = "Mismatching positional arguments"
+            expected = "hello() takes exactly 1 argument (2 given)"
             assert_that(str(e), contains_string(expected))
 
+
+class DisplayResultsTests(TestCase):
+    def setUp(self):
+        with Spy() as self.empty_spy:
+            self.empty_spy.foo(ANY_ARG).returns(True)
+
+        with Spy(Collaborator) as self.spy:
+            self.spy.method_one(ANY_ARG).returns(2)
+
+    def test_empty_spy_stub_method(self):
+        assert_that(str(self.empty_spy.foo),
+                    "method 'Spy.foo' never invoked")
+
+    def test_spy_stub_method(self):
+        assert_that(str(self.spy.method_one),
+                    "method 'Collaborator.method_one' never invoked")
+
+    def test_empty_spy_stub_method_invoked(self):
+        self.empty_spy.foo()
+        print self.empty_spy.foo
+        assert_that(str(self.empty_spy.foo),
+                    contains_string("method 'Spy.foo' was invoked"))
+        assert_that(str(self.empty_spy.foo), contains_string('foo()'))
+
+    def test_spy_stub_method_invoked(self):
+        self.spy.method_one(1)
+        print self.spy.method_one
+        expected = [
+            "method 'Collaborator.method_one' was invoked",
+            'method_one(1)']
+        assert_that(str(self.spy.method_one),
+                    string_contains_in_order(*expected))
+
+    def test_empty_spy_non_stubbed_method_invoked(self):
+        self.empty_spy.bar(1, 3.0, "text", key1="text", key2=[1, 2])
+        print self.empty_spy.bar
+        expected = [
+            "method 'Spy.bar' was invoked",
+            "bar(1, 3.0, 'text', key1='text', key2=[1, 2])"]
+        assert_that(str(self.empty_spy.bar),
+                    string_contains_in_order(*expected))
+
+    def test_spy_several_invoked_same_method(self):
+        self.spy.mixed_method(5, True)
+        self.spy.mixed_method(8, False)
+
+        expected = "method 'Collaborator.mixed_method' was invoked"
+        assert_that(
+            str(self.spy.mixed_method), contains_string(expected))
+
+
+class ApiMismatchTest(TestCase):
+    def setUp(self):
+        self.spy = Spy(Collaborator)
+
+    def test_default_params(self):
+        self.spy.mixed_method(1)
+
+    def test_give_karg(self):
+        self.spy.mixed_method(1, key_param=True)
+
+    def test_give_karg_without_key(self):
+        self.spy.mixed_method(1, True)
+
+    def test_simple_fail(self):
+        try:
+            self.spy.hello("wrong")
+            self.fail("ApiMismatch should be raised")
+
+        except ApiMismatch, e:
+            expected = [
+                "reason:     hello() takes exactly 1 argument (2 given)",
+                "invocation: Collaborator.hello('wrong')",
+                "signature:  Collaborator.hello(self)"]
+            assert_that(str(e),
+                        string_contains_in_order(*expected))
 
 class Actor(object):
     pass
@@ -885,17 +962,16 @@ class pyDoubles__StubMethodsTests(TestCase):
             pass
 
 
-#class pyDoubles__MatchersTests(unittest.TestCase):
-#
-#    def setUp(self):
-#        self.spy = spy(Collaborator())
-#
+class pyDoubles__MatchersTests(TestCase):
+    def setUp(self):
+        self.spy = Spy(Collaborator)
+
 #    def test_str_cotaining_with_exact_match(self):
-#        when(self.spy.one_arg_method).with_args(
-#                    str_containing("abc")).then_return(1000)
+#        with self.spy:
+#            self.spy.one_arg_method(contains_string("abc")).returns(1000)
 #
 #        self.assertEquals(1000, self.spy.one_arg_method("abc"))
-#
+
 #    def test_str_containing_with_substr(self):
 #        when(self.spy.one_arg_method).with_args(
 #                    str_containing("abc")).then_return(1000)

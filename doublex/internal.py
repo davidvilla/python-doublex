@@ -5,7 +5,6 @@ import exceptions
 
 from hamcrest.core.base_matcher import BaseMatcher
 
-import tools
 import safeunicode
 from .exc import *
 from .const import *
@@ -37,57 +36,53 @@ class DummyProxy(object):
     def assert_has_method(self, name):
         pass
 
-    def assert_match_signature(self, invocation):
+    def assert_signature_matches(self, invocation):
         pass
 
     def same_method(self, name1, name2):
         return name1 == name2
 
+    def collaborator_classname(self):
+        return None
+
 
 class Proxy(object):
     def __init__(self, collaborator):
         self.collaborator = collaborator
-        self.collaborator_class = self.get_class(collaborator)
+        self.collaborator_class = self.get_class()
 
-    def get_class(self, something):
-        if inspect.isclass(something):
-            return something
+    def isclass(self):
+        return inspect.isclass(self.collaborator)
+
+    def get_class(self):
+        if self.isclass():
+            return self.collaborator
         else:
-            return something.__class__
+            return self.collaborator.__class__
 
-    def assert_match_signature(self, invocation):
+    def collaborator_classname(self):
+        return self.collaborator_class.__name__
+
+    def assert_signature_matches(self, invocation):
         self.assert_has_method(invocation.name)
-        method = getattr(self.collaborator, invocation.name)
-        argspec = inspect.getargspec(method)
-
-#        print method.__class__
-
-#        print len(invocation.context.args), len(argspec.args)
-#        print "args:", argspec.args
-#        print "varargs:", argspec.varargs
-#        print "keywords:", argspec.keywords
-#        print "defaults:", argspec.defaults
-
-        positionals = tools.inspect_count_positionals(argspec)
-        keywords = tools.inspect_get_keywords(argspec)
-
-#        print keywords
-
-        if len(invocation.context.args) != positionals:
-            reason = "Mismatching positional arguments:\n%s" %\
-                self.add_class_prefix(invocation.name,
-                                      inspect.formatargspec(*argspec))
-            raise ApiMismatch(reason)
-
-#        print invocation, argspec
+        signature = Signature(self, invocation.name)
+        try:
+            signature.assert_match(invocation.context.args,
+                                   invocation.context.kargs)
+        except TypeError, e:
+            template = """
+  reason:     %s
+  invocation: %s
+  signature:  %s
+"""
+            message = template % (str(e), invocation, signature)
+            raise ApiMismatch(message)
 
     def assert_has_method(self, name):
         if not hasattr(self.collaborator, name):
-            reason = "No such method: %s" % self.add_class_prefix(name)
+            reason = "Not such method: %s.%s" % \
+                (self.collaborator_classname(), name)
             raise ApiMismatch(reason)
-
-    def add_class_prefix(self, name, args=''):
-        return "%s.%s%s" % (self.collaborator_class.__name__, name, args)
 
     def same_method(self, name1, name2):
         return getattr(self.collaborator, name1) == \
@@ -99,15 +94,55 @@ class Proxy(object):
                        **invocation.context.kargs)
 
 
+class Signature(object):
+    """colaborator method signature"""
+    def __init__(self, proxy, name):
+        self.proxy = proxy
+        self.name = name
+        self.method = getattr(proxy.collaborator, name)
+        self.argspec = inspect.getargspec(self.method)
+
+#        print "signature:", self.method
+#        print "class:    ", self.method.__class__
+#        print "args(%s):   %s" % (len(self.argspec.args), self.argspec.args)
+#        print "varargs:  ", self.argspec.varargs
+#        print "keywords: ", self.argspec.keywords
+#        print "defaults: ", self.argspec.defaults
+
+#    def count_positionals(self):
+#        if self.argspec.defaults is None:
+#            ndefaults = 0
+#        else:
+#            ndefaults = len(self.argspec.defaults)
+#
+#        return len(self.argspec.args) - ndefaults - 1
+#
+#    def get_keywords(self):
+#        if self.argspec.defaults is None:
+#            return []
+#
+#        return self.argspec.args[-len(self.argspec.defaults):]
+
+    def assert_match(self, args, kargs):
+        if self.proxy.isclass():
+            args = (None,) + args  # self
+
+        # This requires python-2.7!!!
+        inspect.getcallargs(self.method, *args, **kargs)
+
+    def __repr__(self):
+        return "%s.%s%s" % (self.proxy.collaborator_classname(),
+                            self.name,
+                            inspect.formatargspec(*self.argspec))
+
+
 class Method(object):
     def __init__(self, double, name):
         self.double = double
         self.name = name
 
     def __call__(self, *args, **kargs):
-        invocation = Invocation(self.double, self.name,
-                                InvocationContext(*args, **kargs))
-
+        invocation = self.get_invocation(args, kargs)
         retval = self.double.invoke(invocation)
 
         if self.double.recording:
@@ -115,17 +150,22 @@ class Method(object):
 
         return retval
 
+    def get_invocation(self, args, kargs):
+        return Invocation(self.double, self.name,
+                          InvocationContext(*args, **kargs))
+
     def was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
         return invocation.was_called(times)
 
     def __repr__(self):
         indent = ' ' * 8
+        method = "method '%s.%s'" % (self.double.classname(), self.name)
         invocations = self.double.get_invocations_to(self.name)
         if not invocations:
-            return "method '%s' never invoked" % self.name
+            return method + " never invoked"
 
-        retval = "invoked this way:\n"
+        retval = method + " was invoked this way:\n"
         for i in invocations:
             retval += "%s%s\n" % (indent, i)
 
@@ -164,10 +204,10 @@ class Invocation(object):
 
     def __eq__(self, other):
         return self.double.proxy.same_method(self.name, other.name) and \
-            self.context == other.context
+            self.context.matches(other.context)
 
     def __repr__(self):
-        return "%s%s" % (self.name, self.context)
+        return "%s.%s%s" % (self.double.classname(), self.name, self.context)
 
 
 class InvocationContext(object):
@@ -180,7 +220,7 @@ class InvocationContext(object):
     def any_arg(self):
         return ANY_ARG in self.args
 
-    def __eq__(self, other):
+    def matches(self, other):
         if self.any_arg() or other.any_arg():
             return True
 
@@ -197,35 +237,32 @@ class InvocationFormatter(object):
         self.output = context.output
 
     def __str__(self):
-        arg_values = []
-        if self.args:
-            arg_values.append(self._format_args(self.args))
-        if self.kargs:
-            arg_values.append(self._format_kargs(self.kargs))
+        arg_values = self._format_args(self.args)
+        arg_values.extend(self._format_kargs(self.kargs))
 
-        return "(%s) -> %s" % (str.join(', ', arg_values),
-                               repr(self.output))
+        retval = "(%s)" % str.join(', ', arg_values)
+        if self.output is not None:
+            retval += "-> %s" % repr(self.output)
+        return retval
 
     @staticmethod
     def _format_args(args):
-        str_args = []
+        items = []
         for arg in args:
             if isinstance(arg, unicode):
                 arg = safeunicode.get_string(arg)
 
             if isinstance(arg, (int, str, dict)):
-                str_args.append(repr(arg))
+                items.append(repr(arg))
             else:
-                str_args.append(str(arg))
+                items.append(str(arg))
 
-        return str.join(', ', str_args)
+        return items
 
     @staticmethod
     def _format_kargs(kargs):
-        items = ['%s=%s' % (key, repr(val))
-                 for key, val in sorted(kargs.items())]
-
-        return str.join(', ', items)
+        return ['%s=%s' % (key, repr(val))
+                for key, val in sorted(kargs.items())]
 
 
 class MethodCalled(BaseMatcher):

@@ -27,7 +27,7 @@ class Stub(object):
             return self.perform_invocation(invocation)
 
     def manage_invocation(self, invocation):
-        self.proxy.assert_match_signature(invocation)
+        self.proxy.assert_signature_matches(invocation)
         if self.recording:
             self.stubs.append(invocation)
         else:
@@ -55,6 +55,12 @@ class Stub(object):
     def __getattr__(self, key):
         self.proxy.assert_has_method(key)
         return internal.Method(self, key)
+
+    def classname(self):
+        name = self.proxy.collaborator_classname()
+        if name is None:
+            return self.__class__.__name__
+        return name
 
 
 class Spy(Stub):
