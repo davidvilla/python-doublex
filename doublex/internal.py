@@ -233,7 +233,7 @@ class InvocationContext(object):
 
     def matches(self, other):
         try:
-            if self._assert_args_match(self.args, other.args) == ANY_ARG:
+            if self._assert_args_match(self.args, other.args) is ANY_ARG:
                 return True
 
             self._assert_kargs_match(self.kargs, other.kargs)
