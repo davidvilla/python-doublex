@@ -2,8 +2,10 @@
 
 import inspect
 import exceptions
+import itertools
 
 from hamcrest.core.base_matcher import BaseMatcher
+from hamcrest import assert_that, is_
 
 import safeunicode
 from .exc import *
@@ -217,14 +219,36 @@ class InvocationContext(object):
         self.output = None
         self.exception = None
 
-    def any_arg(self):
-        return ANY_ARG in self.args
-
     def matches(self, other):
-        if self.any_arg() or other.any_arg():
-            return True
+        try:
+            if self._assert_args_match(self.args, other.args) == ANY_ARG:
+                return True
 
-        return (self.args, self.kargs) == (other.args, other.kargs)
+            self._assert_kargs_match(self.kargs, other.kargs)
+            return True
+        except AssertionError:
+            return False
+
+    @classmethod
+    def _assert_args_match(cls, args1, args2):
+        for a, b in itertools.izip_longest(args1, args2):
+            if ANY_ARG in [a, b]:
+                return ANY_ARG
+
+            cls._assert_values_match(a, b)
+
+    @classmethod
+    def _assert_kargs_match(cls, kargs1, kargs2):
+        assert sorted(kargs1.keys()) == sorted(kargs2.keys())
+        for key in kargs1:
+            cls._assert_values_match(kargs1[key], kargs2[key])
+
+    @classmethod
+    def _assert_values_match(cls, a, b):
+        if isinstance(a, BaseMatcher):
+            a, b = b, a
+
+        assert_that(a, is_(b))
 
     def __str__(self):
         return str(InvocationFormatter(self))
@@ -289,12 +313,6 @@ class MethodCalled(BaseMatcher):
 
 class MockMeetsExpectations(BaseMatcher):
     def _matches(self, mock):
-#        if not instance(mock, Mock):
-#            raise WrongApiUsage()
-
-#        print mock.stubs
-#        print mock.invocations
-#        print mock.stubs == mock.invocations
         return mock.stubs == mock.invocations
 
     def describe_to(self, description):

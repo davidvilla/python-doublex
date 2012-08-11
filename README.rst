@@ -154,4 +154,31 @@ stub methods
  collaborator.foo()  # raises SomeException
 
 
-...working on matchers...
+hamcrest matchers
+-----------------
+
+doublex support all hamcrest matchers, and amazing combinations, for happened
+invocations::
+
+ spy = Spy()
+ spy.foo("abcd")
+
+ assert_that(spy.foo, called_with(has_length(4)))
+ assert_that(spy.foo, called_with(has_length(greater_than(3))))
+ assert_that(spy.foo, called_with(has_length(less_than(5))))
+ assert_that(spy.foo, is_not(called_with(has_length(greater_than(5)))))
+
+and for stubbed calls:
+
+ with Spy() as spy:
+     spy.foo(has_length(less_than(4))).returns('<4')
+     spy.foo(has_length(4)).returns('four')
+     spy.foo(has_length(
+		all_of(greater_than(4),
+                       less_than(8)))).returns('4<x<8')
+     spy.foo(has_length(greater_than(8))).returns('>8')
+
+ assert_that(spy.foo((1, 2)), is_('<4'))
+ assert_that(spy.foo('abcd'), is_('four'))
+ assert_that(spy.foo('abcde'), is_('4<x<8'))
+ assert_that(spy.foo([0] * 9), is_('>8'))

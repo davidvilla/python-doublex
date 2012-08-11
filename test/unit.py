@@ -2,8 +2,12 @@
 
 from unittest import TestCase
 
-from hamcrest import assert_that, is_not, is_, contains_string
+from hamcrest import assert_that, is_not, is_, all_of
+from hamcrest import contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
+from hamcrest.library.object.hasproperty import *
+from hamcrest.library.number.ordering_comparison import *
+
 
 from doublex import Spy, ProxySpy, Stub, Mock
 from doublex import called, called_with, ANY_ARG, meets_expectations
@@ -179,9 +183,9 @@ class StubTests(TestCase):
         with self.stub:
             self.stub.foo(ANY_ARG).returns(True)
 
-        assert_that(self.stub.foo(), True)
-        assert_that(self.stub.foo(1), True)
-        assert_that(self.stub.foo('hi', param=3.0), True)
+        assert_that(self.stub.foo(), is_(True))
+        assert_that(self.stub.foo(1), is_(True))
+        assert_that(self.stub.foo('hi', param=3.0), is_(True))
 
     def test_raises(self):
         with self.stub:
@@ -298,6 +302,36 @@ class ApiMismatchTest(TestCase):
                 "signature:  Collaborator.hello(self)"]
             assert_that(str(e),
                         string_contains_in_order(*expected))
+
+
+class MatcherTests(TestCase):
+    def setUp(self):
+        self.spy = Spy()
+
+    def test_check_has_length(self):
+        self.spy.foo("abcd")
+
+        assert_that(self.spy.foo, called_with(has_length(4)))
+        assert_that(self.spy.foo, called_with(has_length(greater_than(3))))
+        assert_that(self.spy.foo, called_with(has_length(less_than(5))))
+        assert_that(self.spy.foo,
+                    is_not(called_with(has_length(greater_than(5)))))
+
+    def test_stub_has_length(self):
+        with self.spy:
+            self.spy.foo(has_length(less_than(4))).returns('<4')
+            self.spy.foo(has_length(4)).returns('four')
+            self.spy.foo(
+                has_length(
+                    all_of(greater_than(4),
+                           less_than(8)))).returns('4<x<8')
+            self.spy.foo(has_length(greater_than(8))).returns('>8')
+
+        assert_that(self.spy.foo((1, 2)), is_('<4'))
+        assert_that(self.spy.foo('abcd'), is_('four'))
+        assert_that(self.spy.foo('abcde'), is_('4<x<8'))
+        assert_that(self.spy.foo([0] * 9), is_('>8'))
+
 
 class Actor(object):
     pass
@@ -455,7 +489,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         try:
             assert_that(self.spy.kwarg_method, called_with("bar"))
         except AssertionError, e:
-            self.assertIn("foo", str(e))
+            assert_that(str(e), contains_string("foo"))
 
     def test_stub_out_method(self):
         with self.spy:
@@ -578,13 +612,14 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         assert_that(self.spy.two_args_method(1, 2), 1000)
         assert_that(self.spy.two_args_method(1, 5), 1000)
+        assert_that(self.spy.two_args_method(3, 5), is_not(1000))
 
-#       TODO: implement this:
-#       Not supported by pyDoubles
-#    def test_any_arg_matcher_with_kwargs(self):
-#        when(self.spy.kwarg_method).with_args(key_param=ANY_ARG).then_return(1000)
-#
-#        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
+    # Not supported by pyDoubles
+    def test_any_arg_matcher_with_kwargs(self):
+        with self.spy:
+            self.spy.kwarg_method(key_param=anything()).returns(1000)
+
+        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
 
     def test_any_arg_matcher_was_called(self):
         with self.spy:
@@ -826,9 +861,10 @@ class pyDoubles__MockTests(TestCase):
 
         assert_that(self.mock, is_not(meets_expectations()))
 
-    # this is not possible in doublex
-    def test_using_when_or_expect_call_without_double(self):
-        pass
+    # Not applicable to doublex
+#    def test_using_when_or_expect_call_without_double(self):
+#        self.failUnlessRaises(WrongApiUsage,
+#                        expect_call, Collaborator())
 
     def test_expectations_on_synonyms(self):
         with self.mock:
@@ -966,119 +1002,124 @@ class pyDoubles__MatchersTests(TestCase):
     def setUp(self):
         self.spy = Spy(Collaborator)
 
-#    def test_str_cotaining_with_exact_match(self):
-#        with self.spy:
-#            self.spy.one_arg_method(contains_string("abc")).returns(1000)
-#
-#        self.assertEquals(1000, self.spy.one_arg_method("abc"))
+    def test_str_cotaining_with_exact_match(self):
+        with self.spy:
+            self.spy.one_arg_method(contains_string("abc")).returns(1000)
 
-#    def test_str_containing_with_substr(self):
-#        when(self.spy.one_arg_method).with_args(
-#                    str_containing("abc")).then_return(1000)
-#
-#        self.assertEquals(1000, self.spy.one_arg_method("XabcX"))
-#
-#    def test_str_containing_with_substr_unicode(self):
-#        when(self.spy.one_arg_method).with_args(
-#                    str_containing("abc")).then_return(1000)
-#
-#        self.assertEquals(1000, self.spy.one_arg_method(u"XabcñX"))
-#
-#    def test_str_containing_but_matcher_not_used(self):
-#        when(self.spy.one_arg_method).with_args(
-#                        "abc").then_return(1000)
-#
-#        self.assertNotEquals(1000, self.spy.one_arg_method("XabcX"))
-#
-#    def test_was_called_and_substr_matcher(self):
-#        self.spy.one_arg_method("XabcX")
-#
-#        assert_that_was_called(self.spy.one_arg_method).with_args(
-#                                    str_containing("abc"))
-#
-#    def test_str_not_containing(self):
-#        when(self.spy.one_arg_method).with_args(
-#                        str_not_containing("abc")).then_return(1000)
-#
-#        self.assertNotEquals(1000, self.spy.one_arg_method("abc"))
-#
-#    def test_str_not_containing_stubs_anything_else(self):
-#        when(self.spy.one_arg_method).with_args(
-#                        str_not_containing("abc")).then_return(1000)
-#
-#        self.assertEquals(1000, self.spy.one_arg_method("xxx"))
-#
-#    def test_str_not_containing_was_called(self):
-#        self.spy.one_arg_method("abc")
-#        assert_that_was_called(self.spy.one_arg_method).with_args(
-#                                str_not_containing("xxx"))
-#
-#    def test_several_matchers(self):
-#        when(self.spy.two_args_method).with_args(
-#                        str_containing("abc"),
-#                        str_containing("xxx")).then_return(1000)
-#
-#        self.assertNotEquals(1000,
-#                    self.spy.two_args_method("abc", "yyy"))
-#
-#    def test_str_length_matcher(self):
-#        when(self.spy.one_arg_method).with_args(
-#                        str_length(5)).then_return(1000)
-#
-#        self.assertEquals(1000,
-#                    self.spy.one_arg_method("abcde"))
-#
-#    def test_matchers_when_passed_arg_is_none(self):
-#        when(self.spy.one_arg_method).with_args(
-#                        str_length(5)).then_return(1000)
-#        self.assertTrue(self.spy.one_arg_method(None) is None)
-#
-#    def test_compare_objects_is_not_possible_without_eq_operator(self):
-#        class SomeObject():
-#            field1 = field2 = None
-#
-#        obj = SomeObject()
-#        obj2 = SomeObject()
-#        self.spy.one_arg_method(obj)
-#
-#        try:
-#            assert_that_method(self.spy.one_arg_method).was_called().with_args(obj2)
-#            self.fail('they should not match')
-#        except ArgsDontMatch:
-#            pass
-#
-#    def test_if_doesnt_match_message_is_human_redable(self):
-#        self.spy.one_arg_method("XabcX")
-#
-#        try:
-#            assert_that_was_called(self.spy.one_arg_method).with_args(
-#                                    str_containing("xxx"))
-#
-#        except ArgsDontMatch, e:
-#            self.assertTrue("xxx" in str(e.args), str(e.args))
-#            self.assertTrue("string containing" in str(e.args))
-#
-#    def test_obj_with_field_matcher(self):
-#        obj = Collaborator()
-#        obj.id = 20
-#        self.spy.one_arg_method(obj)
-#        assert_that_method(self.spy.one_arg_method
-#            ).was_called().with_args(obj_with_fields({'id': 20}))
-#
-#    def test_obj_with_several_fields_matcher(self):
-#        obj = Collaborator()
-#        obj.id = 21
-#        self.spy.one_arg_method(obj)
-#        try:
-#            assert_that_method(
-#                self.spy.one_arg_method).was_called().with_args(
-#                obj_with_fields({
-#                            'id': 20,
-#                            'test_field': 'OK'}))
-#            self.fail('Wrong assertion, id field is different')
-#        except ArgsDontMatch:
-#            pass
-#
+        self.assertEquals(1000, self.spy.one_arg_method("abc"))
+
+    def test_str_containing_with_substr(self):
+        with self.spy:
+            self.spy.one_arg_method(contains_string("abc")).returns(1000)
+
+        self.assertEquals(1000, self.spy.one_arg_method("XabcX"))
+
+    def test_str_containing_with_substr_unicode(self):
+        with self.spy:
+            self.spy.one_arg_method(contains_string("abc")).returns(1000)
+
+        self.assertEquals(1000, self.spy.one_arg_method(u"XabcñX"))
+
+    def test_str_containing_but_matcher_not_used(self):
+        with self.spy:
+            self.spy.one_arg_method("abc").returns(1000)
+
+        self.assertNotEquals(1000, self.spy.one_arg_method("XabcX"))
+
+    def test_was_called_and_substr_matcher(self):
+        self.spy.one_arg_method("XabcX")
+
+        assert_that(self.spy.one_arg_method,
+                    called_with(contains_string("abc")))
+
+    def test_str_not_containing(self):
+        with self.spy:
+            self.spy.one_arg_method(is_not(contains_string("abc"))).returns(1000)
+
+        self.assertNotEquals(1000, self.spy.one_arg_method("abc"))
+
+    def test_str_not_containing_stubs_anything_else(self):
+        with self.spy:
+            self.spy.one_arg_method(is_not(contains_string("abc"))).returns(1000)
+
+        self.assertEquals(1000, self.spy.one_arg_method("xxx"))
+
+    def test_str_not_containing_was_called(self):
+        self.spy.one_arg_method("abc")
+        assert_that(self.spy.one_arg_method,
+                    called_with(is_not(contains_string("xxx"))))
+
+    def test_several_matchers(self):
+        with self.spy:
+            self.spy.two_args_method(
+                contains_string("abc"),
+                contains_string("xxx")).returns(1000)
+
+        self.assertNotEquals(1000,
+                             self.spy.two_args_method("abc", "yyy"))
+
+    def test_str_length_matcher(self):
+        with self.spy:
+            self.spy.one_arg_method(has_length(5)).returns(1000)
+
+        self.assertEquals(1000,
+                          self.spy.one_arg_method("abcde"))
+
+    def test_matchers_when_passed_arg_is_none(self):
+        with self.spy:
+            self.spy.one_arg_method(has_length(5)).returns(1000)
+
+        self.assertTrue(self.spy.one_arg_method(None) is None)
+
+    def test_compare_objects_is_not_possible_without_eq_operator(self):
+        class SomeObject():
+            field1 = field2 = None
+
+        obj = SomeObject()
+        obj2 = SomeObject()
+        self.spy.one_arg_method(obj)
+
+        try:
+            assert_that(self.spy.one_arg_method, called_with(obj2))
+            self.fail("they should not match")
+        except AssertionError:
+            pass
+
+    def test_if_doesnt_match_message_is_human_redable(self):
+        self.spy.one_arg_method("XabcX")
+
+        try:
+            assert_that(self.spy.one_arg_method,
+                        called_with(contains_string("xxx")))
+
+        except AssertionError, e:
+            assert_that(str(e), contains_string("xxx"))
+            assert_that(
+                str(e), contains_string("string containing"))
+
+    def test_obj_with_field_matcher(self):
+        obj = Collaborator()
+        obj.id = 20
+        self.spy.one_arg_method(obj)
+
+        assert_that(self.spy.one_arg_method,
+                    called_with(has_property('id', 20)))
+
+    def test_obj_with_several_fields_matcher(self):
+        obj = Collaborator()
+        obj.id = 21
+        self.spy.one_arg_method(obj)
+        try:
+            assert_that(
+                self.spy.one_arg_method,
+                called_with(all_of(
+                    has_property('id', 20),
+                    has_property('test_field', 'OK'))))
+            self.fail('Wrong assertion, id field is different')
+        except AssertionError:
+            pass
+
+#    Not applicable to doublex, cause it uses hamcrest matchers
 #    def test_obj_with_field_defends_agains_wrong_usage(self):
 #        self.spy.one_arg_method(Collaborator())
 #        try:
@@ -1088,8 +1129,8 @@ class pyDoubles__MatchersTests(TestCase):
 #            self.fail('Wrong assertion, argument should be a dictionary')
 #        except WrongApiUsage:
 #            pass
-#
-#
+
+# NOT APPLICABLE. doubles uses hamcrest matchers
 #class pyDoubles__CustomMatchersTest(unittest.TestCase):
 #
 #    def setUp(self):
@@ -1121,7 +1162,3 @@ class pyDoubles__MatchersTests(TestCase):
 #            self.fail('args dont match!')
 #        except ArgsDontMatch:
 #            pass
-#
-
-# Tests:
-# - ANY_ARG for non args invocations: (1, ANY_ARG)
