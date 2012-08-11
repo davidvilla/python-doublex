@@ -15,6 +15,94 @@ from doublex import ApiMismatch, WrongApiUsage, UnexpectedBehavior
 from doublex import method_returning, method_raising
 
 
+class StubTests(TestCase):
+    def setUp(self):
+        self.stub = Stub()
+
+    def test_record_invocation(self):
+        with self.stub:
+            self.stub.foo().returns(2)
+
+        assert_that(self.stub.foo(), 2)
+
+    def test_using_alias_in_context(self):
+        with self.stub as stub:
+            stub.foo().returns(2)
+
+        assert_that(self.stub.foo(), 2)
+
+    def test_creating_double_with_context(self):
+        with Stub() as stub:
+            stub.foo().returns(2)
+
+        assert_that(stub.foo(), 2)
+
+    def test_record_invocation_with_args(self):
+        with self.stub:
+            self.stub.foo(1, param='hi').returns(2)
+
+        assert_that(self.stub.foo(1, param='hi'), 2)
+
+    def test_record_invocation_with_wrong_args_returns_None(self):
+        with self.stub:
+            self.stub.foo(1, param='hi').returns(2)
+
+        assert_that(self.stub.foo(1, param='wrong'), is_(None))
+
+    def test_not_stubbed_method_returns_None(self):
+        with self.stub:
+            self.stub.foo().returns(True)
+
+        assert_that(self.stub.bar(), is_(None))
+
+    def test_ANY_ARG(self):
+        with self.stub:
+            self.stub.foo(ANY_ARG).returns(True)
+
+        assert_that(self.stub.foo(), is_(True))
+        assert_that(self.stub.foo(1), is_(True))
+        assert_that(self.stub.foo('hi', param=3.0), is_(True))
+
+    def test_raises(self):
+        with self.stub:
+            self.stub.foo().raises(KeyError)
+
+        try:
+            self.stub.foo()
+            self.fail("It should raise KeyError")
+        except KeyError:
+            pass
+
+
+class VerifiedStubTests(TestCase):
+    def setUp(self):
+        self.stub = Stub(Collaborator)
+
+    def test_stubbing_a_existing_method(self):
+        with self.stub:
+            self.stub.hello().returns("bye")
+
+        assert_that(self.stub.hello(), "bye")
+
+    def test_stubbing_a_non_existing_method_raises_error(self):
+        try:
+            with self.stub:
+                self.stub.wrong().returns("bye")
+
+        except ApiMismatch, e:
+            expected = "Not such method: Collaborator.wrong"
+            assert_that(str(e), contains_string(expected))
+
+    def test_stubbing_with_wrong_args_raises_error(self):
+        try:
+            with self.stub:
+                self.stub.hello(1).returns("bye")
+
+        except ApiMismatch, e:
+            expected = "hello() takes exactly 1 argument (2 given)"
+            assert_that(str(e), contains_string(expected))
+
+
 class EmptySpyTests(TestCase):
     def setUp(self):
         self.spy = Spy()
@@ -137,94 +225,6 @@ class ProxySpyTest(TestCase):
     def test_given_argument_can_not_be_newstyle_class(self):
         self.failUnlessRaises(AssertionError,
                               ProxySpy, Actor)
-
-
-class StubTests(TestCase):
-    def setUp(self):
-        self.stub = Stub()
-
-    def test_record_invocation(self):
-        with self.stub:
-            self.stub.foo().returns(2)
-
-        assert_that(self.stub.foo(), 2)
-
-    def test_using_alias_in_context(self):
-        with self.stub as stub:
-            stub.foo().returns(2)
-
-        assert_that(self.stub.foo(), 2)
-
-    def test_creating_double_with_context(self):
-        with Stub() as stub:
-            stub.foo().returns(2)
-
-        assert_that(stub.foo(), 2)
-
-    def test_record_invocation_with_args(self):
-        with self.stub:
-            self.stub.foo(1, param='hi').returns(2)
-
-        assert_that(self.stub.foo(1, param='hi'), 2)
-
-    def test_record_invocation_with_wrong_args_returns_None(self):
-        with self.stub:
-            self.stub.foo(1, param='hi').returns(2)
-
-        assert_that(self.stub.foo(1, param='wrong'), is_(None))
-
-    def test_not_stubbed_method_returns_None(self):
-        with self.stub:
-            self.stub.foo().returns(True)
-
-        assert_that(self.stub.bar(), is_(None))
-
-    def test_ANY_ARG(self):
-        with self.stub:
-            self.stub.foo(ANY_ARG).returns(True)
-
-        assert_that(self.stub.foo(), is_(True))
-        assert_that(self.stub.foo(1), is_(True))
-        assert_that(self.stub.foo('hi', param=3.0), is_(True))
-
-    def test_raises(self):
-        with self.stub:
-            self.stub.foo().raises(KeyError)
-
-        try:
-            self.stub.foo()
-            self.fail("It should raise KeyError")
-        except KeyError:
-            pass
-
-
-class VerifiedStubTests(TestCase):
-    def setUp(self):
-        self.stub = Stub(Collaborator)
-
-    def test_stubbing_a_existing_method(self):
-        with self.stub:
-            self.stub.hello().returns("bye")
-
-        assert_that(self.stub.hello(), "bye")
-
-    def test_stubbing_a_non_existing_method_raises_error(self):
-        try:
-            with self.stub:
-                self.stub.wrong().returns("bye")
-
-        except ApiMismatch, e:
-            expected = "Not such method: Collaborator.wrong"
-            assert_that(str(e), contains_string(expected))
-
-    def test_stubbing_with_wrong_args_raises_error(self):
-        try:
-            with self.stub:
-                self.stub.hello(1).returns("bye")
-
-        except ApiMismatch, e:
-            expected = "hello() takes exactly 1 argument (2 given)"
-            assert_that(str(e), contains_string(expected))
 
 
 class DisplayResultsTests(TestCase):
