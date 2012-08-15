@@ -332,6 +332,30 @@ class MatcherTests(TestCase):
         assert_that(self.spy.foo('abcde'), is_('4<x<8'))
         assert_that(self.spy.foo([0] * 9), is_('>8'))
 
+    def test_called_times_may_be_matcher(self):
+        self.spy.foo()
+        self.spy.foo()
+        self.spy.foo()
+
+        assert_that(self.spy.bar, is_not(called()))                 # = 0 times
+        assert_that(self.spy.foo, called())                         # > 0
+        assert_that(self.spy.foo, called().times(greater_than(0)))  # > 0 (same above)
+        assert_that(self.spy.foo, called().times(3))                # = 3
+        assert_that(self.spy.foo, called().times(greater_than(2)))  # > 2
+        assert_that(self.spy.foo, called().times(less_than(5)))     # < 5
+
+    def test_called_with_times_may_be_matcher(self):
+        self.spy.foo(1)
+        self.spy.foo(1)
+        self.spy.foo(2)
+
+        assert_that(self.spy.foo, is_not(called_with(5)))                 # = 0 times
+        assert_that(self.spy.foo, called_with(anything()))                # > 0
+        assert_that(self.spy.foo, called_with(anything()).times(3))       # = 3
+        assert_that(self.spy.foo, called_with(1).times(2))                # = 2
+        assert_that(self.spy.foo, called_with(1).times(greater_than(1)))  # > 1
+        assert_that(self.spy.foo, called_with(1).times(less_than(5)))     # < 5
+
 
 class Actor(object):
     pass

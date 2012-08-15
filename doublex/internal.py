@@ -4,7 +4,7 @@ import inspect
 import itertools
 
 from hamcrest.core.base_matcher import BaseMatcher
-from hamcrest import assert_that, is_
+from hamcrest import assert_that, is_, greater_than
 
 import safeunicode
 from .exc import *
@@ -302,9 +302,9 @@ class InvocationFormatter(object):
 
 
 class MethodCalled(BaseMatcher):
-    def __init__(self, context, times=1):
+    def __init__(self, context, times=None):
         self.context = context
-        self._times = times
+        self._times = times or greater_than(0)
 
     def _matches(self, method):
         if not isinstance(method, Method):
