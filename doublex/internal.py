@@ -82,13 +82,7 @@ class Proxy(object):
             signature.assert_match(invocation.context.args,
                                    invocation.context.kargs)
         except TypeError, e:
-            template = """
-  reason:     %s
-  invocation: %s
-  signature:  %s
-"""
-            message = template % (str(e), invocation, signature)
-            raise ApiMismatch(message)
+            raise TypeError("%s.%s" % (self.get_class(), e))
 
     def assert_has_method(self, name):
         if not hasattr(self.collaborator, name):
@@ -142,10 +136,10 @@ class Signature(object):
         # This requires python-2.7!!!
         inspect.getcallargs(self.method, *args, **kargs)
 
-    def __repr__(self):
-        return "%s.%s%s" % (self.proxy.collaborator_classname(),
-                            self.name,
-                            inspect.formatargspec(*self.argspec))
+#    def __repr__(self):
+#        return "%s.%s%s" % (self.proxy.collaborator_classname(),
+#                            self.name,
+#                            inspect.formatargspec(*self.argspec))
 
 
 class Observable(object):
@@ -215,7 +209,7 @@ class Invocation(object):
         try:
             self.context.delegate = iter(delegate).next
         except TypeError:
-            raise WrongApiUsage("delegates() must be an callable or iterable object")
+            raise WrongApiUsage("delegates() arg must be callable or iterable object")
 
     def returns(self, value):
         self.delegates(lambda *args, **kargs: value)
@@ -223,7 +217,7 @@ class Invocation(object):
 
     def returns_input(self):
         if not self.context.args:
-            raise ApiMismatch("stub %s has not input args" % self)
+            raise TypeError("%s has no input args" % self)
 
         self.returns(self.context.args)
         return self

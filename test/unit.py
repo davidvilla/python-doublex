@@ -11,7 +11,7 @@ from hamcrest.library.number.ordering_comparison import *
 
 from doublex import Spy, ProxySpy, Stub, Mock
 from doublex import called, called_with, ANY_ARG, meets_expectations
-from doublex import ApiMismatch, WrongApiUsage, UnexpectedBehavior
+from doublex import WrongApiUsage, UnexpectedBehavior
 from doublex import method_returning, method_raising
 
 
@@ -98,7 +98,7 @@ class VerifiedStubTests(TestCase):
             with self.stub:
                 self.stub.hello(1).returns("bye")
 
-        except ApiMismatch, e:
+        except TypeError, e:
             expected = "hello() takes exactly 1 argument (2 given)"
             assert_that(str(e), contains_string(expected))
 
@@ -209,7 +209,7 @@ class VerifiedSpyTests(TestCase):
     def test_check_unexisting_method(self):
         try:
             assert_that(self.spy.wrong, called())
-            self.fail('ApiMismatch should be raised')
+            self.fail('AttributeError should be raised')
         except AttributeError as e:
             expected = "'Collaborator' object has no attribute 'wrong'"
             assert_that(str(e), contains_string(expected))
@@ -297,15 +297,17 @@ class ApiMismatchTest(TestCase):
     def test_simple_fail(self):
         try:
             self.spy.hello("wrong")
-            self.fail("ApiMismatch should be raised")
+            self.fail("TypeError should be raised")
 
-        except ApiMismatch, e:
-            expected = [
-                "reason:     hello() takes exactly 1 argument (2 given)",
-                "invocation: Collaborator.hello('wrong')",
-                "signature:  Collaborator.hello(self)"]
-            assert_that(str(e),
-                        string_contains_in_order(*expected))
+        except TypeError, e:
+#            expected = ""
+#                "reason:     hello() takes exactly 1 argument (2 given)",
+#                "invocation: Collaborator.hello('wrong')",
+#                "signature:  Collaborator.hello(self)"]
+#            assert_that(str(e),
+#                        string_contains_in_order(*expected))
+            expected = "Collaborator.hello() takes exactly 1 argument (2 given)"
+            assert_that(str(e), contains_string(expected))
 
 
 class MatcherTests(TestCase):
@@ -700,15 +702,16 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         assert_that(self.spy.method_one(20), 20)
 
-    # Different that pyDoubles. ApiMismatch raised at setup
+    # Different that pyDoubles. exception raised at setup
     def test_stub_returning_what_receives_when_no_params(self):
         try:
             with self.spy:
                 self.spy.hello().returns_input()
 
-            self.fail("ApiMismatch should be raised")
-        except ApiMismatch:
-            pass
+            self.fail("TypeError should be raised")
+        except TypeError, e:
+            assert_that(str(e),
+                        contains_string("Collaborator.hello() has no input args"))
 
     def test_be_able_to_return_objects(self):
         with self.spy:
@@ -831,8 +834,8 @@ class pyDoubles__SpyTests(TestCase):
     def test_spy_based_on_object_must_check_api_match(self):
         try:
             self.spy.hello("unexpected argument")
-            self.fail('Expection should raise: Actual objet does not accept parameters')
-        except ApiMismatch:
+            self.fail('Expection should raise: Actual object does not accept parameters')
+        except TypeError:
             pass
 
     def test_check_api_match_with_kwargs(self):
@@ -844,8 +847,8 @@ class pyDoubles__SpyTests(TestCase):
     def test_check_api_match_with_kwargs_not_matching(self):
         try:
             self.spy.mixed_method(1, 2, 3)
-            self.fail('Api mismatch not detected')
-        except ApiMismatch:
+            self.fail('TypeError not detected!')
+        except TypeError:
             pass
 
     def test_match_call_with_unicode_and_non_ascii_chars(self):
