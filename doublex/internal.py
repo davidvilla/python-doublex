@@ -92,9 +92,9 @@ class Proxy(object):
 
     def assert_has_method(self, name):
         if not hasattr(self.collaborator, name):
-            reason = "Not such method: %s.%s" % \
+            reason = "'%s' object has no attribute '%s'" % \
                 (self.collaborator_classname(), name)
-            raise ApiMismatch(reason)
+            raise AttributeError(reason)
 
     def same_method(self, name1, name2):
         return getattr(self.collaborator, name1) == \

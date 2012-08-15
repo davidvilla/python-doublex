@@ -84,13 +84,13 @@ class VerifiedStubTests(TestCase):
 
         assert_that(self.stub.hello(), "bye")
 
-    def test_stubbing_a_non_existing_method_raises_error(self):
+    def test_stubbing_a_unexisting_method_raises_error(self):
         try:
             with self.stub:
                 self.stub.wrong().returns("bye")
 
-        except ApiMismatch, e:
-            expected = "Not such method: Collaborator.wrong"
+        except AttributeError, e:
+            expected = "'Collaborator' object has no attribute 'wrong'"
             assert_that(str(e), contains_string(expected))
 
     def test_stubbing_with_wrong_args_raises_error(self):
@@ -201,17 +201,17 @@ class VerifiedSpyTests(TestCase):
     def test_call_unexisting_method(self):
         try:
             self.spy.wrong()
-            self.fail('ApiMismatch should be raised')
-        except ApiMismatch as e:
-            expected = "Not such method: Collaborator.wrong"
+            self.fail('AttributeError should be raised')
+        except AttributeError as e:
+            expected = "'Collaborator' object has no attribute 'wrong'"
             assert_that(str(e), contains_string(expected))
 
     def test_check_unexisting_method(self):
         try:
             assert_that(self.spy.wrong, called())
             self.fail('ApiMismatch should be raised')
-        except ApiMismatch as e:
-            expected = "Not such method: Collaborator.wrong"
+        except AttributeError as e:
+            expected = "'Collaborator' object has no attribute 'wrong'"
             assert_that(str(e), contains_string(expected))
 
     def test_create_from_oldstyle_class(self):
@@ -700,7 +700,7 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         assert_that(self.spy.method_one(20), 20)
 
-    # Different that pyDoubles. ApiMismatch raises at setup
+    # Different that pyDoubles. ApiMismatch raised at setup
     def test_stub_returning_what_receives_when_no_params(self):
         try:
             with self.spy:
@@ -871,8 +871,8 @@ class pyDoubles__SpyTests(TestCase):
     def test_assert_was_called_with_method_not_in_the_api(self):
         try:
             assert_that(self.spy.unexisting_method, called())
-            self.fail("ApiMismatch should be raised")
-        except ApiMismatch:
+            self.fail("AttributeError should be raised")
+        except AttributeError:
             pass
 
     def test_do_not_call_callable_object_if_wasnt_generated_by_the_framework(self):
