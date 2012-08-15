@@ -1,3 +1,4 @@
+==============
 python-doublex
 ==============
 
@@ -7,7 +8,7 @@ This is a try to improve and simplify pyDoubles[1] codebase and API
 
 
 Design principles
------------------
+=================
 
 - Doubles have not public api specific methods. It avoid silent misspelling.
 - non-proxified doubles does not require collaborator instances, they may use classes
@@ -15,6 +16,9 @@ Design principles
 - Mock invocation order is required by default
 - Compatible with old and new style classes
 
+
+Doubles
+=======
 
 "empty" Stub
 ------------
@@ -154,11 +158,53 @@ stub methods
  collaborator.foo()  # raises SomeException
 
 
-hamcrest matchers
------------------
+doublex matchers
+================
 
-doublex support all hamcrest matchers, and amazing combinations, for happened
-invocations::
+called
+------
+
+called() matches any invocation to a method::
+
+ spy.Spy()
+ spy.m1()
+ spy.m2(None)
+ spy.m3("hi", 3.0)
+ spy.m4([1, 2])
+
+ assert_that(spy.m1, called())
+ assert_that(spy.m2, called())
+ assert_that(spy.m3, called())
+ assert_that(spy.m4, called())
+
+
+called_with
+-----------
+
+called_with() matches specific arguments::
+
+ spy.Spy()
+ spy.m1()
+ spy.m2(None)
+ spy.m3("hi", 3.0)
+ spy.m4([1, 2])
+
+ assert_that(spy.m1, called_with())
+ assert_that(spy.m2, called_with(None))
+ assert_that(spy.m3, called_with("hi", 3.0))
+ assert_that(spy.m4, called_with([1, 2]))
+
+
+
+matchers, matchers, hamcrest matchers...
+========================================
+
+doublex support all hamcrest matchers, and their amazing combinations.
+
+checking spied calling args
+---------------------------
+
+::
 
  spy = Spy()
  spy.foo("abcd")
@@ -168,7 +214,9 @@ invocations::
  assert_that(spy.foo, called_with(has_length(less_than(5))))
  assert_that(spy.foo, is_not(called_with(has_length(greater_than(5)))))
 
-and for stubbed calls::
+
+stubbing
+--------
 
  with Spy() as spy:
      spy.foo(has_length(less_than(4))).returns('<4')
@@ -182,3 +230,29 @@ and for stubbed calls::
  assert_that(spy.foo('abcd'), is_('four'))
  assert_that(spy.foo('abcde'), is_('4<x<8'))
  assert_that(spy.foo([0] * 9), is_('>8'))
+
+
+checking invocation 'times'
+---------------------------
+
+::
+
+ spy.foo()
+ spy.foo(1)
+ spy.foo(1)
+ spy.foo(2)
+
+ assert_that(spy.never, is_not(called()))                    # = 0 times
+ assert_that(spy.foo, called())                              # > 0
+ assert_that(spy.foo, called().times(greater_than(0)))       # > 0 (same)
+ assert_that(spy.foo, called().times(4))                     # = 4
+ assert_that(spy.foo, called().times(greater_than(2)))       # > 2
+ assert_that(spy.foo, called().times(less_than(6)))          # < 6
+
+ assert_that(spy.foo, is_not(called_with(5)))                 # = 0 times
+ assert_that(spy.foo, called_with().times(1))                 # = 1
+ assert_that(spy.foo, called_with(anything()))                # > 0
+ assert_that(spy.foo, called_with(anything()).times(4))       # = 4
+ assert_that(spy.foo, called_with(1).times(2))                # = 2
+ assert_that(spy.foo, called_with(1).times(greater_than(1)))  # > 1
+ assert_that(spy.foo, called_with(1).times(less_than(5)))     # < 5

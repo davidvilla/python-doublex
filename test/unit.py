@@ -125,12 +125,19 @@ class EmptySpyTests(TestCase):
         self.spy.foo()
 
         assert_that(self.spy.foo, called().times(2))
+        assert_that(self.spy.foo, is_not(called().times(1)))
         assert_that(self.spy.foo, is_not(called().times(3)))
 
     def test_called_without_args(self):
         self.spy.foo()
 
         assert_that(self.spy.foo, called_with())
+
+    def test_called_with_None(self):
+        self.spy.foo(None)
+
+        assert_that(self.spy.foo, called_with(None))
+        assert_that(self.spy.foo, is_not(called_with()))
 
     def test_not_called_without_args(self):
         self.spy.foo(1)
@@ -332,29 +339,44 @@ class MatcherTests(TestCase):
         assert_that(self.spy.foo('abcde'), is_('4<x<8'))
         assert_that(self.spy.foo([0] * 9), is_('>8'))
 
-    def test_called_times_may_be_matcher(self):
+    # doc
+    def test_times_arg_may_be_matcher(self):
         self.spy.foo()
-        self.spy.foo()
-        self.spy.foo()
-
-        assert_that(self.spy.bar, is_not(called()))                 # = 0 times
-        assert_that(self.spy.foo, called())                         # > 0
-        assert_that(self.spy.foo, called().times(greater_than(0)))  # > 0 (same above)
-        assert_that(self.spy.foo, called().times(3))                # = 3
-        assert_that(self.spy.foo, called().times(greater_than(2)))  # > 2
-        assert_that(self.spy.foo, called().times(less_than(5)))     # < 5
-
-    def test_called_with_times_may_be_matcher(self):
         self.spy.foo(1)
         self.spy.foo(1)
         self.spy.foo(2)
 
+        assert_that(self.spy.never, is_not(called()))                    # = 0 times
+        assert_that(self.spy.foo, called())                              # > 0
+        assert_that(self.spy.foo, called().times(greater_than(0)))       # > 0 (same)
+        assert_that(self.spy.foo, called().times(4))                     # = 4
+        assert_that(self.spy.foo, called().times(greater_than(2)))       # > 2
+        assert_that(self.spy.foo, called().times(less_than(6)))          # < 6
+
         assert_that(self.spy.foo, is_not(called_with(5)))                 # = 0 times
+        assert_that(self.spy.foo, called_with().times(1))                 # = 1
         assert_that(self.spy.foo, called_with(anything()))                # > 0
-        assert_that(self.spy.foo, called_with(anything()).times(3))       # = 3
+        assert_that(self.spy.foo, called_with(anything()).times(4))       # = 4
         assert_that(self.spy.foo, called_with(1).times(2))                # = 2
         assert_that(self.spy.foo, called_with(1).times(greater_than(1)))  # > 1
         assert_that(self.spy.foo, called_with(1).times(less_than(5)))     # < 5
+
+    # doc
+    def test_called_args(self):
+        self.spy.m1()
+        self.spy.m2(None)
+        self.spy.m3("hi", 3.0)
+        self.spy.m4([1, 2])
+
+        assert_that(self.spy.m1, called())
+        assert_that(self.spy.m2, called())
+        assert_that(self.spy.m3, called())
+        assert_that(self.spy.m4, called())
+
+        assert_that(self.spy.m1, called_with())
+        assert_that(self.spy.m2, called_with(None))
+        assert_that(self.spy.m3, called_with("hi", 3.0))
+        assert_that(self.spy.m4, called_with([1, 2]))
 
 
 class Actor(object):
@@ -937,9 +959,9 @@ class pyDoubles__MockTests(TestCase):
     def test_defend_agains_less_than_2_times(self):
         try:
             with self.mock:
-                self.mock.one_arg_method(ANY_ARG).times(1)
+                self.mock.one_arg_method(ANY_ARG).times(0)
 
-            self.fail('times cant be less than 2')
+            self.fail('times cant be less than 1')
         except WrongApiUsage:
             pass
 

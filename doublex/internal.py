@@ -3,19 +3,23 @@
 import inspect
 import itertools
 
+import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
-from hamcrest import assert_that, is_, greater_than
 
 import safeunicode
 from .exc import *
 
 
-class __ANY_ARG_class__:
-    def __repr__(cls):
-        return 'ANY_ARG'
+class SingleValue:
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return self.name
 
 
-ANY_ARG = __ANY_ARG_class__()
+ANY_ARG = SingleValue('ANY_ARG')
+IMPOSSIBLE = SingleValue('IMPOSSIBLE')
 
 
 class InvocationSet(list):
@@ -204,8 +208,8 @@ class Invocation(object):
         self.context.exception = value
 
     def times(self, n):
-        if n < 2:
-            raise WrongApiUsage("times must be >= 2")
+        if n < 1:
+            raise WrongApiUsage("times must be >= 1. Use is_not(called()) for 0 times")
 
         for i in range(1, n):
             self.double.manage_invocation(self)
@@ -243,7 +247,7 @@ class InvocationContext(object):
 
     @classmethod
     def _assert_args_match(cls, args1, args2):
-        for a, b in itertools.izip_longest(args1, args2):
+        for a, b in itertools.izip_longest(args1, args2, fillvalue=IMPOSSIBLE):
             if ANY_ARG in [a, b]:
                 return ANY_ARG
 
@@ -260,7 +264,7 @@ class InvocationContext(object):
         if isinstance(a, BaseMatcher):
             a, b = b, a
 
-        assert_that(a, is_(b))
+        hamcrest.assert_that(a, hamcrest.is_(b))
 
     def __str__(self):
         return str(InvocationFormatter(self))
@@ -299,34 +303,3 @@ class InvocationFormatter(object):
     def _format_kargs(kargs):
         return ['%s=%s' % (key, repr(val))
                 for key, val in sorted(kargs.items())]
-
-
-class MethodCalled(BaseMatcher):
-    def __init__(self, context, times=None):
-        self.context = context
-        self._times = times or greater_than(0)
-
-    def _matches(self, method):
-        if not isinstance(method, Method):
-            raise WrongApiUsage(
-                "item must be a double method, not %s" % method)
-
-        return method.was_called(self.context, self._times)
-
-    def describe_to(self, description):
-        description.append_text('method called with ')
-        description.append_text(str(self.context))
-        description.append_text(' ')
-        if self._times > 1:
-            description.append_text('%s times ' % self._times)
-
-    def times(self, n):
-        return MethodCalled(self.context, times=n)
-
-
-class MockMeetsExpectations(BaseMatcher):
-    def _matches(self, mock):
-        return mock.stubs == mock.invocations
-
-    def describe_to(self, description):
-        description.append_text('invocations ')
