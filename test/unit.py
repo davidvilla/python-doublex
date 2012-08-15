@@ -395,6 +395,49 @@ class StubObserverTests(TestCase):
         assert_that(observer.update, called_with(2))
 
 
+class StubDelegateTests(TestCase):
+    def setUp(self):
+        self.stub = Stub()
+
+    def test_delegate_to_other_method(self):
+        with self.stub:
+            self.stub.foo().delegates(Collaborator().hello)
+
+        assert_that(self.stub.foo(), is_("hello"))
+
+    def assert_012(self, method):
+        for x in range(3):
+            assert_that(method(), is_(x))
+
+    def test_delegate_to_list(self):
+        with self.stub:
+            self.stub.foo().delegates(range(3))
+
+        self.assert_012(self.stub.foo)
+
+    def test_delegate_to_generator(self):
+        with self.stub:
+            self.stub.foo().delegates(x for x in range(3))
+
+        self.assert_012(self.stub.foo)
+
+    def test_delegate_to_lambda(self):
+        with self.stub:
+            self.stub.foo().delegates(lambda: 2)
+
+        assert_that(self.stub.foo(), is_(2))
+
+    def test_delegate_to_another_stub(self):
+        stub2 = Stub()
+        with stub2:
+            stub2.bar().returns("hi!")
+
+        with self.stub:
+            self.stub.foo().delegates(stub2.bar)
+
+        assert_that(self.stub.foo(), is_("hi!"))
+
+
 class Actor(object):
     pass
 

@@ -207,8 +207,18 @@ class Invocation(object):
     def was_called(self, times):
         return self.double.was_called(self, times)
 
+    def delegates(self, delegate):
+        if callable(delegate):
+            self.context.delegate = delegate
+            return
+
+        try:
+            self.context.delegate = iter(delegate).next
+        except TypeError:
+            raise WrongApiUsage("delegates() must be an callable or iterable object")
+
     def returns(self, value):
-        self.context.output = value
+        self.delegates(lambda *args, **kargs: value)
         return self
 
     def returns_input(self):
@@ -219,7 +229,10 @@ class Invocation(object):
         return self
 
     def raises(self, value):
-        self.context.exception = value
+        def raise_exc(e):
+            raise e
+
+        self.delegates(lambda *args, **kargs: raise_exc(value))
 
     def times(self, n):
         if n < 1:
@@ -229,10 +242,7 @@ class Invocation(object):
             self.double.manage_invocation(self)
 
     def perform(self):
-        if self.context.exception is not None:
-            raise self.context.exception
-
-        return self.context.output
+        return self.context.delegate(*self.context.args, **self.context.kargs)
 
     def __eq__(self, other):
         return self.double.proxy.same_method(self.name, other.name) and \
@@ -247,7 +257,7 @@ class InvocationContext(object):
         self.args = args
         self.kargs = kargs
         self.output = None
-        self.exception = None
+        self.delegate = lambda *args, **kargs: None
 
     def matches(self, other):
         try:

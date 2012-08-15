@@ -45,13 +45,13 @@ Doubles
 ::
 
  class Collaborator:
-     def foo(self):
-         return "foo"
+     def hello(self):
+         return "hello"
 
  with Stub(Collaborator) as stub
-     stub.foo().raises(SomeException)
-     stub.bar().returns(True)  # raises ApiMismatch exception
-     stub.foo(1).returns(2)    # raises ApiMismatch exception
+     stub.hello().raises(SomeException)
+     stub.foo().returns(True)  # raises ApiMismatch exception
+     stub.hello(1).returns(2)  # raises ApiMismatch exception
 
 
 "free" Spy
@@ -256,3 +256,43 @@ checking invocation 'times'
  assert_that(spy.foo, called_with(1).times(2))                # = 2
  assert_that(spy.foo, called_with(1).times(greater_than(1)))  # > 1
  assert_that(spy.foo, called_with(1).times(less_than(5)))     # < 5
+
+
+Stub observers
+==============
+
+Stub observers allow you to execute extra code (similar to python-mock "side effects")::
+
+ class Observer(object):
+     def __init__(self):
+         self.state = None
+
+     def update(self, *args, **kargs):
+         self.state = args[0]
+
+ observer = Observer()
+ stub = Stub()
+ stub.foo.attach(observer.update)
+ stub.foo(2)
+
+ assert_that(observer.state, is_(2))
+
+
+Stub delegates
+==============
+
+The value returned by the stubs may be delegated to functions, methods or callable...::
+
+ with Stub() as stub:
+     stub.foo().delegates(Collaborator().hello)
+
+assert_that(stub.foo(), is_("hello"))
+
+It may be delegated to iterators or generators!! too::
+
+ with Stub() as stub:
+     stub.foo().delegates([1, 2, 3])
+
+ assert_that(stub.foo(), is_(1))
+ assert_that(stub.foo(), is_(2))
+ assert_that(stub.foo(), is_(3))
