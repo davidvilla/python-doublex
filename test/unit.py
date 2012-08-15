@@ -252,14 +252,12 @@ class DisplayResultsTests(TestCase):
 
     def test_empty_spy_stub_method_invoked(self):
         self.empty_spy.foo()
-        print self.empty_spy.foo
         assert_that(str(self.empty_spy.foo),
                     contains_string("method 'Spy.foo' was invoked"))
         assert_that(str(self.empty_spy.foo), contains_string('foo()'))
 
     def test_spy_stub_method_invoked(self):
         self.spy.method_one(1)
-        print self.spy.method_one
         expected = [
             "method 'Collaborator.method_one' was invoked",
             'method_one(1)']
@@ -268,7 +266,6 @@ class DisplayResultsTests(TestCase):
 
     def test_empty_spy_non_stubbed_method_invoked(self):
         self.empty_spy.bar(1, 3.0, "text", key1="text", key2=[1, 2])
-        print self.empty_spy.bar
         expected = [
             "method 'Spy.bar' was invoked",
             "bar(1, 3.0, 'text', key1='text', key2=[1, 2])"]
@@ -379,9 +376,35 @@ class MatcherTests(TestCase):
         assert_that(self.spy.m4, called_with([1, 2]))
 
 
+class StubObserverTests(TestCase):
+    def setUp(self):
+        self.stub = Stub()
+
+    def test_observer_called(self):
+        observer = Observer()
+        self.stub.foo.attach(observer.update)
+        self.stub.foo(2)
+
+        assert_that(observer.state, is_(2))
+
+    def test_observer_called_tested_using_a_doublex_spy(self):
+        observer = Spy()
+        self.stub.foo.attach(observer.update)
+        self.stub.foo(2)
+
+        assert_that(observer.update, called_with(2))
+
+
 class Actor(object):
     pass
 
+
+class Observer(object):
+    def __init__(self):
+        self.state = None
+
+    def update(self, *args, **kargs):
+        self.state = args[0]
 
 
 #----------------------------#

@@ -20,8 +20,8 @@ Design principles
 Doubles
 =======
 
-"empty" Stub
-------------
+"free" Stub
+-----------
 
 ::
 
@@ -54,8 +54,8 @@ Doubles
      stub.foo(1).returns(2)    # raises ApiMismatch exception
 
 
-"empty" Spy
------------
+"free" Spy
+----------
 
 ::
 
@@ -107,8 +107,8 @@ ProxySpy
  assert_that(sender.say, called())
 
 
-"empty" Mock
-------------
+"free" Mock
+-----------
 
 ::
 

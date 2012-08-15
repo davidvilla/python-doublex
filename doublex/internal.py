@@ -148,8 +148,21 @@ class Signature(object):
                             inspect.formatargspec(*self.argspec))
 
 
-class Method(object):
+class Observable(object):
+    def __init__(self):
+        self.observers = []
+
+    def attach(self, observer):
+        self.observers.append(observer)
+
+    def notify(self, *args, **kargs):
+        for ob in self.observers:
+            ob(*args, **kargs)
+
+
+class Method(Observable):
     def __init__(self, double, name):
+        super(Method, self).__init__()
         self.double = double
         self.name = name
 
@@ -160,6 +173,7 @@ class Method(object):
         if self.double.recording:
             return invocation
 
+        self.notify(*args, **kargs)
         return retval
 
     def create_invocation(self, args, kargs):

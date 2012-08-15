@@ -42,7 +42,9 @@ class Stub(object):
 
     def __getattr__(self, key):
         self.proxy.assert_has_method(key)
-        return Method(self, key)
+        method = Method(self, key)
+        setattr(self, key, method)
+        return method
 
     def classname(self):
         name = self.proxy.collaborator_classname()
