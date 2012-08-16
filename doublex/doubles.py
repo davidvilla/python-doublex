@@ -2,9 +2,10 @@
 
 import inspect
 
-from hamcrest import assert_that, is_
+import hamcrest
 
 from .internal import ANY_ARG, create_proxy, InvocationSet, Method
+from .matchers import MockExpectInvocation
 from .exc import UnexpectedBehavior
 
 
@@ -63,7 +64,8 @@ class Spy(Stub):
 
     def was_called(self, invocation, times):
         try:
-            assert_that(self.invocations.count(invocation), is_(times))
+            hamcrest.assert_that(self.invocations.count(invocation),
+                                 hamcrest.is_(times))
             return True
         except AssertionError:
             return False
@@ -86,8 +88,7 @@ class ProxySpy(Spy):
 class Mock(Spy):
     def do_manage_invocation(self, invocation):
         super(Mock, self).do_manage_invocation(invocation)
-        if not invocation in self.stubs:
-            raise UnexpectedBehavior(self.stubs)
+        hamcrest.assert_that(self, MockExpectInvocation(invocation))
 
 
 def method_returning(value):

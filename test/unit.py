@@ -439,6 +439,18 @@ class StubDelegateTests(TestCase):
 
         assert_that(self.stub.foo(), is_("hi!"))
 
+    def test_not_delegable_object(self):
+        try:
+            with self.stub:
+                self.stub.foo().delegates(None)
+            fail("Exception should be raised")
+
+        except WrongApiUsage, e:
+            expected = "delegates() takes callable or iterable object ('None' given)"
+            assert_that(str(e), contains_string(expected))
+
+
+
 
 class Actor(object):
     pass
@@ -900,15 +912,15 @@ class pyDoubles__MockTests(TestCase):
     def test_fail_on_unexpected_call(self):
         try:
             self.mock.hello()
-            self.fail('UnexpectedBehavior should be raised')
-        except UnexpectedBehavior:
+            self.fail('AssertionError should be raised')
+        except AssertionError:
             pass
 
     def test_fail_on_unexpected_call_msg_is_human_readable(self):
         try:
             self.mock.hello()
-        except UnexpectedBehavior, e:
-            assert_that(str(e), contains_string("No one"))
+        except AssertionError, e:
+            assert_that(str(e), contains_string("None"))
 
     def test_define_expectation_and_call_method(self):
         with self.mock:
@@ -937,7 +949,7 @@ class pyDoubles__MockTests(TestCase):
         try:
             self.mock.one_arg_method(2)
             self.fail('Unexpected call')
-        except UnexpectedBehavior:
+        except AssertionError:
             pass
 
     def test_several_expectations_with_args(self):

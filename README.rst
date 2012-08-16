@@ -218,6 +218,8 @@ checking spied calling args
 stubbing
 --------
 
+::
+
  with Spy() as spy:
      spy.foo(has_length(less_than(4))).returns('<4')
      spy.foo(has_length(4)).returns('four')
@@ -281,14 +283,14 @@ Stub observers allow you to execute extra code (similar to python-mock "side eff
 Stub delegates
 ==============
 
-The value returned by the stubs may be delegated to functions, methods or callable...::
+The value returned by the stub may be delegated to function, method or other callable...::
 
  with Stub() as stub:
      stub.foo().delegates(Collaborator().hello)
 
-assert_that(stub.foo(), is_("hello"))
+ assert_that(stub.foo(), is_("hello"))
 
-It may be delegated to iterators or generators!! too::
+It may be delegated to iterators or generators too!::
 
  with Stub() as stub:
      stub.foo().delegates([1, 2, 3])

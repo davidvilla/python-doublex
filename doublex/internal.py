@@ -22,6 +22,10 @@ ANY_ARG = SingleValue('ANY_ARG')
 IMPOSSIBLE = SingleValue('IMPOSSIBLE')
 
 
+def add_indent(text, indent=0):
+    return "%s%s" % (' ' * indent, text)
+
+
 class InvocationSet(list):
     def lookup(self, invocation):
         if not invocation in self:
@@ -30,11 +34,14 @@ class InvocationSet(list):
         i = self.index(invocation)
         return self[i]
 
-    def __repr__(self):
+    def show(self, indent=0):
         if not self:
-            return "No one"
+            return add_indent("None", indent)
 
-        return super(InvocationSet, self).__repr__()
+        lines = []
+        for i in self:
+            lines.append(add_indent(i, indent))
+        return str.join('\n', lines)
 
 
 def create_proxy(collaborator):
@@ -176,20 +183,16 @@ class Method(Observable):
 
     def was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
-        return invocation.was_called(times)
+        return self.double.was_called(invocation, times)
+
+    def show(self, indent=0):
+        return add_indent(self, indent)
+
+    def describe_to(self, description):
+        pass
 
     def __repr__(self):
-        indent = ' ' * 8
-        method = "method '%s.%s'" % (self.double.classname(), self.name)
-        invocations = self.double.get_invocations_to(self.name)
-        if not invocations:
-            return method + " never invoked"
-
-        retval = method + " was invoked this way:\n"
-        for i in invocations:
-            retval += "%s%s\n" % (indent, i)
-
-        return retval
+        return "%s.%s" % (self.double.classname(), self.name)
 
 
 class Invocation(object):
@@ -197,9 +200,6 @@ class Invocation(object):
         self.double = double
         self.name = name
         self.context = context
-
-    def was_called(self, times):
-        return self.double.was_called(self, times)
 
     def delegates(self, delegate):
         if callable(delegate):
@@ -209,9 +209,11 @@ class Invocation(object):
         try:
             self.context.delegate = iter(delegate).next
         except TypeError:
-            raise WrongApiUsage("delegates() arg must be callable or iterable object")
+            reason = "delegates() takes callable or iterable object ('%s' given)" % delegate
+            raise WrongApiUsage(reason)
 
     def returns(self, value):
+        self.context.output = value
         self.delegates(lambda *args, **kargs: value)
         return self
 
@@ -244,6 +246,9 @@ class Invocation(object):
 
     def __repr__(self):
         return "%s.%s%s" % (self.double.classname(), self.name, self.context)
+
+    def show(self, indent=0):
+        return add_indent(self, indent)
 
 
 class InvocationContext(object):
