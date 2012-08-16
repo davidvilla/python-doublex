@@ -244,12 +244,12 @@ checking invocation 'times'
  spy.foo(1)
  spy.foo(2)
 
- assert_that(spy.never, is_not(called()))                    # = 0 times
- assert_that(spy.foo, called())                              # > 0
- assert_that(spy.foo, called().times(greater_than(0)))       # > 0 (same)
- assert_that(spy.foo, called().times(4))                     # = 4
- assert_that(spy.foo, called().times(greater_than(2)))       # > 2
- assert_that(spy.foo, called().times(less_than(6)))          # < 6
+ assert_that(spy.never, is_not(called()))                     # = 0 times
+ assert_that(spy.foo, called())                               # > 0
+ assert_that(spy.foo, called().times(greater_than(0)))        # > 0 (same)
+ assert_that(spy.foo, called().times(4))                      # = 4
+ assert_that(spy.foo, called().times(greater_than(2)))        # > 2
+ assert_that(spy.foo, called().times(less_than(6)))           # < 6
 
  assert_that(spy.foo, is_not(called_with(5)))                 # = 0 times
  assert_that(spy.foo, called_with().times(1))                 # = 1
