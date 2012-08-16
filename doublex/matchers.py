@@ -8,9 +8,11 @@ from exc import WrongApiUsage
 
 
 class MethodCalled(BaseMatcher):
+    any_time = hamcrest.greater_than(0)
+
     def __init__(self, context, times=None):
         self.context = context
-        self._times = times or hamcrest.greater_than(0)
+        self._times = times or self.any_time
 
     def _matches(self, method):
         self.method = method
@@ -24,9 +26,8 @@ class MethodCalled(BaseMatcher):
         description.append_text('this call:\n')
         description.append_text(self.method.show(indent=10))
         description.append_text(str(self.context))
-#        description.append_text(' ')
-#        if self._times > 1:
-#            description.append_text('%s times ' % self._times)
+        if self._times != self.any_time:
+            description.append_text(' -- times: %s' % self._times)
 
     def describe_mismatch(self, actual, description):
         description.append_text("calls that actually ocurred were:\n")

@@ -48,7 +48,7 @@ class SpyReportTest(TestCase):
             print e
             assert_that(str(e), is_(message))
 
-    def test_called_failed(self):
+    def test_called(self):
         spy = doublex.Spy()
 
         self.assert_with_message(
@@ -59,7 +59,7 @@ Expected: this call:
      but: calls that actually ocurred were:
           None\n''')
 
-    def test_nerver_called_failed(self):
+    def test_nerver_called(self):
         spy = doublex.Spy()
 
         spy.foo(1)
@@ -76,9 +76,8 @@ Expected: not this call:
           Spy.foo(2)
           Spy.unexpected(5)\n''')
 
-    def test_hamcrest_not_called_failed(self):
+    def test_hamcrest_not_called(self):
         spy = doublex.Spy()
-
         spy.foo(1)
         spy.foo(2)
         spy.unexpected(5)
@@ -90,7 +89,37 @@ Expected: not this call:
           Spy.unexpected(ANY_ARG)
      but: was \n''')
 
-    def test_called_with_failed(self):
+    def test_called_times_int(self):
+        spy = doublex.Spy()
+
+        spy.foo(1)
+        spy.foo(2)
+
+        self.assert_with_message(
+            spy.foo, doublex.called().times(1),
+            '''
+Expected: this call:
+          Spy.foo(ANY_ARG) -- times: 1
+     but: calls that actually ocurred were:
+          Spy.foo(1)
+          Spy.foo(2)\n''')
+
+    def test_called_times_matcher(self):
+        spy = doublex.Spy()
+
+        spy.foo(1)
+        spy.foo(2)
+
+        self.assert_with_message(
+            spy.foo, doublex.called().times(greater_than(3)),
+            '''
+Expected: this call:
+          Spy.foo(ANY_ARG) -- times: a value greater than <3>
+     but: calls that actually ocurred were:
+          Spy.foo(1)
+          Spy.foo(2)\n''')
+
+    def test_called_with(self):
         spy = doublex.Spy()
 
         spy.foo(1)
@@ -105,7 +134,7 @@ Expected: this call:
           Spy.foo(1)
           Spy.foo(2)\n''')
 
-    def test_never_called_with_failed(self):
+    def test_never_called_with(self):
         spy = doublex.Spy()
 
         spy.foo(1)
@@ -122,7 +151,7 @@ Expected: not this call:
           Spy.foo(2)
           Spy.unexpected(2)\n''')
 
-    def test_hamcrest_not_called_with_failed(self):
+    def test_hamcrest_not_called_with(self):
         spy = doublex.Spy()
 
         spy.foo(1)
@@ -136,7 +165,7 @@ Expected: not this call:
           Spy.unexpected(2)
      but: was \n''')
 
-    def test_called_with_matcher_failed(self):
+    def test_called_with_matcher(self):
         spy = doublex.Spy()
 
         self.assert_with_message(
@@ -148,7 +177,7 @@ Expected: this call:
      but: calls that actually ocurred were:
           None\n''')
 
-    def test_never_called_with_matcher_failed(self):
+    def test_never_called_with_matcher(self):
         spy = doublex.Spy()
         spy.unexpected(2)
 
@@ -161,7 +190,7 @@ Expected: not this call:
      but: calls that actually ocurred were:
           Spy.unexpected(2)\n''')
 
-    def test_hamcrest_not_called_with_matcher_failed(self):
+    def test_hamcrest_not_called_with_matcher(self):
         spy = doublex.Spy()
         spy.unexpected(2)
 
