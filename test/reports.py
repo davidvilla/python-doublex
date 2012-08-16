@@ -45,7 +45,6 @@ class SpyReportTest(TestCase):
             assert_that(value, matcher)
             self.fail("Exception should be raised")
         except AssertionError, e:
-            print e
             assert_that(str(e), is_(message))
 
     def test_called(self):

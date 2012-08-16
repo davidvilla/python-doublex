@@ -194,6 +194,18 @@ class Method(Observable):
     def __repr__(self):
         return "%s.%s" % (self.double.classname(), self.name)
 
+    def show_history(self):
+        method = "method '%s.%s'" % (self.double.classname(), self.name)
+        invocations = self.double.get_invocations_to(self.name)
+        if not invocations:
+            return method + " never invoked"
+
+        retval = method + " was invoked this way:\n"
+        for i in invocations:
+            retval += add_indent("%s\n" % i, 10)
+
+        return retval
+
 
 class Invocation(object):
     def __init__(self, double, name, context):
@@ -209,7 +221,7 @@ class Invocation(object):
         try:
             self.context.delegate = iter(delegate).next
         except TypeError:
-            reason = "delegates() takes callable or iterable object ('%s' given)" % delegate
+            reason = "delegates() must be called with callable or iterable instance (got '%s' instead)" % delegate
             raise WrongApiUsage(reason)
 
     def returns(self, value):

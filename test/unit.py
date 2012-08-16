@@ -243,25 +243,27 @@ class DisplayResultsTests(TestCase):
             self.spy.method_one(ANY_ARG).returns(2)
 
     def test_empty_spy_stub_method(self):
-        assert_that(str(self.empty_spy.foo),
+        assert_that(self.empty_spy.foo.show_history(),
                     "method 'Spy.foo' never invoked")
 
     def test_spy_stub_method(self):
-        assert_that(str(self.spy.method_one),
+        assert_that(self.spy.method_one.show_history(),
                     "method 'Collaborator.method_one' never invoked")
 
     def test_empty_spy_stub_method_invoked(self):
         self.empty_spy.foo()
-        assert_that(str(self.empty_spy.foo),
-                    contains_string("method 'Spy.foo' was invoked"))
-        assert_that(str(self.empty_spy.foo), contains_string('foo()'))
+        expected = [
+            "method 'Spy.foo' was invoked",
+            "foo()"]
+        assert_that(self.empty_spy.foo.show_history(),
+                    string_contains_in_order(*expected))
 
     def test_spy_stub_method_invoked(self):
         self.spy.method_one(1)
         expected = [
             "method 'Collaborator.method_one' was invoked",
             'method_one(1)']
-        assert_that(str(self.spy.method_one),
+        assert_that(self.spy.method_one.show_history(),
                     string_contains_in_order(*expected))
 
     def test_empty_spy_non_stubbed_method_invoked(self):
@@ -269,7 +271,7 @@ class DisplayResultsTests(TestCase):
         expected = [
             "method 'Spy.bar' was invoked",
             "bar(1, 3.0, 'text', key1='text', key2=[1, 2])"]
-        assert_that(str(self.empty_spy.bar),
+        assert_that(self.empty_spy.bar.show_history(),
                     string_contains_in_order(*expected))
 
     def test_spy_several_invoked_same_method(self):
@@ -277,8 +279,8 @@ class DisplayResultsTests(TestCase):
         self.spy.mixed_method(8, False)
 
         expected = "method 'Collaborator.mixed_method' was invoked"
-        assert_that(
-            str(self.spy.mixed_method), contains_string(expected))
+        assert_that(self.spy.mixed_method.show_history(),
+                    contains_string(expected))
 
 
 class ApiMismatchTest(TestCase):
@@ -446,10 +448,8 @@ class StubDelegateTests(TestCase):
             fail("Exception should be raised")
 
         except WrongApiUsage, e:
-            expected = "delegates() takes callable or iterable object ('None' given)"
+            expected = "delegates() must be called with callable or iterable instance (got 'None' instead)"
             assert_that(str(e), contains_string(expected))
-
-
 
 
 class Actor(object):
