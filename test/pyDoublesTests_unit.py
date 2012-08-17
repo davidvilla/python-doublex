@@ -94,7 +94,7 @@ class ProxySpyTests(unittest.TestCase):
 
         assert_that_was_called(self.spy.hello)
 
-# API dependant
+# pyDobules internal API specific
 #    def test_get_method_name(self):
 #        name = _Introspector_().method_name(self.spy.hello)
 #
@@ -103,7 +103,7 @@ class ProxySpyTests(unittest.TestCase):
     def test_call_original_method(self):
         self.assertEquals("ok", self.spy.something())
 
-# API dependant
+# pyDobules internal API specific
 #    def test_get_instance_from_method(self):
 #        spy_found = _Introspector_().double_instance_from_method(self.spy.hello)
 #
@@ -272,6 +272,7 @@ class ProxySpyTests(unittest.TestCase):
         self.assertEquals(1000, self.spy.two_args_method(1, 5))
 
 ## TODO: implement this:
+## pyDoubles did not support this
 ##    def test_any_arg_matcher_with_kwargs(self):
 ##        when(self.spy.kwarg_method).with_args(key_param=ANY_ARG).then_return(1000)
 ##
@@ -354,7 +355,7 @@ class ProxySpyTests(unittest.TestCase):
         except UnexpectedBehavior:
             pass
 
-# API specific
+# pyDobules internal API specific
 #class MethodPoolTests(unittest.TestCase):
 #
 #    def setUp(self):
