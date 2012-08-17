@@ -368,3 +368,7 @@ class InvocationFormatter(object):
     def _format_kargs(kargs):
         return ['%s=%s' % (key, repr(val))
                 for key, val in sorted(kargs.items())]
+
+
+class MockBase(object):
+    pass

@@ -4,7 +4,7 @@ import inspect
 
 import hamcrest
 
-from .internal import ANY_ARG, create_proxy, InvocationSet, Method
+from .internal import ANY_ARG, create_proxy, InvocationSet, Method, MockBase
 from .matchers import MockExpectInvocation
 
 
@@ -85,7 +85,7 @@ class ProxySpy(Spy):
         return self.proxy.perform_invocation(invocation)
 
 
-class Mock(Spy):
+class Mock(Spy, MockBase):
     def do_manage_invocation(self, invocation):
         super(Mock, self).do_manage_invocation(invocation)
         hamcrest.assert_that(self, MockExpectInvocation(invocation))

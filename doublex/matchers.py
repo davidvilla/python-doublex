@@ -3,7 +3,7 @@
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 
-from internal import Method, InvocationContext, ANY_ARG
+from internal import Method, InvocationContext, ANY_ARG, MockBase
 from exc import WrongApiUsage
 
 
@@ -18,7 +18,7 @@ class MethodCalled(BaseMatcher):
         self.method = method
         if not isinstance(method, Method):
             raise WrongApiUsage(
-                "item must be a double method, not %s" % method)
+                "takes a double method (got %s instead)" % method)
 
         return method.was_called(self.context, self._times)
 
@@ -47,6 +47,9 @@ def called_with(*args, **kargs):
 
 class never(BaseMatcher):
     def __init__(self, matcher):
+        if not isinstance(matcher, MethodCalled):
+            raise WrongApiUsage(
+                "takes called/called_with instance (got %s instead)" % matcher)
         self.matcher = matcher
 
     def _matches(self, item):
@@ -78,6 +81,10 @@ class MockExpectInvocation(BaseMatcher):
 
 class MockMeetsExpectations(BaseMatcher):
     def _matches(self, mock):
+        if not isinstance(mock, MockBase):
+            raise WrongApiUsage(
+                "takes Mock instance (got %s instead)" % mock)
+
         self.mock = mock
         return mock.stubs == mock.invocations
 
