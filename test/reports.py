@@ -56,7 +56,7 @@ class SpyReportTest(TestCase):
 Expected: this call:
           Spy.expected(ANY_ARG)
      but: calls that actually ocurred were:
-          None\n''')
+          No one\n''')
 
     def test_nerver_called(self):
         spy = doublex.Spy()
@@ -174,7 +174,7 @@ Expected: not this call:
 Expected: this call:
           Spy.unexpected(a value greater than <1>)
      but: calls that actually ocurred were:
-          None\n''')
+          No one\n''')
 
     def test_never_called_with_matcher(self):
         spy = doublex.Spy()
@@ -216,7 +216,7 @@ class MockReportTest(TestCase):
     def test_expect_none_but_someting_unexpected_called(self):
         expected_message = '''
 Expected: these calls:
-          None
+          No one
      but: this call was not expected:
           Mock.unexpected()
 '''
@@ -235,7 +235,7 @@ Expected: these calls:
 Expected: these calls:
           Mock.expected()
      but: calls that actually ocurred were:
-          None
+          No one
 '''
 
         self.assert_expectation_error(expected_message)
@@ -250,7 +250,7 @@ Expected: these calls:
           Mock.foo()
           Mock.bar()
      but: calls that actually ocurred were:
-          None
+          No one
 '''
 
         self.assert_expectation_error(expected_message)
@@ -263,7 +263,7 @@ Expected: these calls:
 Expected: these calls:
           Mock.foo(1, 2)-> 1
      but: calls that actually ocurred were:
-          None
+          No one
 '''
 
         self.assert_expectation_error(expected_message)
@@ -276,7 +276,7 @@ Expected: these calls:
 Expected: these calls:
           Mock.foo('a', 'b')-> 'c'
      but: calls that actually ocurred were:
-          None
+          No one
 '''
 
         self.assert_expectation_error(expected_message)
@@ -289,7 +289,7 @@ Expected: these calls:
 Expected: these calls:
           Mock.foo(color='red', num=1)-> {'key': 1}
      but: calls that actually ocurred were:
-          None
+          No one
 '''
 
         self.assert_expectation_error(expected_message)

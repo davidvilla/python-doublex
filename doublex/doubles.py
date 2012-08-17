@@ -6,7 +6,6 @@ import hamcrest
 
 from .internal import ANY_ARG, create_proxy, InvocationSet, Method
 from .matchers import MockExpectInvocation
-from .exc import UnexpectedBehavior
 
 
 class Stub(object):
@@ -31,7 +30,8 @@ class Stub(object):
         self.do_manage_invocation(invocation)
 
         if invocation in self.stubs:
-            return self.stubs.lookup(invocation).perform()
+            stubbed = self.stubs.lookup(invocation)
+            return stubbed.perform(invocation)
 
         return self.perform_invocation(invocation)
 

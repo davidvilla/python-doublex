@@ -6,6 +6,7 @@ import itertools
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 
+import functools
 import safeunicode
 from .exc import *
 
@@ -31,12 +32,13 @@ class InvocationSet(list):
         if not invocation in self:
             raise LookupError
 
-        i = self.index(invocation)
-        return self[i]
+        compatible = [i for i in self if i == invocation]
+        compatible.sort()
+        return compatible[0]
 
     def show(self, indent=0):
         if not self:
-            return add_indent("None", indent)
+            return add_indent("No one", indent)
 
         lines = []
         for i in self:
@@ -137,16 +139,19 @@ class Signature(object):
 #        return self.argspec.args[-len(self.argspec.defaults):]
 
     def assert_match(self, args, kargs):
+        if ANY_ARG in args:
+            return
+
         if self.proxy.isclass():
             args = (None,) + args  # self
 
         # This requires python-2.7!!!
         inspect.getcallargs(self.method, *args, **kargs)
 
-#    def __repr__(self):
-#        return "%s.%s%s" % (self.proxy.collaborator_classname(),
-#                            self.name,
-#                            inspect.formatargspec(*self.argspec))
+    def __repr__(self):
+        return "%s.%s%s" % (self.proxy.collaborator_classname(),
+                            self.name,
+                            inspect.formatargspec(*self.argspec))
 
 
 class Observable(object):
@@ -207,6 +212,28 @@ class Method(Observable):
         return retval
 
 
+def func_returning(value=None):
+    return lambda *args, **kargs: value
+
+
+def func_returning_input(invocation):
+    def func(*args, **kargs):
+        if not args:
+            raise TypeError("%s has no input args" % invocation)
+        return args[0]
+
+    return func
+
+
+def func_raising(e):
+    def raise_(e):
+        raise e
+
+    return lambda *args, **kargs: raise_(e)
+
+
+# requires 2.7!!
+@functools.total_ordering
 class Invocation(object):
     def __init__(self, double, name, context):
         self.double = double
@@ -226,21 +253,18 @@ class Invocation(object):
 
     def returns(self, value):
         self.context.output = value
-        self.delegates(lambda *args, **kargs: value)
+        self.delegates(func_returning(value))
         return self
 
     def returns_input(self):
         if not self.context.args:
             raise TypeError("%s has no input args" % self)
 
-        self.returns(self.context.args)
+        self.delegates(func_returning_input(self))
         return self
 
-    def raises(self, value):
-        def raise_exc(e):
-            raise e
-
-        self.delegates(lambda *args, **kargs: raise_exc(value))
+    def raises(self, e):
+        self.delegates(func_raising(e))
 
     def times(self, n):
         if n < 1:
@@ -249,12 +273,15 @@ class Invocation(object):
         for i in range(1, n):
             self.double.manage_invocation(self)
 
-    def perform(self):
-        return self.context.delegate(*self.context.args, **self.context.kargs)
+    def perform(self, actual_invocation):
+        return self.context.exec_delegate(actual_invocation.context)
 
     def __eq__(self, other):
         return self.double.proxy.same_method(self.name, other.name) and \
             self.context.matches(other.context)
+
+    def __lt__(self, other):
+        return ANY_ARG in other.context.args
 
     def __repr__(self):
         return "%s.%s%s" % (self.double.classname(), self.name, self.context)
@@ -268,7 +295,7 @@ class InvocationContext(object):
         self.args = args
         self.kargs = kargs
         self.output = None
-        self.delegate = lambda *args, **kargs: None
+        self.delegate = func_returning(None)
 
     def matches(self, other):
         try:
@@ -279,6 +306,9 @@ class InvocationContext(object):
             return True
         except AssertionError:
             return False
+
+    def exec_delegate(self, context):
+        return self.delegate(*context.args, **context.kargs)
 
     @classmethod
     def _assert_args_match(cls, args1, args2):
