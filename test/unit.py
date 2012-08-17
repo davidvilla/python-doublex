@@ -784,8 +784,8 @@ class pyDoubles__ProxySpyTests(TestCase):
             assert_that(self.spy.one_arg_method, called().times(5))
             self.fail("Should have been called 5 times")
         except AssertionError, e:
-            self.assertIn("5", str(e))
-            self.assertIn("one_arg_method", str(e))
+            assert_that(str(e), contains_string("5"))
+            assert_that(str(e), contains_string("one_arg_method"))
 
     def test_expect_several_times_matches_exactly(self):
         self.spy.one_arg_method(1)

@@ -6,7 +6,17 @@ import itertools
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 
-import functools
+try:
+    from functools import total_ordering
+except ImportError:
+    from py27_backports import total_ordering
+
+try:
+    from inspect import getcallargs
+except ImportError:
+    from py27_backports import getcallargs
+
+
 import safeunicode
 from .exc import *
 
@@ -145,8 +155,7 @@ class Signature(object):
         if self.proxy.isclass():
             args = (None,) + args  # self
 
-        # This requires python-2.7!!!
-        inspect.getcallargs(self.method, *args, **kargs)
+        getcallargs(self.method, *args, **kargs)
 
     def __repr__(self):
         return "%s.%s%s" % (self.proxy.collaborator_classname(),
@@ -232,8 +241,7 @@ def func_raising(e):
     return lambda *args, **kargs: raise_(e)
 
 
-# requires 2.7!!
-@functools.total_ordering
+@total_ordering
 class Invocation(object):
     def __init__(self, double, name, context):
         self.double = double
