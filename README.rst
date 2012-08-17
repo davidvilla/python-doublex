@@ -2,7 +2,9 @@
 python-doublex
 ==============
 
-This is a try to improve and simplify pyDoubles codebase and API
+A powerful test doubles framework for Python.
+
+This started as a try to improve and simplify pyDoubles codebase and API
 
 Source repository is: https://bitbucket.org/DavidVilla/python-doublex
 
