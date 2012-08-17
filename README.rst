@@ -2,9 +2,9 @@
 python-doublex
 ==============
 
-This is a try to improve and simplify pyDoubles[1] codebase and API
+This is a try to improve and simplify pyDoubles codebase and API
 
-[1] https://bitbucket.org/carlosble/pydoubles
+Source repository is: https://bitbucket.org/DavidVilla/python-doublex
 
 
 Design principles
@@ -286,7 +286,7 @@ Stub delegates
 The value returned by the stub may be delegated to function, method or other callable...::
 
  with Stub() as stub:
-     stub.foo().delegates(Collaborator().hello)
+     stub.foo().delegates(lambda: "hello")
 
  assert_that(stub.foo(), is_("hello"))
 
