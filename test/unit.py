@@ -1,6 +1,7 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
 from unittest import TestCase
+import itertools
 
 from hamcrest import assert_that, is_not, is_, all_of
 from hamcrest import contains_string, has_length
@@ -404,15 +405,15 @@ class StubDelegateTests(TestCase):
     def setUp(self):
         self.stub = Stub()
 
+    def assert_012(self, method):
+        for x in range(3):
+            assert_that(method(), is_(x))
+
     def test_delegate_to_other_method(self):
         with self.stub:
             self.stub.foo().delegates(Collaborator().hello)
 
         assert_that(self.stub.foo(), is_("hello"))
-
-    def assert_012(self, method):
-        for x in range(3):
-            assert_that(method(), is_(x))
 
     def test_delegate_to_list(self):
         with self.stub:
@@ -423,6 +424,12 @@ class StubDelegateTests(TestCase):
     def test_delegate_to_generator(self):
         with self.stub:
             self.stub.foo().delegates(x for x in range(3))
+
+        self.assert_012(self.stub.foo)
+
+    def test_delegate_to_count(self):
+        with self.stub:
+            self.stub.foo().delegates(itertools.count())
 
         self.assert_012(self.stub.foo)
 

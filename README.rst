@@ -52,8 +52,8 @@ Doubles
 
  with Stub(Collaborator) as stub
      stub.hello().raises(SomeException)
-     stub.foo().returns(True)  # raises ApiMismatch exception
-     stub.hello(1).returns(2)  # raises ApiMismatch exception
+     stub.foo().returns(True)  # interface mismatch exception
+     stub.hello(1).returns(2)  # interface mismatch exception
 
 
 "free" Spy
@@ -90,10 +90,10 @@ Doubles
 
  sender = Spy(Sender)
 
- sender.bar()        # raises ApiMismatch exception
- sender.send_mail()  # raises ApiMismatch exception
- sender.send_mail(wrong=1)         # raises ApiMismatch exception
- sender.send_mail('foo', wrong=1)  # raises ApiMismatch exception
+ sender.bar()        # interface mismatch exception
+ sender.send_mail()  # interface mismatch exception
+ sender.send_mail(wrong=1)         # interface mismatch exception
+ sender.send_mail('foo', wrong=1)  # interface mismatch exception
 
 
 ProxySpy
@@ -101,11 +101,11 @@ ProxySpy
 
 ::
 
- sender = Spy(Sender())  # must give an instance
+ sender = ProxySpy(Sender())  # NOTE this always takes an instance
 
- sender.say('boo!')  # raises ApiMismatch exception
+ sender.say('boo!')  # interface mismatch exception
 
- assert_that(sender.say(), "hi")
+ assert_that(sender.say(), is_("hi"))
  assert_that(sender.say, called())
 
 
@@ -287,12 +287,17 @@ Stub delegates
 
 The value returned by the stub may be delegated to function, method or other callable...::
 
+ def get_user():
+     return "Freddy"
+
  with Stub() as stub:
+     stub.user().delegates(get_user)
      stub.foo().delegates(lambda: "hello")
 
+ assert_that(stub.user(), is_("Freddy"))
  assert_that(stub.foo(), is_("hello"))
 
-It may be delegated to iterators or generators too!::
+It may be delegated to iterables or generators too!::
 
  with Stub() as stub:
      stub.foo().delegates([1, 2, 3])
@@ -302,8 +307,8 @@ It may be delegated to iterators or generators too!::
  assert_that(stub.foo(), is_(3))
 
 
-Mimics
-======
+Mimic doubles
+=============
 
 Usually double instances behave as collaborator subrogates, but they do not expose the
 same class hierarchy, and usually this is pretty enough when the code uses "duck typing"::
@@ -321,10 +326,11 @@ same class hierarchy, and usually this is pretty enough when the code uses "duck
  False
 
 
-But some third party library DOES strict type checking with isinstance() invalidating our
-doubles. For these cases you can use Mimic's. Mimic class can decorate any double class::
+But some third party library DOES strict type checking using isinstance() invalidating our
+doubles. For these cases you can use Mimic's. Mimic class can decorate any double class to
+achive full replacement (Liskov principle)::
 
- >>> spy = Mimic(Spy, B())
+ >>> spy = Mimic(Spy, B)
  >>> isinstance(spy, B)
  True
  >>> isinstance(spy, A)
