@@ -77,6 +77,13 @@ class DummyProxy(object):
         return None
 
 
+def get_class(something):
+    if inspect.isclass(something):
+        return something
+    else:
+        return something.__class__
+
+
 class Proxy(object):
     def __init__(self, collaborator):
         self.collaborator = collaborator
@@ -158,7 +165,7 @@ class Signature(object):
         getcallargs(self.method, *args, **kargs)
 
     def __repr__(self):
-        return "%s.%s%s" % (self.proxy.collaborator_classname(),
+        return "%s.%s%s" % (self._proxy.collaborator_classname(),
                             self.name,
                             inspect.formatargspec(*self.argspec))
 
@@ -183,9 +190,9 @@ class Method(Observable):
 
     def __call__(self, *args, **kargs):
         invocation = self.create_invocation(args, kargs)
-        retval = self.double.manage_invocation(invocation)
+        retval = self.double._manage_invocation(invocation)
 
-        if self.double.recording:
+        if self.double._recording:
             return invocation
 
         self.notify(*args, **kargs)
@@ -197,7 +204,7 @@ class Method(Observable):
 
     def was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
-        return self.double.was_called(invocation, times)
+        return self.double._was_called(invocation, times)
 
     def show(self, indent=0):
         return add_indent(self, indent)
@@ -206,11 +213,11 @@ class Method(Observable):
         pass
 
     def __repr__(self):
-        return "%s.%s" % (self.double.classname(), self.name)
+        return "%s.%s" % (self.double._classname(), self.name)
 
     def show_history(self):
-        method = "method '%s.%s'" % (self.double.classname(), self.name)
-        invocations = self.double.get_invocations_to(self.name)
+        method = "method '%s.%s'" % (self.double._classname(), self.name)
+        invocations = self.double._get_invocations_to(self.name)
         if not invocations:
             return method + " never invoked"
 
@@ -279,20 +286,20 @@ class Invocation(object):
             raise WrongApiUsage("times must be >= 1. Use is_not(called()) for 0 times")
 
         for i in range(1, n):
-            self.double.manage_invocation(self)
+            self.double._manage_invocation(self)
 
     def perform(self, actual_invocation):
         return self.context.exec_delegate(actual_invocation.context)
 
     def __eq__(self, other):
-        return self.double.proxy.same_method(self.name, other.name) and \
+        return self.double._proxy.same_method(self.name, other.name) and \
             self.context.matches(other.context)
 
     def __lt__(self, other):
         return ANY_ARG in other.context.args
 
     def __repr__(self):
-        return "%s.%s%s" % (self.double.classname(), self.name, self.context)
+        return "%s.%s%s" % (self.double._classname(), self.name, self.context)
 
     def show(self, indent=0):
         return add_indent(self, indent)

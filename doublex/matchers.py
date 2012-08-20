@@ -31,7 +31,7 @@ class MethodCalled(BaseMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text("calls that actually ocurred were:\n")
-        description.append_text(self.method.double.invocations.show(indent=10))
+        description.append_text(self.method.double._invocations.show(indent=10))
 
     def times(self, n):
         return MethodCalled(self.context, times=n)
@@ -68,11 +68,11 @@ class MockExpectInvocation(BaseMatcher):
 
     def _matches(self, mock):
         self.mock = mock
-        return self.invocation in mock.stubs
+        return self.invocation in mock._stubs
 
     def describe_to(self, description):
         description.append_text("these calls:\n")
-        description.append_text(self.mock.stubs.show(indent=10))
+        description.append_text(self.mock._stubs.show(indent=10))
 
     def describe_mismatch(self, actual, description):
         description.append_text("this call was not expected:\n")
@@ -86,15 +86,15 @@ class MockMeetsExpectations(BaseMatcher):
                 "takes Mock instance (got %s instead)" % mock)
 
         self.mock = mock
-        return mock.stubs == mock.invocations
+        return mock._stubs == mock._invocations
 
     def describe_to(self, description):
         description.append_text("these calls:\n")
-        description.append_text(self.mock.stubs.show(indent=10))
+        description.append_text(self.mock._stubs.show(indent=10))
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
-        description.append_text(self.mock.invocations.show(indent=10))
+        description.append_text(self.mock._invocations.show(indent=10))
 
 
 def meets_expectations():

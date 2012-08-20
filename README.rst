@@ -300,3 +300,38 @@ It may be delegated to iterators or generators too!::
  assert_that(stub.foo(), is_(1))
  assert_that(stub.foo(), is_(2))
  assert_that(stub.foo(), is_(3))
+
+
+Mimics
+======
+
+Usually double instances behave as collaborator subrogates, but they do not expose the
+same class hierarchy, and usually this is pretty enough when the code uses "duck typing"::
+
+ class A(object):
+     pass
+
+ class B(A):
+     pass
+
+ >>> spy = Spy(B())
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, B)
+ False
+
+
+But some third party library DOES strict type checking with isinstance() invalidating our
+doubles. For these cases you can use Mimic's. Mimic class can decorate any double class::
+
+ >>> spy = Mimic(Spy, B())
+ >>> isinstance(spy, B)
+ True
+ >>> isinstance(spy, A)
+ True
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, Stub)
+ True
+ >>> isinstance(spy, object)
+ True

@@ -11,8 +11,15 @@ from hamcrest.library.number.ordering_comparison import *
 
 from doublex import Spy, ProxySpy, Stub, Mock
 from doublex import called, called_with, ANY_ARG, meets_expectations
-from doublex import WrongApiUsage, UnexpectedBehavior
+from doublex import WrongApiUsage
 from doublex import method_returning, method_raising
+from doublex.doubles import Mimic
+
+
+class Auto(TestCase):
+    def test_auto(self):
+        stub = Stub()
+        print stub.jaja
 
 
 class StubTests(TestCase):
@@ -444,6 +451,58 @@ class StubDelegateTests(TestCase):
         except WrongApiUsage, e:
             expected = "delegates() must be called with callable or iterable instance (got 'None' instead)"
             assert_that(str(e), contains_string(expected))
+
+
+class MimicTests(TestCase):
+    class A(object):
+        def method_a(self, n):
+            return n + 1
+
+    class B(A):
+        def method_b(self):
+            return "hi"
+
+    def test_normal_spy_does_not_inherit_collaborator_superclasses(self):
+        spy = Spy(self.B)
+        assert_that(not isinstance(spy, self.B))
+
+    def test_mimic_spy_DOES_inherit_collaborator_superclasses(self):
+        spy = Mimic(Spy, self.B)
+        for cls in [self.B, self.A, Spy, Stub, object]:
+            assert_that(isinstance(spy, cls))
+
+    def test_mimic_stub_works(self):
+        stub = Mimic(Stub, self.B)
+        with stub:
+            stub.method_a(2).returns(3)
+
+        assert_that(stub.method_a(2), is_(3))
+
+    def test_mimic_spy_works(self):
+        spy = Mimic(Spy, self.B)
+        with spy:
+            spy.method_a(5).returns(True)
+
+        assert_that(spy.method_a(5), is_(True))
+
+        assert_that(spy.method_a, called())
+        assert_that(spy.method_a, called_with(5))
+
+    def test_mimic_proxy_spy_works(self):
+        spy = Mimic(ProxySpy, self.B())
+        assert_that(spy.method_a(5), is_(6))
+
+        assert_that(spy.method_a, called())
+        assert_that(spy.method_a, called_with(5))
+
+    def test_mimic_mock_works(self):
+        mock = Mimic(Mock, self.B)
+        with mock:
+            mock.method_a(2)
+
+        mock.method_a(2)
+
+        assert_that(mock, meets_expectations())
 
 
 class Actor(object):
