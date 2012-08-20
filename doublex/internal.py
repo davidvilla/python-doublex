@@ -296,7 +296,16 @@ class Invocation(object):
             self.context.matches(other.context)
 
     def __lt__(self, other):
-        return ANY_ARG in other.context.args
+        if ANY_ARG in other.context.args:
+            return True
+
+        if self.name < other.name:
+            return True
+
+        if self.context < other.context:
+            return True
+
+        return False
 
     def __repr__(self):
         return "%s.%s%s" % (self.double._classname(), self.name, self.context)
@@ -305,6 +314,7 @@ class Invocation(object):
         return add_indent(self, indent)
 
 
+@total_ordering
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
         self.args = args
@@ -345,6 +355,12 @@ class InvocationContext(object):
             a, b = b, a
 
         hamcrest.assert_that(a, hamcrest.is_(b))
+
+    def __eq__(self, other):
+        return self.matches(other)
+
+    def __lt__(self, other):
+        return (self.args, self.kargs) < (other.args, other.kargs)
 
     def __str__(self):
         return str(InvocationFormatter(self))

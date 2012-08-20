@@ -6,6 +6,10 @@ from hamcrest.core.base_matcher import BaseMatcher
 from internal import Method, InvocationContext, ANY_ARG, MockBase
 from exc import WrongApiUsage
 
+__all__ = ['called', 'called_with',
+           'never',
+           'meets_expectations', 'smoothy_meets_expectations']
+
 
 class MethodCalled(BaseMatcher):
     any_time = hamcrest.greater_than(0)
@@ -79,14 +83,17 @@ class MockExpectInvocation(BaseMatcher):
         description.append_text(self.invocation.show(indent=10))
 
 
-class MockMeetsExpectations(BaseMatcher):
+class meets_expectations(BaseMatcher):
     def _matches(self, mock):
         if not isinstance(mock, MockBase):
             raise WrongApiUsage(
                 "takes Mock instance (got %s instead)" % mock)
 
         self.mock = mock
-        return mock._stubs == mock._invocations
+        return self._expectations_match()
+
+    def _expectations_match(self):
+        return self.mock._stubs == self.mock._invocations
 
     def describe_to(self, description):
         description.append_text("these calls:\n")
@@ -97,8 +104,9 @@ class MockMeetsExpectations(BaseMatcher):
         description.append_text(self.mock._invocations.show(indent=10))
 
 
-def meets_expectations():
-    return MockMeetsExpectations()
+class smoothy_meets_expectations(meets_expectations):
+    def _expectations_match(self):
+        return sorted(self.mock._stubs) == sorted(self.mock._invocations)
 
 
 # just aliases

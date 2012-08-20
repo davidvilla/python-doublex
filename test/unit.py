@@ -11,7 +11,8 @@ from hamcrest.library.number.ordering_comparison import *
 
 
 from doublex import Spy, ProxySpy, Stub, Mock
-from doublex import called, called_with, ANY_ARG, meets_expectations
+from doublex import called, called_with, ANY_ARG, \
+    meets_expectations, smoothy_meets_expectations
 from doublex import WrongApiUsage
 from doublex import method_returning, method_raising
 from doublex.doubles import Mimic
@@ -111,7 +112,7 @@ class VerifiedStubTests(TestCase):
             assert_that(str(e), contains_string(expected))
 
 
-class EmptySpyTests(TestCase):
+class SpyTests(TestCase):
     def setUp(self):
         self.spy = Spy()
 
@@ -242,6 +243,63 @@ class ProxySpyTest(TestCase):
                               ProxySpy, Actor)
 
 
+class MockTests(TestCase):
+    def setUp(self):
+        self.mock = Mock()
+
+    def test_order_matters__ok(self):
+        with self.mock:
+            self.mock.foo()
+            self.mock.bar()
+
+        self.mock.foo()
+        self.mock.bar()
+
+        assert_that(self.mock, meets_expectations())
+
+    def test_order_matters__fail(self):
+        with self.mock:
+            self.mock.foo()
+            self.mock.bar()
+
+        self.mock.bar()
+        self.mock.foo()
+
+        self.failUnlessRaises(
+            AssertionError,
+            assert_that, self.mock, meets_expectations())
+
+    def test_method_name_order_does_not_matter_with_smooth(self):
+        with self.mock:
+            self.mock.foo()
+            self.mock.bar()
+
+        self.mock.bar()
+        self.mock.foo()
+
+        assert_that(self.mock, smoothy_meets_expectations())
+
+    def test_args_order_does_not_matter_with_smooth(self):
+        with self.mock:
+            self.mock.foo(2)
+            self.mock.foo(1)
+
+        self.mock.foo(1)
+        self.mock.foo(2)
+
+        assert_that(self.mock, smoothy_meets_expectations())
+
+    def test_kwargs_order_does_not_matter_with_smooth(self):
+        with self.mock:
+            self.mock.foo(1, key='a')
+            self.mock.foo(1, key='b')
+
+        self.mock.foo(1, key='b')
+        self.mock.foo(1, key='a')
+
+        assert_that(self.mock, smoothy_meets_expectations())
+
+
 class DisplayResultsTests(TestCase):
     def setUp(self):
         with Spy() as self.empty_spy:
@@ -304,13 +362,31 @@ class ApiMismatchTest(TestCase):
     def test_give_karg_without_key(self):
         self.spy.mixed_method(1, True)
 
-    def test_simple_fail(self):
+    def test_fail_missing_method(self):
+        try:
+            self.spy.missing()
+            self.fail("TypeError should be raised")
+
+        except AttributeError, e:
+            expected = "'Collaborator' object has no attribute 'missing'"
+            assert_that(str(e), contains_string(expected))
+
+    def test_fail_wrong_args(self):
         try:
             self.spy.hello("wrong")
             self.fail("TypeError should be raised")
 
         except TypeError, e:
             expected = "Collaborator.hello() takes exactly 1 argument (2 given)"
+            assert_that(str(e), contains_string(expected))
+
+    def test_fail_wrong_kargs(self):
+        try:
+            self.spy.kwarg_method(wrong_key=1)
+            self.fail("TypeError should be raised")
+
+        except TypeError, e:
+            expected = "Collaborator.kwarg_method() got an unexpected keyword argument 'wrong_key'"
             assert_that(str(e), contains_string(expected))
 
 

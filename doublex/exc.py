@@ -3,7 +3,3 @@
 
 class WrongApiUsage(Exception):
     pass
-
-
-class UnexpectedBehavior(Exception):
-    pass

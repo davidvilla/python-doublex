@@ -128,6 +128,19 @@ ProxySpy
 
  assert_that(smtp, meets_expectations())
 
+meets_expectations() assert invocation order. If you do not mind on invocation order just
+use smoothy_meets_expectations() matcher instead::
+
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
+
+ mock.bar()
+ mock.foo()
+
+ assert_that(mock, smoothy_meets_expectations())
+
+
 
 "verified" Mock
 ---------------
@@ -143,8 +156,8 @@ ProxySpy
          [...]
 
  with Mock(STMP) as smtp:
-     smtp.wrong()  # raises ApiMismatch exception
-     smtp.mail()   # raises ApiMismatch exception
+     smtp.wrong()  # interface mismatch exception
+     smtp.mail()   # interface mismatch exception
 
 
 stub methods
@@ -179,6 +192,9 @@ called() matches any invocation to a method::
  assert_that(spy.m3, called())
  assert_that(spy.m4, called())
 
+ assert_that(spy.m5, is_not(called()))
+ assert_that(spy.m5, never(called()))  # recommended (better report message)
+
 
 called_with
 -----------
@@ -196,6 +212,8 @@ called_with() matches specific arguments::
  assert_that(spy.m3, called_with("hi", 3.0))
  assert_that(spy.m4, called_with([1, 2]))
 
+ assert_that(spy.m2, never(called_with()))
+ assert_that(spy.m2, never(called_with(3)))
 
 
 matchers, matchers, hamcrest matchers...
