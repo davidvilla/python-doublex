@@ -4,28 +4,33 @@ import inspect
 
 import hamcrest
 
-from .internal import ANY_ARG, create_proxy, InvocationSet, Method, MockBase, get_class
+from .internal import ANY_ARG, create_proxy, InvocationList, Method, MockBase, get_class
 from .matchers import MockExpectInvocation
+
+
+__all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
+           'method_returning', 'method_raising',
+           'ANY_ARG']
 
 
 class Stub(object):
     def __init__(self, collaborator=None):
         self._proxy = create_proxy(collaborator)
-        self._stubs = InvocationSet()
-        self._recording = False
+        self._stubs = InvocationList()
+        self._setting_up = False
 
     def __enter__(self):
-        self._recording = True
+        self._setting_up = True
         return self
 
     def __exit__(self, *args):
-        self._recording = False
+        self._setting_up = False
 
     def _manage_invocation(self, invocation):
         self._proxy.assert_signature_matches(invocation)
-        if self._recording:
+        if self._setting_up:
             self._stubs.append(invocation)
-            return
+            return invocation
 
         self._do_manage_invocation(invocation)
 
@@ -57,21 +62,21 @@ class Stub(object):
 class Spy(Stub):
     def __init__(self, collaborator=None):
         super(Spy, self).__init__(collaborator)
-        self._invocations = InvocationSet()
+        self._recorded = InvocationList()
 
     def _do_manage_invocation(self, invocation):
-        self._invocations.append(invocation)
+        self._recorded.append(invocation)
 
     def _was_called(self, invocation, times):
         try:
-            hamcrest.assert_that(self._invocations.count(invocation),
+            hamcrest.assert_that(self._recorded.count(invocation),
                                  hamcrest.is_(times))
             return True
         except AssertionError:
             return False
 
     def _get_invocations_to(self, name):
-        return [i for i in self._invocations
+        return [i for i in self._recorded
                 if self._proxy.same_method(name, i.name)]
 
 

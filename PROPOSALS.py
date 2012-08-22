@@ -58,10 +58,10 @@ class MockWishes(TestCase):
 
         mock.foo('bye')
 
-        assert_that(mock, meets_expectations())
+        assert_that(mock, verify())
 
     def test_lossy_invocation_order(self):
-        sender = SmoothMock()
+        sender = Mock()
         with sender:
             sender.send_mail('FOO@cat.net')
             sender.send_mail('bar@example.net')
@@ -69,7 +69,7 @@ class MockWishes(TestCase):
         sender.send_mail('bar@example.net')
         sender.send_mail('FOO@cat.net')
 
-        assert_that(mock, meets_expectations())
+        assert_that(mock, any_order_verify())
 
     def test_checking_interface(self):
         sender = Mock(Sender)  # arg may be a class (instance is not required)

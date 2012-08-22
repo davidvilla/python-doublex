@@ -37,7 +37,7 @@ def add_indent(text, indent=0):
     return "%s%s" % (' ' * indent, text)
 
 
-class InvocationSet(list):
+class InvocationList(list):
     def lookup(self, invocation):
         if not invocation in self:
             raise LookupError
@@ -189,28 +189,25 @@ class Method(Observable):
         self.name = name
 
     def __call__(self, *args, **kargs):
+        if not self.double._setting_up:
+            self.notify(*args, **kargs)
+
         invocation = self.create_invocation(args, kargs)
-        retval = self.double._manage_invocation(invocation)
-
-        if self.double._recording:
-            return invocation
-
-        self.notify(*args, **kargs)
-        return retval
+        return self.double._manage_invocation(invocation)
 
     def create_invocation(self, args, kargs):
         return Invocation(self.double, self.name,
                           InvocationContext(*args, **kargs))
 
-    def was_called(self, context, times):
+    def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
         return self.double._was_called(invocation, times)
 
-    def show(self, indent=0):
-        return add_indent(self, indent)
-
     def describe_to(self, description):
         pass
+
+    def show(self, indent=0):
+        return add_indent(self, indent)
 
     def __repr__(self):
         return "%s.%s" % (self.double._classname(), self.name)

@@ -39,7 +39,7 @@ def assert_that_was_called(method):
 
 class mock(doublex.Mock):
     def assert_that_is_satisfied(self):
-        hamcrest.assert_that(self, doublex.meets_expectations())
+        hamcrest.assert_that(self, doublex.verify())
 
     def assert_expectations(self):
         self.assert_that_is_satisfied()

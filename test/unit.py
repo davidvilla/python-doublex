@@ -3,25 +3,12 @@
 from unittest import TestCase
 import itertools
 
-from hamcrest import assert_that, is_not, is_, all_of
-from hamcrest import contains_string, has_length
+from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
 from hamcrest.library.object.hasproperty import *
 from hamcrest.library.number.ordering_comparison import *
 
-
-from doublex import Spy, ProxySpy, Stub, Mock
-from doublex import called, called_with, ANY_ARG, \
-    meets_expectations, smoothy_meets_expectations
-from doublex import WrongApiUsage
-from doublex import method_returning, method_raising
-from doublex.doubles import Mimic
-
-
-class Auto(TestCase):
-    def test_auto(self):
-        stub = Stub()
-        print stub.jaja
+from doublex import *
 
 
 class StubTests(TestCase):
@@ -63,14 +50,6 @@ class StubTests(TestCase):
             self.stub.foo().returns(True)
 
         assert_that(self.stub.bar(), is_(None))
-
-    def test_ANY_ARG(self):
-        with self.stub:
-            self.stub.foo(ANY_ARG).returns(True)
-
-        assert_that(self.stub.foo(), is_(True))
-        assert_that(self.stub.foo(1), is_(True))
-        assert_that(self.stub.foo('hi', param=3.0), is_(True))
 
     def test_raises(self):
         with self.stub:
@@ -164,15 +143,6 @@ class SpyTests(TestCase):
 
         assert_that(self.spy.foo, is_not(called_with(1)))
 
-    def test__called__and__called_with__any_args_is_the_same(self):
-        self.spy.foo()
-        self.spy.foo(3)
-        self.spy.foo('hi')
-        self.spy.foo(None)
-
-        assert_that(self.spy.foo, called().times(4))
-        assert_that(self.spy.foo, called_with(ANY_ARG).times(4))
-
     def test_mixed_args(self):
         self.spy.send_mail('hi')
         self.spy.send_mail('foo@bar.net')
@@ -255,7 +225,7 @@ class MockTests(TestCase):
         self.mock.foo()
         self.mock.bar()
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_order_matters__fail(self):
         with self.mock:
@@ -267,7 +237,7 @@ class MockTests(TestCase):
 
         self.failUnlessRaises(
             AssertionError,
-            assert_that, self.mock, meets_expectations())
+            assert_that, self.mock, verify())
 
     def test_method_name_order_does_not_matter_with_smooth(self):
         with self.mock:
@@ -277,7 +247,7 @@ class MockTests(TestCase):
         self.mock.bar()
         self.mock.foo()
 
-        assert_that(self.mock, smoothy_meets_expectations())
+        assert_that(self.mock, any_order_verify())
 
     def test_args_order_does_not_matter_with_smooth(self):
         with self.mock:
@@ -287,7 +257,7 @@ class MockTests(TestCase):
         self.mock.foo(1)
         self.mock.foo(2)
 
-        assert_that(self.mock, smoothy_meets_expectations())
+        assert_that(self.mock, any_order_verify())
 
     def test_kwargs_order_does_not_matter_with_smooth(self):
         with self.mock:
@@ -297,7 +267,7 @@ class MockTests(TestCase):
         self.mock.foo(1, key='b')
         self.mock.foo(1, key='a')
 
-        assert_that(self.mock, smoothy_meets_expectations())
+        assert_that(self.mock, any_order_verify())
 
 
 class DisplayResultsTests(TestCase):
@@ -388,6 +358,63 @@ class ApiMismatchTest(TestCase):
         except TypeError, e:
             expected = "Collaborator.kwarg_method() got an unexpected keyword argument 'wrong_key'"
             assert_that(str(e), contains_string(expected))
+
+
+class ANY_ARG_StubTests(TestCase):
+    def setUp(self):
+        self.stub = Stub()
+
+    def test_any_args(self):
+        with self.stub:
+            self.stub.foo(ANY_ARG).returns(True)
+
+        assert_that(self.stub.foo(), is_(True))
+        assert_that(self.stub.foo(1), is_(True))
+        assert_that(self.stub.foo(key1='a'), is_(True))
+        assert_that(self.stub.foo(1, 2, 3, key1='a', key2='b'), is_(True))
+
+    def test_fixed_args_and_any_args(self):
+        with self.stub:
+            self.stub.foo(1, ANY_ARG).returns(True)
+
+        assert_that(self.stub.foo(1, 2, 3), is_(True))
+        assert_that(self.stub.foo(1, key1='a'), is_(True))
+
+
+class ANY_ARG_SpyTests(TestCase):
+    def setUp(self):
+        self.spy = Spy()
+
+    def test_no_args(self):
+        self.spy.foo()
+        assert_that(self.spy.foo, called_with(ANY_ARG))
+
+    def test_one_arg(self):
+        self.spy.foo(1)
+        assert_that(self.spy.foo, called_with(ANY_ARG))
+
+    def test_one_karg(self):
+        self.spy.foo(key='val')
+        assert_that(self.spy.foo, called_with(ANY_ARG))
+
+    def test_three_args(self):
+        self.spy.foo(1, 2, 3)
+        assert_that(self.spy.foo, called_with(1, ANY_ARG))
+        assert_that(self.spy.foo, never(called_with(2, ANY_ARG)))
+
+    def test_args_and_kargs(self):
+        self.spy.foo(1, 2, 3, key1='a', key2='b')
+        assert_that(self.spy.foo, called_with(1, ANY_ARG))
+        assert_that(self.spy.foo, never(called_with(2, ANY_ARG)))
+
+    def test__called__and__called_with__any_args_is_the_same(self):
+        self.spy.foo()
+        self.spy.foo(3)
+        self.spy.foo('hi')
+        self.spy.foo(None)
+
+        assert_that(self.spy.foo, called().times(4))
+        assert_that(self.spy.foo, called_with(ANY_ARG).times(4))
 
 
 class MatcherTests(TestCase):
@@ -585,7 +612,7 @@ class MimicTests(TestCase):
 
         mock.method_a(2)
 
-        assert_that(mock, meets_expectations())
+        assert_that(mock, verify())
 
 
 class Actor(object):
@@ -1106,14 +1133,14 @@ class pyDoubles__MockTests(TestCase):
         with self.mock:
             self.mock.hello()
 
-        assert_that(self.mock, is_not(meets_expectations()))
+        assert_that(self.mock, is_not(verify()))
 
     def test_assert_satisfied_when_it_really_is(self):
         with self.mock:
             self.mock.hello()
 
         self.mock.hello()
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_number_of_calls_matter(self):
         with self.mock:
@@ -1122,7 +1149,7 @@ class pyDoubles__MockTests(TestCase):
         self.mock.hello()
         self.mock.hello()
 
-        assert_that(self.mock, is_not(meets_expectations()))
+        assert_that(self.mock, is_not(verify()))
 
     # Not applicable to doublex
 #    def test_using_when_or_expect_call_without_double(self):
@@ -1135,7 +1162,7 @@ class pyDoubles__MockTests(TestCase):
 
         self.mock.alias_method(1)
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_several_expectations_with_different_args(self):
         with self.mock:
@@ -1145,7 +1172,7 @@ class pyDoubles__MockTests(TestCase):
         self.mock.one_arg_method(1)
         self.mock.one_arg_method(1)
 
-        assert_that(self.mock, is_not(meets_expectations()))
+        assert_that(self.mock, is_not(verify()))
 
     def test_expect_several_times(self):
         with self.mock:
@@ -1153,7 +1180,7 @@ class pyDoubles__MockTests(TestCase):
 
         self.mock.one_arg_method(1)
 
-        assert_that(self.mock, is_not(meets_expectations()))
+        assert_that(self.mock, is_not(verify()))
 
     def test_expect_several_times_matches_exactly(self):
         with self.mock:
@@ -1162,7 +1189,7 @@ class pyDoubles__MockTests(TestCase):
         self.mock.one_arg_method(1)
         self.mock.one_arg_method(1)
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_expect_several_times_without_args_definition(self):
         with self.mock:
@@ -1171,7 +1198,7 @@ class pyDoubles__MockTests(TestCase):
         self.mock.one_arg_method(1)
         self.mock.one_arg_method(1)
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_defend_agains_less_than_2_times(self):
         try:
@@ -1189,7 +1216,7 @@ class pyDoubles__MockTests(TestCase):
         self.assertEquals(1000, self.mock.one_arg_method(1))
         self.assertEquals(1000, self.mock.one_arg_method(1))
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_times_and_return_value_and_input_args(self):
         with self.mock:
@@ -1198,7 +1225,7 @@ class pyDoubles__MockTests(TestCase):
         self.assertEquals(1000, self.mock.one_arg_method(10))
         self.assertEquals(1000, self.mock.one_arg_method(10))
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
 
 class pyDoubles__MockFromEmptyObjectTests(TestCase):
@@ -1211,7 +1238,7 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
 
         self.mock.hello()
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     # Not applicable to doublex
     def test_mock_without_args_is_empty_mock(self):
@@ -1225,7 +1252,7 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
         self.mock.hello()
         self.mock.one_arg_method(1)
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
     def test_several_expectations_with_args_in_empty_mock(self):
         with self.mock:
@@ -1235,7 +1262,7 @@ class pyDoubles__MockFromEmptyObjectTests(TestCase):
         self.assertTrue(self.mock.one_arg_method(1) is None)
         self.assertTrue(self.mock.one_arg_method(2) is None)
 
-        assert_that(self.mock, meets_expectations())
+        assert_that(self.mock, verify())
 
 
 class pyDoubles__StubMethodsTests(TestCase):

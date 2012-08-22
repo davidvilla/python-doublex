@@ -126,10 +126,10 @@ ProxySpy
  smtp.data("somebody there?")
  smtp.data("I am afraid..")
 
- assert_that(smtp, meets_expectations())
+ assert_that(smtp, verify())
 
-meets_expectations() assert invocation order. If you do not mind on invocation order just
-use smoothy_meets_expectations() matcher instead::
+verify() assert invocation order. If your test does not require strict invocation order
+just use any_order_verify() matcher instead::
 
  with Mock() as mock:
      mock.foo()
@@ -138,7 +138,7 @@ use smoothy_meets_expectations() matcher instead::
  mock.bar()
  mock.foo()
 
- assert_that(mock, smoothy_meets_expectations())
+ assert_that(mock, any_order_verify())
 
 
 
@@ -192,8 +192,14 @@ called() matches any invocation to a method::
  assert_that(spy.m3, called())
  assert_that(spy.m4, called())
 
- assert_that(spy.m5, is_not(called()))
- assert_that(spy.m5, never(called()))  # recommended (better report message)
+
+never
+-----
+
+::
+
+ assert_that(spy.m5, is_not(called()))  # is_not() is a hamcrest matcher
+ assert_that(spy.m5, never(called()))   # recommended (better report message)
 
 
 called_with
@@ -214,6 +220,45 @@ called_with() matches specific arguments::
 
  assert_that(spy.m2, never(called_with()))
  assert_that(spy.m2, never(called_with(3)))
+
+
+ANY_ARG
+=======
+
+ANY_ARG is a special value that matches any value and any amount of values, including
+no args. For example::
+
+ spy.arg0()
+ spy.arg1(1)
+ spy.arg3(1, 2, 3)
+ spy.arg_karg(1, key1='a')
+
+ assert_that(spy.arg0, called_with(ANY_ARG))
+ assert_that(spy.arg1, called_with(ANY_ARG))
+ assert_that(spy.arg3, called_with(1, ANY_ARG))
+ assert_that(spy.arg_karg, called_with(1, ANY_ARG))
+
+Also for stubs::
+
+ with Stub() as stub:
+     stub.foo(ANY_ARG).returns(True)
+     stub.bar(1, ANY_ARG).returns(True)
+
+ assert_that(stub.foo(), is_(True))
+ assert_that(stub.foo(1), is_(True))
+ assert_that(stub.foo(key1='a'), is_(True))
+ assert_that(stub.foo(1, 2, 3, key1='a', key2='b'), is_(True))
+
+ assert_that(stub.foo(1, 2, 3), is_(True))
+ assert_that(stub.foo(1, key1='a'), is_(True))
+
+But, if you want match any single value, use hamcrest matcher anything()::
+
+ spy.foo(1, 2, 3)
+ assert_that(spy.foo, called_with(1, anything(), 3))
+
+ spy.bar(1, key=2)
+ assert_that(spy.bar, called_with(1, key=anything()))
 
 
 matchers, matchers, hamcrest matchers...
@@ -264,7 +309,7 @@ checking invocation 'times'
  spy.foo(1)
  spy.foo(2)
 
- assert_that(spy.never, is_not(called()))                     # = 0 times
+ assert_that(spy.never, never(called()))                      # = 0 times
  assert_that(spy.foo, called())                               # > 0
  assert_that(spy.foo, called().times(greater_than(0)))        # > 0 (same)
  assert_that(spy.foo, called().times(4))                      # = 4

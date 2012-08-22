@@ -6,7 +6,7 @@ from hamcrest import assert_that, is_, is_not, contains_string, greater_than
 from nose.tools import nottest
 
 import doublex
-from doublex.internal import InvocationSet, Invocation, InvocationContext
+from doublex.internal import Invocation, InvocationContext
 
 
 def create_invocation(name, args=None, kargs=None, output=None):
@@ -208,7 +208,7 @@ class MockReportTest(TestCase):
 
     def assert_expectation_error(self, expected_message):
         try:
-            assert_that(self.mock, doublex.meets_expectations())
+            assert_that(self.mock, doublex.verify())
             self.fail("This should raise exception")
         except AssertionError, e:
             assert_that(str(e), is_(expected_message))

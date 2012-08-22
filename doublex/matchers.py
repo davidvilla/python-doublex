@@ -2,13 +2,15 @@
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
+from hamcrest import assert_that, is_
 
 from internal import Method, InvocationContext, ANY_ARG, MockBase
 from exc import WrongApiUsage
 
 __all__ = ['called', 'called_with',
            'never',
-           'meets_expectations', 'smoothy_meets_expectations']
+           'verify', 'any_order_verify',
+           'assert_that', 'is_']
 
 
 class MethodCalled(BaseMatcher):
@@ -24,7 +26,7 @@ class MethodCalled(BaseMatcher):
             raise WrongApiUsage(
                 "takes a double method (got %s instead)" % method)
 
-        return method.was_called(self.context, self._times)
+        return method._was_called(self.context, self._times)
 
     def describe_to(self, description):
         description.append_text('this call:\n')
@@ -35,7 +37,7 @@ class MethodCalled(BaseMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text("calls that actually ocurred were:\n")
-        description.append_text(self.method.double._invocations.show(indent=10))
+        description.append_text(self.method.double._recorded.show(indent=10))
 
     def times(self, n):
         return MethodCalled(self.context, times=n)
@@ -83,7 +85,7 @@ class MockExpectInvocation(BaseMatcher):
         description.append_text(self.invocation.show(indent=10))
 
 
-class meets_expectations(BaseMatcher):
+class verify(BaseMatcher):
     def _matches(self, mock):
         if not isinstance(mock, MockBase):
             raise WrongApiUsage(
@@ -93,7 +95,7 @@ class meets_expectations(BaseMatcher):
         return self._expectations_match()
 
     def _expectations_match(self):
-        return self.mock._stubs == self.mock._invocations
+        return self.mock._stubs == self.mock._recorded
 
     def describe_to(self, description):
         description.append_text("these calls:\n")
@@ -101,12 +103,12 @@ class meets_expectations(BaseMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
-        description.append_text(self.mock._invocations.show(indent=10))
+        description.append_text(self.mock._recorded.show(indent=10))
 
 
-class smoothy_meets_expectations(meets_expectations):
+class any_order_verify(verify):
     def _expectations_match(self):
-        return sorted(self.mock._stubs) == sorted(self.mock._invocations)
+        return sorted(self.mock._stubs) == sorted(self.mock._recorded)
 
 
 # just aliases
