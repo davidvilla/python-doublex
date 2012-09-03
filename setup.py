@@ -5,7 +5,7 @@ import distutils.core
 
 distutils.core.setup(
     name             = 'doublex',
-    version          = '0.2',
+    version          = '0.3',
     author           = 'David Villa Alises',
     author_email     = 'David.Villa@gmail.com',
     packages         = ['doublex'],
