@@ -38,7 +38,7 @@ Doubles
  result = stub.foo()
 
  # then
- assert_that(result, 10)
+ assert_that(result, is_(10))
 
 
 "verified" Stub
@@ -70,7 +70,7 @@ Doubles
  sender.send_mail('foo@bar.net')
 
  # then
- assert_that(sender.helo(), "OK")
+ assert_that(sender.helo(), is_("OK"))
  assert_that(sender.send_mail, called())
  assert_that(sender.send_mail, called().times(2))
  assert_that(sender.send_mail, called_with('foo@bar.net'))
