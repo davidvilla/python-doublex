@@ -445,6 +445,12 @@ class MatcherTests(TestCase):
         assert_that(self.spy.foo('abcde'), is_('4<x<8'))
         assert_that(self.spy.foo([0] * 9), is_('>8'))
 
+    def test_stub_contains_string(self):
+        with Stub() as stub:
+            stub.method(contains_string("some")).returns(1000)
+
+        assert_that(stub.method("awesome"), is_(1000))
+
     # doc
     def test_times_arg_may_be_matcher(self):
         self.spy.foo()

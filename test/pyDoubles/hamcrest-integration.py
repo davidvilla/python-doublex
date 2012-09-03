@@ -16,7 +16,7 @@ from hamcrest.library.object.haslength import has_length
 from hamcrest.library.text.isequal_ignoring_case import equal_to_ignoring_case
 from hamcrest.library.text.stringstartswith import starts_with
 from pyDoubles.framework import *
-from pyDoublesTests_unit import Collaborator
+from unit import Collaborator
 
 
 class HamcrestIntegrationTest(unittest.TestCase):
