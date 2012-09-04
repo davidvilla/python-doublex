@@ -3,16 +3,15 @@
 from distutils.core import setup
 
 setup(name             = 'doublex',
-      version          = '0.3',
+      version          = '0.4',
+      description      = 'Test doubles framework for Python',
       author           = 'David Villa Alises',
       author_email     = 'David.Villa@gmail.com',
+      url              = 'https://bitbucket.org/DavidVilla/python-doublex',
       packages         = ['doublex'],
       data_files       = [('/usr/share/doc/python-doublex', ['README.rst'])],
-      url              = 'https://bitbucket.org/DavidVilla/python-doublex',
       license          = 'GPLv3',
-      description      = 'Test doubles framework for Python',
       long_description = open('README.rst').read(),
-      requires         = ['hamcrest'],
       classifiers      = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
