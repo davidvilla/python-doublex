@@ -460,6 +460,17 @@ class SpyTests(unittest.TestCase):
         self.assertEquals(obj, self.spy.one_arg_method(1),
                         "Wrong returned object")
 
+    # bitbucket Issue #5
+    def test_fail_missing_fluent_method(self):
+        try:
+            self.spy.one_arg_method(1)
+            assert_that_was_called(self.spy.one_arg_method).with_params(2)  # should be with_args
+            self.fail("TypeError should be raised")
+
+        except AttributeError, e:
+            expected = "'assert_that_method' object has no attribute 'with_params'"
+            hamcrest.assert_that(str(e), hamcrest.contains_string(expected))
+
 
 class MockTests(unittest.TestCase):
 
