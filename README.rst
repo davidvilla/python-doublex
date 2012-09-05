@@ -205,21 +205,30 @@ never
 called_with
 -----------
 
-called_with() matches specific arguments::
+called_with() matches explicit values and hamcrest matchers::
 
  spy.Spy()
+
  spy.m1()
  spy.m2(None)
- spy.m3("hi", 3.0)
- spy.m4([1, 2])
+ spy.m3(2)
+ spy.m4("hi", 3.0)
+ spy.m5([1, 2])
+ spy.m6(name="john doe")
+
+ assert_that(spy.m1, called())
+ assert_that(spy.m2, called())
 
  assert_that(spy.m1, called_with())
  assert_that(spy.m2, called_with(None))
- assert_that(spy.m3, called_with("hi", 3.0))
- assert_that(spy.m4, called_with([1, 2]))
+ assert_that(spy.m3, called_with(2))
+ assert_that(spy.m4, called_with("hi", 3.0))
+ assert_that(spy.m5, called_with([1, 2]))
+ assert_that(spy.m6, called_with(name="john doe"))
 
- assert_that(spy.m2, never(called_with()))
- assert_that(spy.m2, never(called_with(3)))
+ assert_that(spy.m3, called_with(less_than(3)))
+ assert_that(spy.m3, called_with(greater_than(1)))
+ assert_that(spy.m6, called_with(name=contains_string("doe")))
 
 
 ANY_ARG

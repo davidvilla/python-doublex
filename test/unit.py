@@ -477,18 +477,24 @@ class MatcherTests(TestCase):
     def test_called_args(self):
         self.spy.m1()
         self.spy.m2(None)
-        self.spy.m3("hi", 3.0)
-        self.spy.m4([1, 2])
+        self.spy.m3(2)
+        self.spy.m4("hi", 3.0)
+        self.spy.m5([1, 2])
+        self.spy.m6(name="john doe")
 
         assert_that(self.spy.m1, called())
         assert_that(self.spy.m2, called())
-        assert_that(self.spy.m3, called())
-        assert_that(self.spy.m4, called())
 
         assert_that(self.spy.m1, called_with())
         assert_that(self.spy.m2, called_with(None))
-        assert_that(self.spy.m3, called_with("hi", 3.0))
-        assert_that(self.spy.m4, called_with([1, 2]))
+        assert_that(self.spy.m3, called_with(2))
+        assert_that(self.spy.m4, called_with("hi", 3.0))
+        assert_that(self.spy.m5, called_with([1, 2]))
+        assert_that(self.spy.m6, called_with(name="john doe"))
+
+        assert_that(self.spy.m3, called_with(less_than(3)))
+        assert_that(self.spy.m3, called_with(greater_than(1)))
+        assert_that(self.spy.m6, called_with(name=contains_string("doe")))
 
 
 class StubObserverTests(TestCase):
