@@ -72,6 +72,13 @@ class VerifiedStubTests(TestCase):
 
         assert_that(self.stub.hello(), is_("bye"))
 
+    def test_from_instance(self):
+        stub = Stub(Collaborator())
+        with stub:
+            stub.hello().returns("bye")
+
+        assert_that(stub.hello(), is_("bye"))
+
     def test_stubbing_a_unexisting_method_raises_error(self):
         try:
             with self.stub:
@@ -89,6 +96,15 @@ class VerifiedStubTests(TestCase):
         except TypeError, e:
             expected = "hello() takes exactly 1 argument (2 given)"
             assert_that(str(e), contains_string(expected))
+
+    # bitbucket issue #6
+    def test_keyworked_or_positional(self):
+        with self.stub:
+            self.stub.kwarg_method(1).returns(1000)
+            self.stub.kwarg_method(key_param=2).returns(2000)
+
+        assert_that(self.stub.kwarg_method(1), is_(1000))
+        assert_that(self.stub.kwarg_method(key_param=2), is_(2000))
 
 
 class SpyTests(TestCase):
@@ -176,6 +192,12 @@ class SpyTests(TestCase):
 class VerifiedSpyTests(TestCase):
     def setUp(self):
         self.spy = Spy(Collaborator())
+
+    def test_from_instance(self):
+        spy = Spy(Collaborator())
+        spy.hello()
+
+        assert_that(spy.hello, called())
 
     def test_call_unexisting_method(self):
         try:
@@ -268,6 +290,17 @@ class MockTests(TestCase):
         self.mock.foo(1, key='a')
 
         assert_that(self.mock, any_order_verify())
+
+
+class VerifiesMockTests(TestCase):
+    def test_from_instance(self):
+        mock = Mock(Collaborator())
+        with mock:
+            mock.hello()
+
+        mock.hello()
+
+        assert_that(mock, verify())
 
 
 class DisplayResultsTests(TestCase):
@@ -600,6 +633,13 @@ class MimicTests(TestCase):
 
         assert_that(stub.method_a(2), is_(3))
 
+    def test_mimic_stub_from_instance(self):
+        stub = Mimic(Stub, self.B())
+        with stub:
+            stub.method_a(2).returns(3)
+
+        assert_that(stub.method_a(2), is_(3))
+
     def test_mimic_spy_works(self):
         spy = Mimic(Spy, self.B)
         with spy:
@@ -678,6 +718,20 @@ class Collaborator:
         return 1
 
     alias_method = one_arg_method
+
+
+class ObjCollaborator(object):
+    def __init__(self):
+        self._propvalue = None
+
+    def prop_getter(self):
+        return self._propvalue
+
+    def prop_setter(self, value):
+        self._propvalue = value
+
+    prop = property(prop_getter, prop_setter)
+
 
 
 class pyDoubles__ProxySpyTests(TestCase):
