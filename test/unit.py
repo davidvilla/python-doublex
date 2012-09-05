@@ -261,7 +261,7 @@ class MockTests(TestCase):
             AssertionError,
             assert_that, self.mock, verify())
 
-    def test_method_name_order_does_not_matter_with_smooth(self):
+    def test_method_name_order_does_not_matter_with_any_order(self):
         with self.mock:
             self.mock.foo()
             self.mock.bar()
@@ -271,7 +271,7 @@ class MockTests(TestCase):
 
         assert_that(self.mock, any_order_verify())
 
-    def test_args_order_does_not_matter_with_smooth(self):
+    def test_args_order_does_not_matter_with_any_order(self):
         with self.mock:
             self.mock.foo(2)
             self.mock.foo(1)
@@ -281,7 +281,7 @@ class MockTests(TestCase):
 
         assert_that(self.mock, any_order_verify())
 
-    def test_kwargs_order_does_not_matter_with_smooth(self):
+    def test_kwargs_order_does_not_matter_with_any_order(self):
         with self.mock:
             self.mock.foo(1, key='a')
             self.mock.foo(1, key='b')
