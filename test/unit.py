@@ -9,7 +9,7 @@ from hamcrest.library.object.hasproperty import *
 from hamcrest.library.number.ordering_comparison import *
 
 from doublex import *
-from doublex.doubles import StubProto, SpyProto
+
 
 class StubTests(TestCase):
     def setUp(self):
@@ -633,7 +633,7 @@ class MimicTests(TestCase):
 
     def test_mimic_spy_DOES_inherit_collaborator_superclasses(self):
         spy = Mimic(Spy, self.B)
-        for cls in [self.B, self.A, SpyProto, StubProto, object]:
+        for cls in [self.B, self.A, Spy, Stub, object]:
             assert_that(isinstance(spy, cls), cls)
 
     def test_mimic_stub_works(self):
@@ -689,6 +689,15 @@ class DoublePropertiesTests(TestCase):
 
         assert_that(stub.prop, is_(2))
 
+    def test_stub_missing_property(self):
+        stub = Stub(ObjCollaborator)
+        with stub:
+            try:
+                stub.missing = 2
+                self.fail('should raise exception')
+            except AttributeError:
+                pass
+
     def test_spy_get_property(self):
         spy = Spy(ObjCollaborator)
         discard = spy.prop
@@ -725,8 +734,20 @@ class DoublePropertiesTests(TestCase):
 
         stub1.prop = 1000
         assert_that(stub2.prop, is_not(1000))
+        assert_that(stub1.__class__ is not stub2.__class__)
 
+    def test_spy_get_readonly_property_with_deco(self):
+        spy = Spy(ObjCollaborator)
+        discard = spy.prop_deco_readonly
+        assert_that(spy, property_got('prop_deco_readonly'))
 
+    def test_spy_set_readonly_property_with_deco(self):
+        spy = Spy(ObjCollaborator)
+        try:
+            spy.prop_deco_readonly = 'wrong'
+            self.fail('should raise exception')
+        except AttributeError:
+            pass
 
 
 class Observer(object):
@@ -751,6 +772,10 @@ class ObjCollaborator(object):
         self._propvalue = value
 
     prop = property(prop_getter, prop_setter)
+
+    @property
+    def prop_deco_readonly(self):
+        return 2
 
 
 #----------------------------#

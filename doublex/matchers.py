@@ -113,6 +113,7 @@ class any_order_verify(verify):
         return sorted(self.mock._stubs) == sorted(self.mock._recorded)
 
 
+# FIXME: refactor describe mismatch
 class property_got(BaseMatcher):
     def __init__(self, propname):
         self.propname = propname
@@ -120,11 +121,7 @@ class property_got(BaseMatcher):
 
     def _matches(self, double):
         self.double = double
-#        print self.double
-#        print dir(double)
-
-        invocation = Invocation.from_args(
-            self.double, self.propname, ['get'])
+        invocation = PropertySet(self.double, self.propname)
         return double._was_called(invocation, 1)
 
     def describe_to(self, description):
@@ -136,6 +133,7 @@ class property_got(BaseMatcher):
         description.append_text(self.double._recorded.show(indent=10))
 
 
+# FIXME: refactor describe mismatch
 class property_set(BaseMatcher):
     def __init__(self, propname):
         self.propname = propname
@@ -143,9 +141,6 @@ class property_set(BaseMatcher):
 
     def _matches(self, double):
         self.double = double
-#        print self.double
-#        print dir(double)
-
         invocation = PropertySet(self.double, self.propname)
         return double._was_called(invocation, 1)
 

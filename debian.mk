@@ -2,7 +2,7 @@ clean:
 	find . -name *.pyc -delete
 	find . -name *.pyo -delete
 	find . -name *~ -delete
-	$(RM) -r dist
+	$(RM) -r dist build
 
 vclean:
 	$(RM) -r .svn debian
