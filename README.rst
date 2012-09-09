@@ -173,6 +173,38 @@ stub methods
  collaborator.foo()  # raises SomeException
 
 
+properties
+----------
+
+Doublex support stub and spy properties in a pretty easy way compared with other
+frameworks like python-mock::
+
+ class Collaborator(object):
+     @property
+     def prop(self):
+         return 1
+
+     @prop.setter
+     def prop(self, value):
+         pass
+
+ with Spy(Collaborator) as spy:
+     spy.prop = 2
+
+ assert_that(spy.prop, is_(2))  # property getter invoked
+ assert_that(spy, property_got('prop'))
+
+ spy.prop = 4  # property setter invoked
+
+ assert_that(spy, property_set('prop'))
+
+
+For make property doubles is required to:
+
+* You must Use "verified" doubles, ie: specify a collaborator in constructor.
+* collaborator musy be new-style classes.
+
+
 doublex matchers
 ================
 
