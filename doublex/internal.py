@@ -64,10 +64,10 @@ def create_proxy(collaborator):
 
 
 class DummyProxy(object):
-    def assert_has_method(self, name):
-        pass
+    def get_attr_typeid(self, key):
+        return 'instancemethod'
 
-    def assert_signature_matches(self, invocation):
+    def assure_signature_matches(self, invocation):
         pass
 
     def same_method(self, name1, name2):
@@ -85,6 +85,7 @@ def get_class(something):
 
 
 class Proxy(object):
+    '''Represent the collaborator object'''
     def __init__(self, collaborator):
         self.collaborator = collaborator
         self.collaborator_class = self.get_class()
@@ -98,23 +99,25 @@ class Proxy(object):
         else:
             return self.collaborator.__class__
 
+    def get_attr_typeid(self, key):
+        try:
+            return type(getattr(self.collaborator, key)).__name__
+        except AttributeError:
+            reason = "'%s' object has no attribute '%s'" % \
+                (self.collaborator_classname(), key)
+            raise AttributeError(reason)
+
     def collaborator_classname(self):
         return self.collaborator_class.__name__
 
-    def assert_signature_matches(self, invocation):
-        self.assert_has_method(invocation.name)
+    def assure_signature_matches(self, invocation):
+        assert self.get_attr_typeid(invocation.name) == 'instancemethod'
         signature = Signature(self, invocation.name)
         try:
-            signature.assert_match(invocation.context.args,
+            signature.assure_match(invocation.context.args,
                                    invocation.context.kargs)
         except TypeError, e:
             raise TypeError("%s.%s" % (self.get_class(), e))
-
-    def assert_has_method(self, name):
-        if not hasattr(self.collaborator, name):
-            reason = "'%s' object has no attribute '%s'" % \
-                (self.collaborator_classname(), name)
-            raise AttributeError(reason)
 
     def same_method(self, name1, name2):
         return getattr(self.collaborator, name1) == \
@@ -155,7 +158,7 @@ class Signature(object):
 #
 #        return self.argspec.args[-len(self.argspec.defaults):]
 
-    def assert_match(self, args, kargs):
+    def assure_match(self, args, kargs):
         if ANY_ARG in args:
             return
 
@@ -196,8 +199,8 @@ class Method(Observable):
         return self.double._manage_invocation(invocation)
 
     def create_invocation(self, args, kargs):
-        return Invocation(self.double, self.name,
-                          InvocationContext(*args, **kargs))
+        return Invocation.from_args(
+            self.double, self.name, args, kargs)
 
     def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
@@ -223,6 +226,46 @@ class Method(Observable):
             retval += add_indent("%s\n" % i, 10)
 
         return retval
+
+
+class Property(object):
+    def __init__(self, double, key):
+        self.double = double
+        self.key = key
+        self.value = None
+
+    def __get__(self, obj, type=None):
+#        print "property get", self.key, self.value
+        operation = Invocation.from_args(self.double, self.key, ['get'])
+        self.double._manage_invocation(operation, check=False)
+
+        return self.value
+
+    def __set__(self, obj, value):
+#        print "property set", value
+        self.value = value
+        if self.double._setting_up:
+            return
+
+#        invocation = Invocation.from_args(self.double, self.key, ['set'])
+        operation = PropertySet(self.double, self.key, value)
+        self.double._manage_invocation(operation, check=False)
+
+
+class AttributeFactory(object):
+    typemap = {
+        'instancemethod': Method,
+        'property':       Property
+        }
+
+    @classmethod
+    def create(cls, double, key):
+        typeid = double._proxy.get_attr_typeid(key)
+        return cls.unchecked_create(typeid, double, key)
+
+    @classmethod
+    def unchecked_create(cls, typeid, double, key):
+        return cls.typemap[typeid](double, key)
 
 
 def func_returning(value=None):
@@ -251,6 +294,10 @@ class Invocation(object):
         self.double = double
         self.name = name
         self.context = context
+
+    @classmethod
+    def from_args(cls, double, name, args=(), kargs={}):
+        return Invocation(double, name, InvocationContext(*args, **kargs))
 
     def delegates(self, delegate):
         if callable(delegate):
@@ -305,10 +352,31 @@ class Invocation(object):
         return False
 
     def __repr__(self):
-        return "%s.%s%s" % (self.double._classname(), self.name, self.context)
+        return "%s.%s%s" % (self.double._classname(),
+                            self.name, self.context)
 
     def show(self, indent=0):
         return add_indent(self, indent)
+
+
+class PropertyGet(Invocation):
+    def __init__(self, double, property_name):
+        super(PropertyGet, self).__init__(
+            double, property_name, InvocationContext())
+
+    def __repr__(self):
+        return "get %s.$s" % (self.double._classname(), self.name)
+
+
+class PropertySet(Invocation):
+    def __init__(self, double, property_name, value=None):
+        super(PropertySet, self).__init__(
+            double, property_name, InvocationContext())
+        self.value = value
+
+    def __repr__(self):
+        return "set %s.%s to %s" % (
+            self.double._classname(), self.name, self.value)
 
 
 @total_ordering
@@ -396,6 +464,10 @@ class InvocationFormatter(object):
     def _format_kargs(kargs):
         return ['%s=%s' % (key, repr(val))
                 for key, val in sorted(kargs.items())]
+
+
+class SpyBase(object):
+    pass
 
 
 class MockBase(object):

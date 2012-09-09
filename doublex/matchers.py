@@ -4,12 +4,13 @@ import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 from hamcrest import assert_that, is_
 
-from internal import Method, InvocationContext, ANY_ARG, MockBase
+from internal import Method, InvocationContext, ANY_ARG, MockBase, SpyBase, Invocation, PropertyGet, PropertySet
 from exc import WrongApiUsage
 
 __all__ = ['called', 'called_with',
            'never',
            'verify', 'any_order_verify',
+           'property_got', 'property_set',
            'assert_that', 'is_']
 
 
@@ -21,12 +22,13 @@ class MethodCalled(BaseMatcher):
         self._times = times or self.any_time
 
     def _matches(self, method):
+        self._assure_is_spied_method(method)
         self.method = method
-        if not isinstance(method, Method):
-            raise WrongApiUsage(
-                "takes a double method (got %s instead)" % method)
-
         return method._was_called(self.context, self._times)
+
+    def _assure_is_spied_method(self, method):
+        if not isinstance(method, Method) or not isinstance(method.double, SpyBase):
+            raise WrongApiUsage("takes a spy method (got %s instead)" % method)
 
     def describe_to(self, description):
         description.append_text('this call:\n')
@@ -109,6 +111,51 @@ class verify(BaseMatcher):
 class any_order_verify(verify):
     def _expectations_match(self):
         return sorted(self.mock._stubs) == sorted(self.mock._recorded)
+
+
+class property_got(BaseMatcher):
+    def __init__(self, propname):
+        self.propname = propname
+        super(property_got, self).__init__()
+
+    def _matches(self, double):
+        self.double = double
+#        print self.double
+#        print dir(double)
+
+        invocation = Invocation.from_args(
+            self.double, self.propname, ['get'])
+        return double._was_called(invocation, 1)
+
+    def describe_to(self, description):
+        description.append_text("these calls:\n")
+        description.append_text(self.double._stubs.show(indent=10))
+
+    def describe_mismatch(self, actual, description):
+        description.append_text('calls that actually ocurred were:\n')
+        description.append_text(self.double._recorded.show(indent=10))
+
+
+class property_set(BaseMatcher):
+    def __init__(self, propname):
+        self.propname = propname
+        super(property_set, self).__init__()
+
+    def _matches(self, double):
+        self.double = double
+#        print self.double
+#        print dir(double)
+
+        invocation = PropertySet(self.double, self.propname)
+        return double._was_called(invocation, 1)
+
+    def describe_to(self, description):
+        description.append_text("these calls:\n")
+        description.append_text(self.double._stubs.show(indent=10))
+
+    def describe_mismatch(self, actual, description):
+        description.append_text('calls that actually ocurred were:\n')
+        description.append_text(self.double._recorded.show(indent=10))
 
 
 # just aliases

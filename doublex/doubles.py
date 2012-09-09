@@ -2,10 +2,8 @@
 
 import inspect
 
-import hamcrest
-
-from .internal import ANY_ARG, create_proxy, InvocationList, Method, MockBase, get_class
-from .matchers import MockExpectInvocation
+from .internal import ANY_ARG, Method,  get_class
+from protos import *
 
 
 __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
@@ -13,90 +11,24 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
            'ANY_ARG']
 
 
+
 class Stub(object):
-    def __init__(self, collaborator=None):
-        self._proxy = create_proxy(collaborator)
-        self._stubs = InvocationList()
-        self._setting_up = False
-
-    def __enter__(self):
-        self._setting_up = True
-        return self
-
-    def __exit__(self, *args):
-        self._setting_up = False
-
-    def _manage_invocation(self, invocation):
-        self._proxy.assert_signature_matches(invocation)
-        if self._setting_up:
-            self._stubs.append(invocation)
-            return invocation
-
-        self._do_manage_invocation(invocation)
-
-        if invocation in self._stubs:
-            stubbed = self._stubs.lookup(invocation)
-            return stubbed.perform(invocation)
-
-        return self._perform_invocation(invocation)
-
-    def _do_manage_invocation(self, invocation):
-        pass
-
-    def _perform_invocation(self, invocation):
-        return None
-
-    def __getattr__(self, key):
-        self._proxy.assert_has_method(key)
-        method = Method(self, key)
-        setattr(self, key, method)
-        return method
-
-    def _classname(self):
-        name = self._proxy.collaborator_classname()
-        if name is None:
-            return self.__class__.__name__
-        return name
+    __metaclass__ = DoubleFactory
 
 
-class Spy(Stub):
-    def __init__(self, collaborator=None):
-        super(Spy, self).__init__(collaborator)
-        self._recorded = InvocationList()
-
-    def _do_manage_invocation(self, invocation):
-        self._recorded.append(invocation)
-
-    def _was_called(self, invocation, times):
-        try:
-            hamcrest.assert_that(self._recorded.count(invocation),
-                                 hamcrest.is_(times))
-            return True
-        except AssertionError:
-            return False
-
-    def _get_invocations_to(self, name):
-        return [i for i in self._recorded
-                if self._proxy.same_method(name, i.name)]
+class Spy(object):
+    __metaclass__ = DoubleFactory
 
 
-class ProxySpy(Spy):
-    def __init__(self, collaborator):
-        assert not inspect.isclass(collaborator), \
-            "ProxySpy takes an instance (got %s instead)" % collaborator
-        super(ProxySpy, self).__init__(collaborator)
-
-    def _perform_invocation(self, invocation):
-        return self._proxy.perform_invocation(invocation)
+class ProxySpy(object):
+    __metaclass__ = DoubleFactory
 
 
-class Mock(Spy, MockBase):
-    def _do_manage_invocation(self, invocation):
-        super(Mock, self)._do_manage_invocation(invocation)
-        hamcrest.assert_that(self, MockExpectInvocation(invocation))
+class Mock(object):
+    __metaclass__ = DoubleFactory
 
 
-def Mimic(double, collab):
+def Mimic(double_factory, collab):
     def getattribute(self, key):
         if key in ['__class__', '__dict__',
                    '_get_method', '_methods'] or \
@@ -108,13 +40,14 @@ def Mimic(double, collab):
 
     def _get_method(self, key):
         if key not in self._methods.keys():
-            self._proxy.assert_has_method(key)
+            assert self._proxy.get_attr_typeid(key) == 'instancemethod'
             method = Method(self, key)
             self._methods[key] = method
 
         return self._methods[key]
 
-    assert issubclass(double, Stub), \
+    double = double_factory.create_class()
+    assert issubclass(double, StubProto), \
         "Mimic() takes a double class as first argument (got %s instead)" & double
 
     collab_class = get_class(collab)

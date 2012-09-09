@@ -9,7 +9,7 @@ from hamcrest.library.object.hasproperty import *
 from hamcrest.library.number.ordering_comparison import *
 
 from doublex import *
-
+from doublex.doubles import StubProto, SpyProto
 
 class StubTests(TestCase):
     def setUp(self):
@@ -219,7 +219,7 @@ class VerifiedSpyTests(TestCase):
         self.spy = Spy(Collaborator)
 
     def test_create_from_newstyle_class(self):
-        self.spy = Spy(Actor)
+        self.spy = Spy(ObjCollaborator)
 
 
 class ProxySpyTest(TestCase):
@@ -227,12 +227,12 @@ class ProxySpyTest(TestCase):
         self.failUnlessRaises(TypeError, ProxySpy)
 
     def test_given_argument_can_not_be_oldstyle_class(self):
-        self.failUnlessRaises(AssertionError,
+        self.failUnlessRaises(TypeError,
                               ProxySpy, Collaborator)
 
     def test_given_argument_can_not_be_newstyle_class(self):
-        self.failUnlessRaises(AssertionError,
-                              ProxySpy, Actor)
+        self.failUnlessRaises(TypeError,
+                              ProxySpy, ObjCollaborator)
 
 
 class MockTests(TestCase):
@@ -350,6 +350,16 @@ class DisplayResultsTests(TestCase):
         expected = "method 'Collaborator.mixed_method' was invoked"
         assert_that(self.spy.mixed_method.show_history(),
                     contains_string(expected))
+
+
+class FrameworApiTest(TestCase):
+    def test_called_requires_spy(self):
+        stub = Stub()
+        try:
+            assert_that(stub.method, called())
+            self.fail('exception should be raised')
+        except WrongApiUsage as e:
+            assert_that(str(e), contains_string('takes a spy method (got'))
 
 
 class ApiMismatchTest(TestCase):
@@ -623,8 +633,8 @@ class MimicTests(TestCase):
 
     def test_mimic_spy_DOES_inherit_collaborator_superclasses(self):
         spy = Mimic(Spy, self.B)
-        for cls in [self.B, self.A, Spy, Stub, object]:
-            assert_that(isinstance(spy, cls))
+        for cls in [self.B, self.A, SpyProto, StubProto, object]:
+            assert_that(isinstance(spy, cls), cls)
 
     def test_mimic_stub_works(self):
         stub = Mimic(Stub, self.B)
@@ -667,8 +677,56 @@ class MimicTests(TestCase):
         assert_that(mock, verify())
 
 
-class Actor(object):
-    pass
+class DoublePropertiesTests(TestCase):
+    def test_stub_notset_property_is_None(self):
+        stub = Stub(ObjCollaborator)
+        assert_that(stub.prop, is_(None))
+
+    def test_stub_property(self):
+        stub = Stub(ObjCollaborator)
+        with stub:
+            stub.prop = 2
+
+        assert_that(stub.prop, is_(2))
+
+    def test_spy_get_property(self):
+        spy = Spy(ObjCollaborator)
+        discard = spy.prop
+        assert_that(spy, property_got('prop'))
+
+    def test_spy_not_get_property(self):
+        spy = Spy(ObjCollaborator)
+        assert_that(spy, is_not(property_got('prop')))
+
+    def test_spy_get_property_fail(self):
+        spy = Spy(ObjCollaborator)
+        self.failUnlessRaises(
+            AssertionError,
+            assert_that, spy, property_got('prop'))
+
+    def test_spy_set_property(self):
+        spy = Spy(ObjCollaborator)
+        spy.prop = 2
+        assert_that(spy, property_set('prop'))
+
+    def test_spy_not_set_property(self):
+        spy = Spy(ObjCollaborator)
+        assert_that(spy, is_not(property_set('prop')))
+
+    def test_spy_set_property_fail(self):
+        spy = Spy(ObjCollaborator)
+        self.failUnlessRaises(
+            AssertionError,
+            assert_that, spy, property_set('prop'))
+
+    def test_properties_are_not_shared(self):
+        stub1 = Stub(ObjCollaborator)
+        stub2 = Stub()
+
+        stub1.prop = 1000
+        assert_that(stub2.prop, is_not(1000))
+
+
 
 
 class Observer(object):
@@ -677,6 +735,22 @@ class Observer(object):
 
     def update(self, *args, **kargs):
         self.state = args[0]
+
+
+class ObjCollaborator(object):
+    def __init__(self):
+        self._propvalue = 1
+
+    def no_args(self):
+        return 1
+
+    def prop_getter(self):
+        return self._propvalue
+
+    def prop_setter(self, value):
+        self._propvalue = value
+
+    prop = property(prop_getter, prop_setter)
 
 
 #----------------------------#
@@ -718,20 +792,6 @@ class Collaborator:
         return 1
 
     alias_method = one_arg_method
-
-
-class ObjCollaborator(object):
-    def __init__(self):
-        self._propvalue = None
-
-    def prop_getter(self):
-        return self._propvalue
-
-    def prop_setter(self, value):
-        self._propvalue = value
-
-    prop = property(prop_getter, prop_setter)
-
 
 
 class pyDoubles__ProxySpyTests(TestCase):
@@ -1475,7 +1535,7 @@ class pyDoubles__MatchersTests(TestCase):
         except AssertionError:
             pass
 
-#    Not applicable to doublex, cause it uses hamcrest matchers
+#    Not applicable to doublex, cause doublex uses hamcrest matchers
 #    def test_obj_with_field_defends_agains_wrong_usage(self):
 #        self.spy.one_arg_method(Collaborator())
 #        try:
