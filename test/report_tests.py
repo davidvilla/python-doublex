@@ -7,7 +7,7 @@ from nose.tools import nottest
 
 import doublex
 from doublex.internal import Invocation, InvocationContext
-from unit import ObjCollaborator
+from unit_tests import ObjCollaborator
 
 
 def create_invocation(name, args=None, kargs=None, output=None):
