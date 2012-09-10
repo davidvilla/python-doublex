@@ -290,8 +290,12 @@ class PropertyGet(Invocation):
 
 class PropertySet(Invocation):
     def __init__(self, double, name, value=None):
-        super(PropertySet, self).__init__(double, name)
+        super(PropertySet, self).__init__(
+            double, name, InvocationContext(value))
         self.value = value
+
+    def _was_called(self, times):
+        return self.double._was_called(self, times)
 
     def __repr__(self):
         return "set %s.%s to %s" % (

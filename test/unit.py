@@ -677,7 +677,7 @@ class MimicTests(TestCase):
         assert_that(mock, verify())
 
 
-class DoublePropertiesTests(TestCase):
+class PropertiesTests(TestCase):
     def test_stub_notset_property_is_None(self):
         stub = Stub(ObjCollaborator)
         assert_that(stub.prop, is_(None))
@@ -705,7 +705,7 @@ class DoublePropertiesTests(TestCase):
 
     def test_spy_not_get_property(self):
         spy = Spy(ObjCollaborator)
-        assert_that(spy, is_not(property_got('prop')))
+        assert_that(spy, never(property_got('prop')))
 
     def test_spy_get_property_fail(self):
         spy = Spy(ObjCollaborator)
@@ -720,7 +720,7 @@ class DoublePropertiesTests(TestCase):
 
     def test_spy_not_set_property(self):
         spy = Spy(ObjCollaborator)
-        assert_that(spy, is_not(property_set('prop')))
+        assert_that(spy, never(property_set('prop')))
 
     def test_spy_set_property_fail(self):
         spy = Spy(ObjCollaborator)
@@ -728,9 +728,29 @@ class DoublePropertiesTests(TestCase):
             AssertionError,
             assert_that, spy, property_set('prop'))
 
-    def test_properties_are_not_shared(self):
+    def test_spy_set_property_to(self):
+        spy = Spy(ObjCollaborator)
+        spy.prop = 2
+        assert_that(spy, property_set('prop').to(2))
+        assert_that(spy, never(property_set('prop').to(5)))
+
+    def test_spy_set_property_times(self):
+        spy = Spy(ObjCollaborator)
+        spy.prop = 2
+        spy.prop = 3
+        assert_that(spy, property_set('prop').to(2))
+        assert_that(spy, property_set('prop').to(3))
+        assert_that(spy, property_set('prop').times(2))
+
+    def test_spy_set_property_to_times(self):
+        spy = Spy(ObjCollaborator)
+        spy.prop = 3
+        spy.prop = 3
+        assert_that(spy, property_set('prop').to(3).times(2))
+
+    def test_properties_are_NOT_shared_among_doubles(self):
         stub1 = Stub(ObjCollaborator)
-        stub2 = Stub()
+        stub2 = Stub(ObjCollaborator)
 
         stub1.prop = 1000
         assert_that(stub2.prop, is_not(1000))
@@ -741,7 +761,7 @@ class DoublePropertiesTests(TestCase):
         discard = spy.prop_deco_readonly
         assert_that(spy, property_got('prop_deco_readonly'))
 
-    def test_spy_set_readonly_property_with_deco(self):
+    def test_spy_SET_readonly_property_with_deco(self):
         spy = Spy(ObjCollaborator)
         try:
             spy.prop_deco_readonly = 'wrong'

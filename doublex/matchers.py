@@ -4,7 +4,7 @@ import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 from hamcrest import assert_that, is_
 
-from internal import Method, InvocationContext, ANY_ARG, MockBase, SpyBase, Invocation, PropertyGet, PropertySet
+from internal import Method, InvocationContext, ANY_ARG, MockBase, SpyBase, PropertyGet, PropertySet
 from exc import WrongApiUsage
 
 __all__ = ['called', 'called_with',
@@ -14,12 +14,17 @@ __all__ = ['called', 'called_with',
            'assert_that', 'is_']
 
 
-class MethodCalled(BaseMatcher):
-    any_time = hamcrest.greater_than(0)
+any_time = hamcrest.greater_than(0)
 
-    def __init__(self, context, times=None):
+
+class OperationMatcher(BaseMatcher):
+    pass
+
+
+class MethodCalled(OperationMatcher):
+    def __init__(self, context, times=any_time):
         self.context = context
-        self._times = times or self.any_time
+        self._times = times
 
     def _matches(self, method):
         self._assure_is_spied_method(method)
@@ -31,10 +36,10 @@ class MethodCalled(BaseMatcher):
             raise WrongApiUsage("takes a spy method (got %s instead)" % method)
 
     def describe_to(self, description):
-        description.append_text('this call:\n')
+        description.append_text('these calls:\n')
         description.append_text(self.method.show(indent=10))
         description.append_text(str(self.context))
-        if self._times != self.any_time:
+        if self._times != any_time:
             description.append_text(' -- times: %s' % self._times)
 
     def describe_mismatch(self, actual, description):
@@ -55,7 +60,7 @@ def called_with(*args, **kargs):
 
 class never(BaseMatcher):
     def __init__(self, matcher):
-        if not isinstance(matcher, MethodCalled):
+        if not isinstance(matcher, OperationMatcher):
             raise WrongApiUsage(
                 "takes called/called_with instance (got %s instead)" % matcher)
         self.matcher = matcher
@@ -64,7 +69,7 @@ class never(BaseMatcher):
         return not self.matcher.matches(item)
 
     def describe_to(self, description):
-        description.append_text('not ').append_description_of(self.matcher)
+        description.append_text('none of ').append_description_of(self.matcher)
 
     def describe_mismatch(self, actual, description):
         self.matcher.describe_mismatch(actual, description)
@@ -114,19 +119,26 @@ class any_order_verify(verify):
 
 
 # FIXME: refactor describe mismatch
-class property_got(BaseMatcher):
-    def __init__(self, propname):
-        self.propname = propname
+class property_got(OperationMatcher):
+    def __init__(self, propname, times=any_time):
         super(property_got, self).__init__()
+        self.propname = propname
+        self._times = times
 
     def _matches(self, double):
         self.double = double
-        invocation = PropertySet(self.double, self.propname)
-        return double._was_called(invocation, 1)
+        self.operation = PropertyGet(self.double, self.propname)
+        return double._was_called(self.operation, 1)
+
+    def times(self, n):
+        return property_got(self.property_name, n)
 
     def describe_to(self, description):
-        description.append_text("these calls:\n")
-        description.append_text(self.double._stubs.show(indent=10))
+        description.append_text('these calls:\n')
+        description.append_text(self.operation.show(indent=10))
+#        description.append_text(str(self.value))
+        if self._times != any_time:
+            description.append_text(' -- times: %s' % self._times)
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
@@ -134,19 +146,30 @@ class property_got(BaseMatcher):
 
 
 # FIXME: refactor describe mismatch
-class property_set(BaseMatcher):
-    def __init__(self, propname):
-        self.propname = propname
+class property_set(OperationMatcher):
+    def __init__(self, property_name, value=hamcrest.anything(), times=any_time):
         super(property_set, self).__init__()
+        self.property_name = property_name
+        self.value = value
+        self._times = times
 
     def _matches(self, double):
         self.double = double
-        invocation = PropertySet(self.double, self.propname)
-        return double._was_called(invocation, 1)
+        self.operation = PropertySet(self.double, self.property_name,
+                                     self.value)
+        return self.double._was_called(self.operation, self._times)
+
+    def to(self, value):
+        return property_set(self.property_name, value)
+
+    def times(self, n):
+        return property_set(self.property_name, self.value, n)
 
     def describe_to(self, description):
-        description.append_text("these calls:\n")
-        description.append_text(self.double._stubs.show(indent=10))
+        description.append_text('these calls:\n')
+        description.append_text(self.operation.show(indent=10))
+        if self._times != any_time:
+            description.append_text(' -- times: %s' % self._times)
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
