@@ -189,17 +189,22 @@ frameworks like python-mock::
          pass
 
  with Spy(Collaborator) as spy:
-     spy.prop = 2
+     spy.prop = 2  # stubbing its value
 
  assert_that(spy.prop, is_(2))  # property getter invoked
  assert_that(spy, property_got('prop'))
 
  spy.prop = 4  # property setter invoked
+ spy.prop = 5  # --
+ spy.prop = 5  # --
 
- assert_that(spy, property_set('prop'))
+ assert_that(spy, property_set('prop'))  # set to any value
+ assert_that(spy, property_set('prop').to(4))
+ assert_that(spy, property_set('prop').to(5).times(2))
+ assert_that(spy, never(property_set('prop').to(8)))
 
 
-For make property doubles is required to:
+To make property doubles is required to:
 
 * You must Use "verified" doubles, ie: specify a collaborator in constructor.
 * collaborator musy be new-style classes.
