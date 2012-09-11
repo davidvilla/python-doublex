@@ -47,10 +47,13 @@ class MethodCalled(OperationMatcher):
         description.append_text(self.method.double._recorded.show(indent=10))
 
     def with_args(self, *args, **kargs):
-        return MethodCalled(InvocationContext(*args, **kargs))
+        self.context.args = args
+        self.context.kargs = kargs
+        return self
 
     def times(self, n):
-        return MethodCalled(self.context, times=n)
+        self._times = n
+        return self
 
 
 def called():
