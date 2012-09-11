@@ -202,10 +202,13 @@ class Invocation(object):
 @total_ordering
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
-        self.args = args
-        self.kargs = kargs
+        self.update(args, kargs)
         self.output = None
         self.delegate = func_returning(None)
+
+    def update(self, args, kargs):
+        self.args = args
+        self.kargs = kargs
 
     def matches(self, other):
         try:

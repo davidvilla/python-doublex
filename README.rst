@@ -51,8 +51,7 @@ If you do not program specific result, the method invocation returns ``None``.
 "checked" Stub
 ---------------
 
-A checked Stub restrict the methods you may invoke to the interface of the specified
-collaborator class (or instance)::
+A "checked Stub" forces the specified collaborator interface::
 
  class Collaborator:
      def hello(self):
@@ -63,13 +62,13 @@ collaborator class (or instance)::
      stub.foo().returns(True)  # interface mismatch exception
      stub.hello(1).returns(2)  # interface mismatch exception
 
-If you invoke an nonexistent method you will get and AttributeError exception
+If you invoke an nonexistent method you will get an ``AttributeError`` exception.
 
 
 "free" Spy
 ----------
 
-Hint: *Spies remember everything you did them.*
+Hint: *Spies remember everything that happens to them.*
 
 The free spy extends the *free Stub* functionality allowing you to assert on the
 invocation it receives since its creation::
@@ -113,7 +112,7 @@ As the ``Stubs``, checked spies force you to use the specified collaborator inte
 ProxySpy
 --------
 
-Hint: *Proxy spies forward invocations to its actual instance*
+Hint: *Proxy spies forward invocations to its actual instance.*
 
 The ``ProxySpy`` extends is a *verified* ``Spy`` that invoke on the actual
 instance all invocations it receives::
@@ -149,8 +148,8 @@ sequence does not match, an AssertionError is raised::
 
  assert_that(smtp, verify())
 
-verify() asserts invocation order. If your test does not require strict invocation order
-just use any_order_verify() matcher instead::
+``verify()`` asserts invocation order. If your test does not require strict invocation
+order just use ``any_order_verify()`` matcher instead::
 
  with Mock() as mock:
      mock.foo()
@@ -161,7 +160,7 @@ just use any_order_verify() matcher instead::
 
  assert_that(mock, any_order_verify())
 
-Programmed invocation sequence may specify stubbed return values::
+Programmed invocation sequence also may specify stubbed return values::
 
  with Mock() as mock:
      mock.foo().returns(10)
@@ -229,13 +228,13 @@ frameworks like python-mock::
  assert_that(spy, property_set('prop'))  # set to any value
  assert_that(spy, property_set('prop').to(4))
  assert_that(spy, property_set('prop').to(5).times(2))
- assert_that(spy, never(property_set('prop').to(8)))
+ assert_that(spy, never(property_set('prop').to(greater_than(6))))
 
 
-To make property doubles is required to:
+Property doubles require:
 
-* You must Use "checked" doubles, ie: specify a collaborator in constructor.
-* collaborator must be new-style classes.
+* Using "checked" doubles, ie: specify a collaborator in constructor.
+* collaborator must be a new-style classXS.
 
 
 doublex matchers
@@ -256,15 +255,6 @@ called() matches any invocation to a method::
  assert_that(spy.m2, called())
  assert_that(spy.m3, called())
  assert_that(spy.m4, called())
-
-
-never
------
-
-never() is a convenient replacement for hamcrest.is_not::
-
- assert_that(spy.m5, is_not(called()))  # is_not() is a hamcrest matcher (it works)
- assert_that(spy.m5, never(called()))   # recommended (better error report messages)
 
 
 with_args
@@ -294,6 +284,16 @@ with_args() matches explicit argument values and hamcrest matchers::
  assert_that(spy.m3, called().with_args(less_than(3)))
  assert_that(spy.m3, called().with_args(greater_than(1)))
  assert_that(spy.m6, called().with_args(name=contains_string("doe")))
+
+
+never
+-----
+
+``never()`` is a convenient replacement for hamcrest.is_not::
+
+ assert_that(spy.m5, is_not(called()))  # is_not() is a hamcrest matcher (it works)
+ assert_that(spy.m5, never(called()))   # recommended (better error report messages)
+
 
 
 ANY_ARG
