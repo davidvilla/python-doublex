@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name             = 'doublex',
-      version          = '0.5',
+      version          = '0.6',
       description      = 'Test doubles framework for Python',
       author           = 'David Villa Alises',
       author_email     = 'David.Villa@gmail.com',
