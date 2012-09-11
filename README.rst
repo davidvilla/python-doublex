@@ -12,10 +12,10 @@ Source repository is: https://bitbucket.org/DavidVilla/python-doublex
 Design principles
 =================
 
-- Doubles have not public api specific methods. It avoid silent misspelling.
+- doubles should not have public API framework methods. It avoid silent misspelling.
 - non-proxified doubles does not require collaborator instances, they may use classes
 - hamcrest.assert_that used for all assertions
-- Mock invocation order is required by default
+- mock invocation order is required by default
 - Compatible with old and new style classes
 
 
@@ -25,7 +25,11 @@ Doubles
 "free" Stub
 -----------
 
-::
+Hint: *Stub objects tell you what you wanna hear.*
+
+A free Stub is an double object that have any method you invoke on it. Using the Stub
+context (``with`` keyword) you may program the double to return a specified value
+depending on their method argument values::
 
  # given
  stub = Stub()
@@ -41,10 +45,14 @@ Doubles
  assert_that(result, is_(10))
 
 
-"verified" Stub
+If you do not program specific result, the method invocation returns ``None``.
+
+
+"checked" Stub
 ---------------
 
-::
+A checked Stub restrict the methods you may invoke to the interface of the specified
+collaborator class (or instance)::
 
  class Collaborator:
      def hello(self):
@@ -55,11 +63,17 @@ Doubles
      stub.foo().returns(True)  # interface mismatch exception
      stub.hello(1).returns(2)  # interface mismatch exception
 
+If you invoke an nonexistent method you will get and AttributeError exception
+
 
 "free" Spy
 ----------
 
-::
+Hint: *Spies remember everything you did them.*
+
+The free spy extends the *free Stub* functionality allowing you to assert on the
+invocation it receives since its creation::
+
 
  # given
  with Spy() as sender:
@@ -76,10 +90,10 @@ Doubles
  assert_that(sender.send_mail, called().with_args('foo@bar.net'))
 
 
-"verified" Spy
+"checked" Spy
 --------------
 
-::
+As the ``Stubs``, checked spies force you to use the specified collaborator interface::
 
  class Sender:
      def say(self):
@@ -99,9 +113,12 @@ Doubles
 ProxySpy
 --------
 
-::
+Hint: *Proxy spies forward invocations to its actual instance*
 
- sender = ProxySpy(Sender())  # NOTE this always takes an instance
+The ``ProxySpy`` extends is a *verified* ``Spy`` that invoke on the actual
+instance all invocations it receives::
+
+ sender = ProxySpy(Sender())  # NOTE: It takes an instance (not class)
 
  sender.say('boo!')  # interface mismatch exception
 
@@ -112,7 +129,11 @@ ProxySpy
 "free" Mock
 -----------
 
-::
+Hint: *Mocks force the predefined script.*
+
+Mock objects may be programmed with a sequence of method calls. Later, the double must
+receive exactly the same sequence of invocations (including argument values). If the
+sequence does not match, an AssertionError is raised::
 
  with Mock() as smtp:
      smtp.helo()
@@ -128,7 +149,7 @@ ProxySpy
 
  assert_that(smtp, verify())
 
-verify() assert invocation order. If your test does not require strict invocation order
+verify() asserts invocation order. If your test does not require strict invocation order
 just use any_order_verify() matcher instead::
 
  with Mock() as mock:
@@ -140,12 +161,19 @@ just use any_order_verify() matcher instead::
 
  assert_that(mock, any_order_verify())
 
+Programmed invocation sequence may specify stubbed return values::
+
+ with Mock() as mock:
+     mock.foo().returns(10)
+
+ assert_that(mock.foo, is_(10))
+ assert_that(mock, verify())
 
 
-"verified" Mock
+"checked" Mock
 ---------------
 
-::
+The checked variant also for mocks::
 
  class SMTP:
      def helo(self):
@@ -163,7 +191,7 @@ just use any_order_verify() matcher instead::
 stub methods
 ------------
 
-::
+You may create standalone stub methods also::
 
  collaborator = Collaborator()
  collaborator.foo = method_returning("bye")
@@ -206,8 +234,8 @@ frameworks like python-mock::
 
 To make property doubles is required to:
 
-* You must Use "verified" doubles, ie: specify a collaborator in constructor.
-* collaborator musy be new-style classes.
+* You must Use "checked" doubles, ie: specify a collaborator in constructor.
+* collaborator must be new-style classes.
 
 
 doublex matchers
@@ -233,10 +261,10 @@ called() matches any invocation to a method::
 never
 -----
 
-::
+never() is a convenient replacement for hamcrest.is_not::
 
- assert_that(spy.m5, is_not(called()))  # is_not() is a hamcrest matcher
- assert_that(spy.m5, never(called()))   # recommended (better report message)
+ assert_that(spy.m5, is_not(called()))  # is_not() is a hamcrest matcher (it works)
+ assert_that(spy.m5, never(called()))   # recommended (better error report messages)
 
 
 with_args
@@ -271,8 +299,8 @@ with_args() matches explicit argument values and hamcrest matchers::
 ANY_ARG
 =======
 
-ANY_ARG is a special value that matches any value and any amount of values, including
-no args. For example::
+``ANY_ARG`` is a special value that matches any subsequent argument values, including no
+args. For example::
 
  spy.arg0()
  spy.arg1(1)
@@ -298,7 +326,7 @@ Also for stubs::
  assert_that(stub.foo(1, 2, 3), is_(True))
  assert_that(stub.foo(1, key1='a'), is_(True))
 
-But, if you want match any single value, use hamcrest matcher anything()::
+But, if you want match any single value, use hamcrest matcher ``anything()``::
 
  spy.foo(1, 2, 3)
  assert_that(spy.foo, called().with_args(1, anything(), 3))
@@ -396,7 +424,8 @@ Stub observers allow you to execute extra code (similar to python-mock "side eff
 Stub delegates
 ==============
 
-The value returned by the stub may be delegated to function, method or other callable...::
+The value returned by the stub may be delegated from a function, method or other
+callable...::
 
  def get_user():
      return "Freddy"
@@ -408,7 +437,7 @@ The value returned by the stub may be delegated to function, method or other cal
  assert_that(stub.user(), is_("Freddy"))
  assert_that(stub.foo(), is_("hello"))
 
-It may be delegated to iterables or generators too!::
+It may be delegated from iterables or generators too!::
 
  with Stub() as stub:
      stub.foo().delegates([1, 2, 3])
@@ -421,7 +450,7 @@ It may be delegated to iterables or generators too!::
 Mimic doubles
 =============
 
-Usually double instances behave as collaborator subrogates, but they do not expose the
+Usually double instances behave as collaborator surrogates, but they do not expose the
 same class hierarchy, and usually this is pretty enough when the code uses "duck typing"::
 
  class A(object):
@@ -439,7 +468,7 @@ same class hierarchy, and usually this is pretty enough when the code uses "duck
 
 But some third party library DOES strict type checking using isinstance() invalidating our
 doubles. For these cases you can use Mimic's. Mimic class can decorate any double class to
-achive full replacement (Liskov principle)::
+achieve full replacement instances (Liskov principle)::
 
  >>> spy = Mimic(Spy, B)
  >>> isinstance(spy, B)
@@ -452,3 +481,12 @@ achive full replacement (Liskov principle)::
  True
  >>> isinstance(spy, object)
  True
+
+
+.. Local Variables:
+..  coding: utf-8
+..  mode: flyspell
+..  ispell-local-dictionary: "american"
+.. End:
+
+LocalWords:  hamcrest
