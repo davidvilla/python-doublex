@@ -135,29 +135,29 @@ class SpyTests(TestCase):
     def test_called_without_args(self):
         self.spy.foo()
 
-        assert_that(self.spy.foo, called_with())
+        assert_that(self.spy.foo, called().with_args())
 
     def test_called_with_None(self):
         self.spy.foo(None)
 
-        assert_that(self.spy.foo, called_with(None))
-        assert_that(self.spy.foo, is_not(called_with()))
+        assert_that(self.spy.foo, called().with_args(None))
+        assert_that(self.spy.foo, is_not(called().with_args()))
 
     def test_not_called_without_args(self):
         self.spy.foo(1)
 
-        assert_that(self.spy.foo, is_not(called_with()))
+        assert_that(self.spy.foo, is_not(called().with_args()))
 
     def test_called_with_specified_args(self):
         self.spy.foo(1)
 
-        assert_that(self.spy.foo, called_with(1))
+        assert_that(self.spy.foo, called().with_args(1))
 
     def test_not_called_with_specified_args(self):
         self.spy.foo()
         self.spy.foo(2)
 
-        assert_that(self.spy.foo, is_not(called_with(1)))
+        assert_that(self.spy.foo, is_not(called().with_args(1)))
 
     def test_mixed_args(self):
         self.spy.send_mail('hi')
@@ -165,18 +165,18 @@ class SpyTests(TestCase):
 
         assert_that(self.spy.send_mail, called())
         assert_that(self.spy.send_mail, called().times(2))
-        assert_that(self.spy.send_mail, called_with('foo@bar.net'))
+        assert_that(self.spy.send_mail, called().with_args('foo@bar.net'))
 
     def test_called_with_several_types_and_kargs(self):
         self.spy.foo(3.0, [1, 2], 'hi', color='red', width=10)
 
-        assert_that(self.spy.foo, called_with(
+        assert_that(self.spy.foo, called().with_args(
                 3.0, [1, 2], 'hi', color='red', width=10))
-        assert_that(self.spy.foo, called_with(
+        assert_that(self.spy.foo, called().with_args(
                 3.0, [1, 2], 'hi', width=10, color='red'))
-        assert_that(self.spy.foo, is_not(called_with(
+        assert_that(self.spy.foo, is_not(called().with_args(
                 [1, 2], 'hi', width=10, color='red')))
-        assert_that(self.spy.foo, is_not(called_with(
+        assert_that(self.spy.foo, is_not(called().with_args(
                 [1, 2], 3.0, 'hi', width=10, color='red')))
 
     def test_called_with_args_and_times(self):
@@ -184,8 +184,8 @@ class SpyTests(TestCase):
         self.spy.foo(1)
         self.spy.foo(2)
 
-        assert_that(self.spy.foo, called_with(1).times(2))
-        assert_that(self.spy.foo, called_with(2))
+        assert_that(self.spy.foo, called().with_args(1).times(2))
+        assert_that(self.spy.foo, called().with_args(2))
         assert_that(self.spy.foo, called().times(3))
 
 
@@ -430,34 +430,34 @@ class ANY_ARG_SpyTests(TestCase):
 
     def test_no_args(self):
         self.spy.foo()
-        assert_that(self.spy.foo, called_with(ANY_ARG))
+        assert_that(self.spy.foo, called().with_args(ANY_ARG))
 
     def test_one_arg(self):
         self.spy.foo(1)
-        assert_that(self.spy.foo, called_with(ANY_ARG))
+        assert_that(self.spy.foo, called().with_args(ANY_ARG))
 
     def test_one_karg(self):
         self.spy.foo(key='val')
-        assert_that(self.spy.foo, called_with(ANY_ARG))
+        assert_that(self.spy.foo, called().with_args(ANY_ARG))
 
     def test_three_args(self):
         self.spy.foo(1, 2, 3)
-        assert_that(self.spy.foo, called_with(1, ANY_ARG))
-        assert_that(self.spy.foo, never(called_with(2, ANY_ARG)))
+        assert_that(self.spy.foo, called().with_args(1, ANY_ARG))
+        assert_that(self.spy.foo, never(called().with_args(2, ANY_ARG)))
 
     def test_args_and_kargs(self):
         self.spy.foo(1, 2, 3, key1='a', key2='b')
-        assert_that(self.spy.foo, called_with(1, ANY_ARG))
-        assert_that(self.spy.foo, never(called_with(2, ANY_ARG)))
+        assert_that(self.spy.foo, called().with_args(1, ANY_ARG))
+        assert_that(self.spy.foo, never(called().with_args(2, ANY_ARG)))
 
-    def test__called__and__called_with__any_args_is_the_same(self):
+    def test__called__and__called_with_args__any_args_is_the_same(self):
         self.spy.foo()
         self.spy.foo(3)
         self.spy.foo('hi')
         self.spy.foo(None)
 
         assert_that(self.spy.foo, called().times(4))
-        assert_that(self.spy.foo, called_with(ANY_ARG).times(4))
+        assert_that(self.spy.foo, called().with_args(ANY_ARG).times(4))
 
 
 class MatcherTests(TestCase):
@@ -467,11 +467,11 @@ class MatcherTests(TestCase):
     def test_check_has_length(self):
         self.spy.foo("abcd")
 
-        assert_that(self.spy.foo, called_with(has_length(4)))
-        assert_that(self.spy.foo, called_with(has_length(greater_than(3))))
-        assert_that(self.spy.foo, called_with(has_length(less_than(5))))
+        assert_that(self.spy.foo, called().with_args(has_length(4)))
+        assert_that(self.spy.foo, called().with_args(has_length(greater_than(3))))
+        assert_that(self.spy.foo, called().with_args(has_length(less_than(5))))
         assert_that(self.spy.foo,
-                    is_not(called_with(has_length(greater_than(5)))))
+                    is_not(called().with_args(has_length(greater_than(5)))))
 
     def test_stub_has_length(self):
         with self.spy:
@@ -508,13 +508,13 @@ class MatcherTests(TestCase):
         assert_that(self.spy.foo, called().times(greater_than(2)))       # > 2
         assert_that(self.spy.foo, called().times(less_than(6)))          # < 6
 
-        assert_that(self.spy.foo, is_not(called_with(5)))                 # = 0 times
-        assert_that(self.spy.foo, called_with().times(1))                 # = 1
-        assert_that(self.spy.foo, called_with(anything()))                # > 0
-        assert_that(self.spy.foo, called_with(anything()).times(4))       # = 4
-        assert_that(self.spy.foo, called_with(1).times(2))                # = 2
-        assert_that(self.spy.foo, called_with(1).times(greater_than(1)))  # > 1
-        assert_that(self.spy.foo, called_with(1).times(less_than(5)))     # < 5
+        assert_that(self.spy.foo, is_not(called().with_args(5)))                 # = 0 times
+        assert_that(self.spy.foo, called().with_args().times(1))                 # = 1
+        assert_that(self.spy.foo, called().with_args(anything()))                # > 0
+        assert_that(self.spy.foo, called().with_args(anything()).times(4))       # = 4
+        assert_that(self.spy.foo, called().with_args(1).times(2))                # = 2
+        assert_that(self.spy.foo, called().with_args(1).times(greater_than(1)))  # > 1
+        assert_that(self.spy.foo, called().with_args(1).times(less_than(5)))     # < 5
 
     # doc
     def test_called_args(self):
@@ -528,16 +528,16 @@ class MatcherTests(TestCase):
         assert_that(self.spy.m1, called())
         assert_that(self.spy.m2, called())
 
-        assert_that(self.spy.m1, called_with())
-        assert_that(self.spy.m2, called_with(None))
-        assert_that(self.spy.m3, called_with(2))
-        assert_that(self.spy.m4, called_with("hi", 3.0))
-        assert_that(self.spy.m5, called_with([1, 2]))
-        assert_that(self.spy.m6, called_with(name="john doe"))
+        assert_that(self.spy.m1, called().with_args())
+        assert_that(self.spy.m2, called().with_args(None))
+        assert_that(self.spy.m3, called().with_args(2))
+        assert_that(self.spy.m4, called().with_args("hi", 3.0))
+        assert_that(self.spy.m5, called().with_args([1, 2]))
+        assert_that(self.spy.m6, called().with_args(name="john doe"))
 
-        assert_that(self.spy.m3, called_with(less_than(3)))
-        assert_that(self.spy.m3, called_with(greater_than(1)))
-        assert_that(self.spy.m6, called_with(name=contains_string("doe")))
+        assert_that(self.spy.m3, called().with_args(less_than(3)))
+        assert_that(self.spy.m3, called().with_args(greater_than(1)))
+        assert_that(self.spy.m6, called().with_args(name=contains_string("doe")))
 
 
 class StubObserverTests(TestCase):
@@ -556,7 +556,7 @@ class StubObserverTests(TestCase):
         self.stub.foo.attach(observer.update)
         self.stub.foo(2)
 
-        assert_that(observer.update, called_with(2))
+        assert_that(observer.update, called().with_args(2))
 
 
 class StubDelegateTests(TestCase):
@@ -658,14 +658,14 @@ class MimicTests(TestCase):
         assert_that(spy.method_a(5), is_(True))
 
         assert_that(spy.method_a, called())
-        assert_that(spy.method_a, called_with(5))
+        assert_that(spy.method_a, called().with_args(5))
 
     def test_mimic_proxy_spy_works(self):
         spy = Mimic(ProxySpy, self.B())
         assert_that(spy.method_a(5), is_(6))
 
         assert_that(spy.method_a, called())
-        assert_that(spy.method_a, called_with(5))
+        assert_that(spy.method_a, called().with_args(5))
 
     def test_mimic_mock_works(self):
         mock = Mimic(Mock, self.B)
@@ -768,6 +768,12 @@ class PropertiesTests(TestCase):
             self.fail('should raise exception')
         except AttributeError:
             pass
+
+    def test_hamcrest_matchers(self):
+        spy = Spy(ObjCollaborator)
+        spy.prop = 2
+        spy.prop = 3
+        assert_that(spy, property_set('prop').to(greater_than(1)).times(less_than(3)))
 
 
 class Observer(object):
@@ -900,54 +906,54 @@ class pyDoubles__ProxySpyTests(TestCase):
     def test_was_called_with_same_parameters(self):
         self.spy.one_arg_method(1)
 
-        assert_that(self.spy.one_arg_method, called_with(1))
+        assert_that(self.spy.one_arg_method, called().with_args(1))
 
     # this is exactly the same that previous! :-S
     def test_was_called_with_same_parameters_in_variables(self):
         arg1 = 1
         self.spy.one_arg_method(arg1)
 
-        assert_that(self.spy.one_arg_method, called_with(1))
+        assert_that(self.spy.one_arg_method, called().with_args(1))
 
     def test_was_called_with_same_parameters_when_not(self):
         self.spy.one_arg_method(1)
-        args_checker = called_with(2)
+        args_checker = called().with_args(2)
 
         assert_that(not args_checker.matches(self.spy.one_arg_method))
 
     def test_was_called_with_same_params_but_no_params_accepted(self):
         self.spy.hello()
-        args_checker = called_with("something")
+        args_checker = called().with_args("something")
 
         assert_that(not args_checker.matches(self.spy.hello))
 
     def test_was_called_with_several_parameters(self):
         self.spy.two_args_method(1, 2)
-        args_checker = called_with(1, 2)
+        args_checker = called().with_args(1, 2)
 
         assert_that(args_checker.matches(self.spy.two_args_method))
 
     #SAME as test_was_called_with_same_parameters_when_not
     def test_was_called_with_parameters_not_matching(self):
         self.spy.one_arg_method(1)
-        args_checker = called_with("2")
+        args_checker = called().with_args("2")
 
         assert_that(not args_checker.matches(self.spy.one_arg_method))
 
     def test_was_called_with_keyed_args_not_matching(self):
         self.spy.kwarg_method(key_param="foo")
-        args_checker = called_with(key_param="bar")
+        args_checker = called().with_args(key_param="bar")
 
         assert_that(not args_checker.matches(self.spy.kwarg_method))
 
     def test_was_called_with_keyed_args_matching(self):
         self.spy.kwarg_method(key_param="foo")
-        assert_that(self.spy.kwarg_method, called_with(key_param="foo"))
+        assert_that(self.spy.kwarg_method, called().with_args(key_param="foo"))
 
     def test_recorded_call_params_are_displayed(self):
         self.spy.kwarg_method(key_param="foo")
         try:
-            assert_that(self.spy.kwarg_method, called_with("bar"))
+            assert_that(self.spy.kwarg_method, called().with_args("bar"))
         except AssertionError, e:
             assert_that(str(e), contains_string("foo"))
 
@@ -962,7 +968,7 @@ class pyDoubles__ProxySpyTests(TestCase):
             self.spy.one_arg_method(ANY_ARG).returns(3)
 
         self.spy.one_arg_method(5)
-        assert_that(self.spy.one_arg_method, called_with(5))
+        assert_that(self.spy.one_arg_method, called().with_args(5))
 
     def test_stub_out_method_returning_a_list(self):
         with self.spy:
@@ -976,7 +982,7 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         self.spy.one_arg_method(5)
 
-        assert_that(self.spy.one_arg_method, called_with(5))
+        assert_that(self.spy.one_arg_method, called().with_args(5))
 
     def test_stub_out_method_with_args(self):
         with self.spy:
@@ -990,14 +996,14 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         self.spy.one_arg_method(2)
 
-        assert_that(self.spy.one_arg_method, called_with(2))
+        assert_that(self.spy.one_arg_method, called().with_args(2))
 
     def test_stub_out_method_with_args_calls_actual(self):
         with self.spy:
             self.spy.one_arg_method(2).returns(3)
 
         assert_that(self.spy.one_arg_method(4), is_(4))
-        assert_that(self.spy.one_arg_method, called_with(4))
+        assert_that(self.spy.one_arg_method, called().with_args(4))
 
     def test_stub_out_method_with_several_inputs(self):
         with self.spy:
@@ -1014,8 +1020,8 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         self.spy.one_arg_method(2)
         self.spy.one_arg_method(3)
-        assert_that(self.spy.one_arg_method, called_with(2))
-        assert_that(self.spy.one_arg_method, called_with(3))
+        assert_that(self.spy.one_arg_method, called().with_args(2))
+        assert_that(self.spy.one_arg_method, called().with_args(3))
 
     def test_matching_stub_definition_is_used(self):
         with self.spy:
@@ -1088,14 +1094,14 @@ class pyDoubles__ProxySpyTests(TestCase):
 
         self.spy.two_args_method(1, 2)
 
-        assert_that(self.spy.two_args_method, called_with(1, ANY_ARG))
+        assert_that(self.spy.two_args_method, called().with_args(1, ANY_ARG))
 
     def test_stub_works_with_alias_method(self):
         with self.spy:
             self.spy.one_arg_method(1).returns(1000)
 
         self.spy.alias_method(1)
-        assert_that(self.spy.one_arg_method, called_with(1))
+        assert_that(self.spy.one_arg_method, called().with_args(1))
 
     def test_was_never_called(self):
         assert_that(self.spy.one_arg_method, is_not(called()))
@@ -1135,14 +1141,14 @@ class pyDoubles__ProxySpyTests(TestCase):
     def test_expect_several_times_with_args_definition(self):
         self.spy.one_arg_method(1)
         self.spy.one_arg_method(1)
-        assert_that(self.spy.one_arg_method, called_with(1).times(2))
+        assert_that(self.spy.one_arg_method, called().with_args(1).times(2))
 
     def test_expect_several_times_with_incorrect_args(self):
         self.spy.one_arg_method(1)
         self.spy.one_arg_method(1)
 
         try:
-            assert_that(self.spy.one_arg_method, called_with(2).times(2))
+            assert_that(self.spy.one_arg_method, called().with_args(2).times(2))
             self.fail("Must have 1 as an argument")
         except AssertionError:
             pass
@@ -1152,7 +1158,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         self.spy.one_arg_method(2)
         try:
             assert_that(self.spy.one_arg_method,
-                        called_with(1).times(2))
+                        called().with_args(1).times(2))
             self.fail("Wrong assertion")
         except AssertionError:
             pass
@@ -1201,7 +1207,7 @@ class pyDoubles__SpyTests(TestCase):
         non_ascii  = u'España'
         self.spy.one_arg_method(non_ascii)
 
-        assert_that(self.spy.one_arg_method, called_with(non_ascii))
+        assert_that(self.spy.one_arg_method, called().with_args(non_ascii))
 
     def test_stub_methods_can_be_handled_separately(self):
         with self.spy:
@@ -1213,8 +1219,8 @@ class pyDoubles__SpyTests(TestCase):
 
         self.assertEquals(1000, handle1(1))
         self.assertEquals(2000, handle2(5, 5))
-        assert_that(handle1, called_with(1))
-        assert_that(handle2, called_with(5, 5))
+        assert_that(handle1, called().with_args(1))
+        assert_that(handle2, called().with_args(5, 5))
 
     #SAME as VerifiedSpyTests.test_check_unexisting_method
     def test_assert_was_called_with_method_not_in_the_api(self):
@@ -1491,7 +1497,7 @@ class pyDoubles__MatchersTests(TestCase):
         self.spy.one_arg_method("XabcX")
 
         assert_that(self.spy.one_arg_method,
-                    called_with(contains_string("abc")))
+                    called().with_args(contains_string("abc")))
 
     def test_str_not_containing(self):
         with self.spy:
@@ -1508,7 +1514,7 @@ class pyDoubles__MatchersTests(TestCase):
     def test_str_not_containing_was_called(self):
         self.spy.one_arg_method("abc")
         assert_that(self.spy.one_arg_method,
-                    called_with(is_not(contains_string("xxx"))))
+                    called().with_args(is_not(contains_string("xxx"))))
 
     def test_several_matchers(self):
         with self.spy:
@@ -1541,7 +1547,7 @@ class pyDoubles__MatchersTests(TestCase):
         self.spy.one_arg_method(obj)
 
         try:
-            assert_that(self.spy.one_arg_method, called_with(obj2))
+            assert_that(self.spy.one_arg_method, called().with_args(obj2))
             self.fail("they should not match")
         except AssertionError:
             pass
@@ -1551,7 +1557,7 @@ class pyDoubles__MatchersTests(TestCase):
 
         try:
             assert_that(self.spy.one_arg_method,
-                        called_with(contains_string("xxx")))
+                        called().with_args(contains_string("xxx")))
 
         except AssertionError, e:
             assert_that(str(e), contains_string("xxx"))
@@ -1564,7 +1570,7 @@ class pyDoubles__MatchersTests(TestCase):
         self.spy.one_arg_method(obj)
 
         assert_that(self.spy.one_arg_method,
-                    called_with(has_property('id', 20)))
+                    called().with_args(has_property('id', 20)))
 
     def test_obj_with_several_fields_matcher(self):
         obj = Collaborator()
@@ -1573,7 +1579,7 @@ class pyDoubles__MatchersTests(TestCase):
         try:
             assert_that(
                 self.spy.one_arg_method,
-                called_with(all_of(
+                called().with_args(all_of(
                     has_property('id', 20),
                     has_property('test_field', 'OK'))))
             self.fail('Wrong assertion, id field is different')

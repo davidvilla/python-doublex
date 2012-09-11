@@ -7,7 +7,7 @@ from hamcrest import assert_that, is_
 from internal import Method, InvocationContext, ANY_ARG, MockBase, SpyBase, PropertyGet, PropertySet
 from exc import WrongApiUsage
 
-__all__ = ['called', 'called_with',
+__all__ = ['called',
            'never',
            'verify', 'any_order_verify',
            'property_got', 'property_set',
@@ -22,8 +22,8 @@ class OperationMatcher(BaseMatcher):
 
 
 class MethodCalled(OperationMatcher):
-    def __init__(self, context, times=any_time):
-        self.context = context
+    def __init__(self, context=None, times=any_time):
+        self.context = context or InvocationContext(ANY_ARG)
         self._times = times
 
     def _matches(self, method):
@@ -46,16 +46,15 @@ class MethodCalled(OperationMatcher):
         description.append_text("calls that actually ocurred were:\n")
         description.append_text(self.method.double._recorded.show(indent=10))
 
+    def with_args(self, *args, **kargs):
+        return MethodCalled(InvocationContext(*args, **kargs))
+
     def times(self, n):
         return MethodCalled(self.context, times=n)
 
 
 def called():
-    return MethodCalled(InvocationContext(ANY_ARG))
-
-
-def called_with(*args, **kargs):
-    return MethodCalled(InvocationContext(*args, **kargs))
+    return MethodCalled()
 
 
 class never(BaseMatcher):

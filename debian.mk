@@ -8,6 +8,6 @@ vclean:
 	$(RM) -r .svn debian
 
 debian:
-	svn co svn://svn.debian.org/svn/python-modules/packages/python-doublex/trunk -N
+	svn co svn://svn.debian.org/svn/python-modules/packages/doublex/trunk -N
 	mv trunk/.svn .
 	svn up debian

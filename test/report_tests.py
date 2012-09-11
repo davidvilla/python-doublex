@@ -129,7 +129,7 @@ Expected: these calls:
         spy.foo(2)
 
         self.assert_with_message(
-            spy.expected, doublex.called_with(3),
+            spy.expected, doublex.called().with_args(3),
             '''
 Expected: these calls:
           Spy.expected(3)
@@ -145,7 +145,7 @@ Expected: these calls:
         spy.unexpected(2)
 
         self.assert_with_message(
-            spy.unexpected, doublex.never(doublex.called_with(2)),
+            spy.unexpected, doublex.never(doublex.called().with_args(2)),
             '''
 Expected: none of these calls:
           Spy.unexpected(2)
@@ -162,7 +162,7 @@ Expected: none of these calls:
         spy.unexpected(2)
 
         self.assert_with_message(
-            spy.unexpected, is_not(doublex.called_with(2)),
+            spy.unexpected, is_not(doublex.called().with_args(2)),
             '''
 Expected: not these calls:
           Spy.unexpected(2)
@@ -173,7 +173,7 @@ Expected: not these calls:
 
         self.assert_with_message(
             spy.unexpected,
-            doublex.called_with(greater_than(1)),
+            doublex.called().with_args(greater_than(1)),
             '''
 Expected: these calls:
           Spy.unexpected(a value greater than <1>)
@@ -186,7 +186,7 @@ Expected: these calls:
 
         self.assert_with_message(
             spy.unexpected,
-            doublex.never(doublex.called_with(greater_than(1))),
+            doublex.never(doublex.called().with_args(greater_than(1))),
             '''
 Expected: none of these calls:
           Spy.unexpected(a value greater than <1>)
@@ -199,7 +199,7 @@ Expected: none of these calls:
 
         self.assert_with_message(
             spy.unexpected,
-            is_not(doublex.called_with(greater_than(1))),
+            is_not(doublex.called().with_args(greater_than(1))),
             '''
 Expected: not these calls:
           Spy.unexpected(a value greater than <1>)
