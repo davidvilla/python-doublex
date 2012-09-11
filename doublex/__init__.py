@@ -2,4 +2,4 @@
 
 from .doubles import *
 from .matchers import *
-from .exc import WrongApiUsage
+from .internal import WrongApiUsage

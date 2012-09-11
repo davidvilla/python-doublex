@@ -12,7 +12,10 @@ except ImportError:
 
 
 import safeunicode
-from .exc import *
+
+
+class WrongApiUsage(Exception):
+    pass
 
 
 class SingleValue:
