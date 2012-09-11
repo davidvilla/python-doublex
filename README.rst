@@ -73,7 +73,7 @@ Doubles
  assert_that(sender.helo(), is_("OK"))
  assert_that(sender.send_mail, called())
  assert_that(sender.send_mail, called().times(2))
- assert_that(sender.send_mail, called_with('foo@bar.net'))
+ assert_that(sender.send_mail, called().with_args('foo@bar.net'))
 
 
 "verified" Spy
@@ -173,6 +173,43 @@ stub methods
  collaborator.foo()  # raises SomeException
 
 
+properties
+----------
+
+Doublex support stub and spy properties in a pretty easy way compared with other
+frameworks like python-mock::
+
+ class Collaborator(object):
+     @property
+     def prop(self):
+         return 1
+
+     @prop.setter
+     def prop(self, value):
+         pass
+
+ with Spy(Collaborator) as spy:
+     spy.prop = 2  # stubbing its value
+
+ assert_that(spy.prop, is_(2))  # property getter invoked
+ assert_that(spy, property_got('prop'))
+
+ spy.prop = 4  # property setter invoked
+ spy.prop = 5  # --
+ spy.prop = 5  # --
+
+ assert_that(spy, property_set('prop'))  # set to any value
+ assert_that(spy, property_set('prop').to(4))
+ assert_that(spy, property_set('prop').to(5).times(2))
+ assert_that(spy, never(property_set('prop').to(8)))
+
+
+To make property doubles is required to:
+
+* You must Use "verified" doubles, ie: specify a collaborator in constructor.
+* collaborator musy be new-style classes.
+
+
 doublex matchers
 ================
 
@@ -202,10 +239,10 @@ never
  assert_that(spy.m5, never(called()))   # recommended (better report message)
 
 
-called_with
------------
+with_args
+---------
 
-called_with() matches explicit values and hamcrest matchers::
+with_args() matches explicit argument values and hamcrest matchers::
 
  spy.Spy()
 
@@ -219,16 +256,16 @@ called_with() matches explicit values and hamcrest matchers::
  assert_that(spy.m1, called())
  assert_that(spy.m2, called())
 
- assert_that(spy.m1, called_with())
- assert_that(spy.m2, called_with(None))
- assert_that(spy.m3, called_with(2))
- assert_that(spy.m4, called_with("hi", 3.0))
- assert_that(spy.m5, called_with([1, 2]))
- assert_that(spy.m6, called_with(name="john doe"))
+ assert_that(spy.m1, called().with_args())
+ assert_that(spy.m2, called().with_args(None))
+ assert_that(spy.m3, called().with_args(2))
+ assert_that(spy.m4, called().with_args("hi", 3.0))
+ assert_that(spy.m5, called().with_args([1, 2]))
+ assert_that(spy.m6, called().with_args(name="john doe"))
 
- assert_that(spy.m3, called_with(less_than(3)))
- assert_that(spy.m3, called_with(greater_than(1)))
- assert_that(spy.m6, called_with(name=contains_string("doe")))
+ assert_that(spy.m3, called().with_args(less_than(3)))
+ assert_that(spy.m3, called().with_args(greater_than(1)))
+ assert_that(spy.m6, called().with_args(name=contains_string("doe")))
 
 
 ANY_ARG
@@ -242,10 +279,10 @@ no args. For example::
  spy.arg3(1, 2, 3)
  spy.arg_karg(1, key1='a')
 
- assert_that(spy.arg0, called_with(ANY_ARG))
- assert_that(spy.arg1, called_with(ANY_ARG))
- assert_that(spy.arg3, called_with(1, ANY_ARG))
- assert_that(spy.arg_karg, called_with(1, ANY_ARG))
+ assert_that(spy.arg0, called().with_args(ANY_ARG))
+ assert_that(spy.arg1, called().with_args(ANY_ARG))
+ assert_that(spy.arg3, called().with_args(1, ANY_ARG))
+ assert_that(spy.arg_karg, called().with_args(1, ANY_ARG))
 
 Also for stubs::
 
@@ -264,10 +301,10 @@ Also for stubs::
 But, if you want match any single value, use hamcrest matcher anything()::
 
  spy.foo(1, 2, 3)
- assert_that(spy.foo, called_with(1, anything(), 3))
+ assert_that(spy.foo, called().with_args(1, anything(), 3))
 
  spy.bar(1, key=2)
- assert_that(spy.bar, called_with(1, key=anything()))
+ assert_that(spy.bar, called().with_args(1, key=anything()))
 
 
 matchers, matchers, hamcrest matchers...
@@ -283,10 +320,10 @@ checking spied calling args
  spy = Spy()
  spy.foo("abcd")
 
- assert_that(spy.foo, called_with(has_length(4)))
- assert_that(spy.foo, called_with(has_length(greater_than(3))))
- assert_that(spy.foo, called_with(has_length(less_than(5))))
- assert_that(spy.foo, is_not(called_with(has_length(greater_than(5)))))
+ assert_that(spy.foo, called().with_args(has_length(4)))
+ assert_that(spy.foo, called().with_args(has_length(greater_than(3))))
+ assert_that(spy.foo, called().with_args(has_length(less_than(5))))
+ assert_that(spy.foo, never(called().with_args(has_length(greater_than(5)))))
 
 
 stubbing
@@ -325,13 +362,15 @@ checking invocation 'times'
  assert_that(spy.foo, called().times(greater_than(2)))        # > 2
  assert_that(spy.foo, called().times(less_than(6)))           # < 6
 
- assert_that(spy.foo, is_not(called_with(5)))                 # = 0 times
- assert_that(spy.foo, called_with().times(1))                 # = 1
- assert_that(spy.foo, called_with(anything()))                # > 0
- assert_that(spy.foo, called_with(anything()).times(4))       # = 4
- assert_that(spy.foo, called_with(1).times(2))                # = 2
- assert_that(spy.foo, called_with(1).times(greater_than(1)))  # > 1
- assert_that(spy.foo, called_with(1).times(less_than(5)))     # < 5
+ assert_that(spy.foo, never(called().with_args(5)))                  # = 0 times
+ assert_that(spy.foo, called().with_args().times(1))                 # = 1
+ assert_that(spy.foo, called().with_args(anything()))                # > 0
+ assert_that(spy.foo, called().with_args(anything()).times(4))       # = 4
+ assert_that(spy.foo, called().with_args(1).times(2))                # = 2
+ assert_that(spy.foo, called().with_args(1).times(greater_than(1)))  # > 1
+ assert_that(spy.foo, called().with_args(1).times(less_than(5)))     # < 5
+ assert_that(spy.foo, called().with_args(1).times(
+             all_of(greater_than(1), less_than(8))))                 # 1 < times < 8
 
 
 Stub observers

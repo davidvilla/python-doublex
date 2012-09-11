@@ -7,6 +7,7 @@ from nose.tools import nottest
 
 import doublex
 from doublex.internal import Invocation, InvocationContext
+from unit_tests import ObjCollaborator
 
 
 def create_invocation(name, args=None, kargs=None, output=None):
@@ -39,24 +40,27 @@ class InvocationReportTests(TestCase):
 #                    is_("foo(u'ñandú')"))
 
 
-class SpyReportTest(TestCase):
+class MessageMixin(object):
     def assert_with_message(self, value, matcher, message):
         try:
             assert_that(value, matcher)
             self.fail("Exception should be raised")
         except AssertionError, e:
-            assert_that(str(e), is_(message))
+            assert_that(str(e).strip(), is_(message.strip()))
 
+
+class SpyReportTest(TestCase, MessageMixin):
     def test_called(self):
         spy = doublex.Spy()
 
-        self.assert_with_message(
-            spy.expected, doublex.called(),
-            '''
-Expected: this call:
+        expected = '''
+Expected: these calls:
           Spy.expected(ANY_ARG)
      but: calls that actually ocurred were:
-          No one\n''')
+          No one'''
+
+        self.assert_with_message(spy.expected, doublex.called(),
+                                 expected)
 
     def test_nerver_called(self):
         spy = doublex.Spy()
@@ -68,12 +72,12 @@ Expected: this call:
         self.assert_with_message(
             spy.unexpected, doublex.never(doublex.called()),
             '''
-Expected: not this call:
+Expected: none of these calls:
           Spy.unexpected(ANY_ARG)
      but: calls that actually ocurred were:
           Spy.foo(1)
           Spy.foo(2)
-          Spy.unexpected(5)\n''')
+          Spy.unexpected(5)''')
 
     def test_hamcrest_not_called(self):
         spy = doublex.Spy()
@@ -84,9 +88,9 @@ Expected: not this call:
         self.assert_with_message(
             spy.unexpected, is_not(doublex.called()),
             '''
-Expected: not this call:
+Expected: not these calls:
           Spy.unexpected(ANY_ARG)
-     but: was \n''')
+     but: was ''')
 
     def test_called_times_int(self):
         spy = doublex.Spy()
@@ -97,11 +101,11 @@ Expected: not this call:
         self.assert_with_message(
             spy.foo, doublex.called().times(1),
             '''
-Expected: this call:
+Expected: these calls:
           Spy.foo(ANY_ARG) -- times: 1
      but: calls that actually ocurred were:
           Spy.foo(1)
-          Spy.foo(2)\n''')
+          Spy.foo(2)''')
 
     def test_called_times_matcher(self):
         spy = doublex.Spy()
@@ -112,11 +116,11 @@ Expected: this call:
         self.assert_with_message(
             spy.foo, doublex.called().times(greater_than(3)),
             '''
-Expected: this call:
+Expected: these calls:
           Spy.foo(ANY_ARG) -- times: a value greater than <3>
      but: calls that actually ocurred were:
           Spy.foo(1)
-          Spy.foo(2)\n''')
+          Spy.foo(2)''')
 
     def test_called_with(self):
         spy = doublex.Spy()
@@ -125,13 +129,13 @@ Expected: this call:
         spy.foo(2)
 
         self.assert_with_message(
-            spy.expected, doublex.called_with(3),
+            spy.expected, doublex.called().with_args(3),
             '''
-Expected: this call:
+Expected: these calls:
           Spy.expected(3)
      but: calls that actually ocurred were:
           Spy.foo(1)
-          Spy.foo(2)\n''')
+          Spy.foo(2)''')
 
     def test_never_called_with(self):
         spy = doublex.Spy()
@@ -141,14 +145,14 @@ Expected: this call:
         spy.unexpected(2)
 
         self.assert_with_message(
-            spy.unexpected, doublex.never(doublex.called_with(2)),
+            spy.unexpected, doublex.never(doublex.called().with_args(2)),
             '''
-Expected: not this call:
+Expected: none of these calls:
           Spy.unexpected(2)
      but: calls that actually ocurred were:
           Spy.foo(1)
           Spy.foo(2)
-          Spy.unexpected(2)\n''')
+          Spy.unexpected(2)''')
 
     def test_hamcrest_not_called_with(self):
         spy = doublex.Spy()
@@ -158,23 +162,23 @@ Expected: not this call:
         spy.unexpected(2)
 
         self.assert_with_message(
-            spy.unexpected, is_not(doublex.called_with(2)),
+            spy.unexpected, is_not(doublex.called().with_args(2)),
             '''
-Expected: not this call:
+Expected: not these calls:
           Spy.unexpected(2)
-     but: was \n''')
+     but: was ''')
 
     def test_called_with_matcher(self):
         spy = doublex.Spy()
 
         self.assert_with_message(
             spy.unexpected,
-            doublex.called_with(greater_than(1)),
+            doublex.called().with_args(greater_than(1)),
             '''
-Expected: this call:
+Expected: these calls:
           Spy.unexpected(a value greater than <1>)
      but: calls that actually ocurred were:
-          No one\n''')
+          No one''')
 
     def test_never_called_with_matcher(self):
         spy = doublex.Spy()
@@ -182,36 +186,33 @@ Expected: this call:
 
         self.assert_with_message(
             spy.unexpected,
-            doublex.never(doublex.called_with(greater_than(1))),
+            doublex.never(doublex.called().with_args(greater_than(1))),
             '''
-Expected: not this call:
+Expected: none of these calls:
           Spy.unexpected(a value greater than <1>)
      but: calls that actually ocurred were:
-          Spy.unexpected(2)\n''')
+          Spy.unexpected(2)''')
 
-    def test_hamcrest_not_called_with_matcher(self):
+    def test__hamcrest_not__called_with_matcher(self):
         spy = doublex.Spy()
         spy.unexpected(2)
 
         self.assert_with_message(
             spy.unexpected,
-            is_not(doublex.called_with(greater_than(1))),
+            is_not(doublex.called().with_args(greater_than(1))),
             '''
-Expected: not this call:
+Expected: not these calls:
           Spy.unexpected(a value greater than <1>)
-     but: was \n''')
+     but: was ''')
 
 
-class MockReportTest(TestCase):
+class MockReportTest(TestCase, MessageMixin):
     def setUp(self):
         self.mock = doublex.Mock()
 
     def assert_expectation_error(self, expected_message):
-        try:
-            assert_that(self.mock, doublex.verify())
-            self.fail("This should raise exception")
-        except AssertionError, e:
-            assert_that(str(e), is_(expected_message))
+        self.assert_with_message(self.mock, doublex.verify(),
+                                 expected_message)
 
     def test_expect_none_but_someting_unexpected_called(self):
         expected_message = '''
@@ -316,3 +317,63 @@ Expected: these calls:
 '''
 
         self.assert_expectation_error(expected_message)
+
+
+class PropertReportTests(TestCase, MessageMixin):
+    def test_expected_get(self):
+        spy = doublex.Spy(ObjCollaborator)
+
+        expected_message = '''
+Expected: these calls:
+          get ObjCollaborator.prop
+     but: calls that actually ocurred were:
+          No one
+'''
+
+        self.assert_with_message(
+            spy, doublex.property_got('prop'),
+            expected_message)
+
+    def test_unexpected_get(self):
+        expected_message = '''
+Expected: none of these calls:
+          get ObjCollaborator.prop
+     but: calls that actually ocurred were:
+          get ObjCollaborator.prop
+'''
+
+        spy = doublex.Spy(ObjCollaborator)
+        spy.prop
+
+        self.assert_with_message(
+            spy, doublex.never(doublex.property_got('prop')),
+            expected_message)
+
+    def test_expected_set(self):
+        spy = doublex.Spy(ObjCollaborator)
+
+        expected_message = '''
+Expected: these calls:
+          set ObjCollaborator.prop to ANYTHING
+     but: calls that actually ocurred were:
+          No one
+'''
+
+        self.assert_with_message(
+            spy, doublex.property_set('prop'),
+            expected_message)
+
+    def test_unexpected_set(self):
+        expected_message = '''
+Expected: none of these calls:
+          set ObjCollaborator.prop to ANYTHING
+     but: calls that actually ocurred were:
+          set ObjCollaborator.prop to unexpected
+'''
+
+        spy = doublex.Spy(ObjCollaborator)
+        spy.prop = 'unexpected'
+
+        self.assert_with_message(
+            spy, doublex.never(doublex.property_set('prop')),
+            expected_message)

@@ -4,7 +4,8 @@ import inspect
 
 import hamcrest
 
-from .internal import ANY_ARG, create_proxy, InvocationList, Method, MockBase, get_class
+from .internal import ANY_ARG, OperationList, Method, MockBase, SpyBase, AttributeFactory
+from .proxy import create_proxy, get_class
 from .matchers import MockExpectInvocation
 
 
@@ -14,10 +15,17 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
 
 
 class Stub(object):
+    def __new__(cls, collaborator=None):
+        '''Creates a fresh class per instance. This is required due to
+        ad-hoc stub properties are class attributes'''
+        klass = type(cls.__name__, (cls,), dict(cls.__dict__))
+        return object.__new__(klass, collaborator)
+
     def __init__(self, collaborator=None):
         self._proxy = create_proxy(collaborator)
-        self._stubs = InvocationList()
+        self._stubs = OperationList()
         self._setting_up = False
+        self.__class__.__setattr__ = self.__setattr__hook
 
     def __enter__(self):
         self._setting_up = True
@@ -26,8 +34,10 @@ class Stub(object):
     def __exit__(self, *args):
         self._setting_up = False
 
-    def _manage_invocation(self, invocation):
-        self._proxy.assert_signature_matches(invocation)
+    def _manage_invocation(self, invocation, check=True):
+        if check:
+            self._proxy.assure_signature_matches(invocation)
+
         if self._setting_up:
             self._stubs.append(invocation)
             return invocation
@@ -47,22 +57,29 @@ class Stub(object):
         return None
 
     def __getattr__(self, key):
-        self._proxy.assert_has_method(key)
-        method = Method(self, key)
-        setattr(self, key, method)
-        return method
+        self._add_attr(key)
+        return object.__getattribute__(self, key)
+
+    def _add_attr(self, key):
+        attr = AttributeFactory.create(self, key)
+        setattr(self.__class__, key, attr)
+
+    def __setattr__hook(self, key, value):
+        if key in self.__dict__:
+            return object.__setattr__(self, key, value)
+
+        self._add_attr(key)
+        object.__setattr__(self, key, value)
 
     def _classname(self):
         name = self._proxy.collaborator_classname()
-        if name is None:
-            return self.__class__.__name__
-        return name
+        return name or self.__class__.__name__
 
 
-class Spy(Stub):
+class Spy(Stub, SpyBase):
     def __init__(self, collaborator=None):
+        self._recorded = OperationList()
         super(Spy, self).__init__(collaborator)
-        self._recorded = InvocationList()
 
     def _do_manage_invocation(self, invocation):
         self._recorded.append(invocation)
@@ -82,9 +99,12 @@ class Spy(Stub):
 
 class ProxySpy(Spy):
     def __init__(self, collaborator):
-        assert not inspect.isclass(collaborator), \
-            "ProxySpy takes an instance (got %s instead)" % collaborator
+        self._assure_instance(collaborator)
         super(ProxySpy, self).__init__(collaborator)
+
+    def _assure_instance(self, thing):
+        if thing is None or inspect.isclass(thing):
+            raise TypeError("ProxySpy takes an instance (got %s instead)" % thing)
 
     def _perform_invocation(self, invocation):
         return self._proxy.perform_invocation(invocation)
@@ -92,12 +112,12 @@ class ProxySpy(Spy):
 
 class Mock(Spy, MockBase):
     def _do_manage_invocation(self, invocation):
-        super(Mock, self)._do_manage_invocation(invocation)
         hamcrest.assert_that(self, MockExpectInvocation(invocation))
+        super(Mock, self)._do_manage_invocation(invocation)
 
 
 def Mimic(double, collab):
-    def getattribute(self, key):
+    def __getattribute__hook(self, key):
         if key in ['__class__', '__dict__',
                    '_get_method', '_methods'] or \
                 key in [x[0] for x in inspect.getmembers(double)] or \
@@ -108,7 +128,7 @@ def Mimic(double, collab):
 
     def _get_method(self, key):
         if key not in self._methods.keys():
-            self._proxy.assert_has_method(key)
+            assert self._proxy.get_attr_typeid(key) == 'instancemethod'
             method = Method(self, key)
             self._methods[key] = method
 
@@ -122,7 +142,7 @@ def Mimic(double, collab):
         "Mimic_%s_for_%s" % (double.__name__, collab_class.__name__),
         (double, collab_class) + collab_class.__bases__,
         dict(_methods = {},
-             __getattribute__ = getattribute,
+             __getattribute__ = __getattribute__hook,
              _get_method = _get_method))
     return generated_class(collab)
 

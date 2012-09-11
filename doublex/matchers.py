@@ -4,56 +4,62 @@ import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 from hamcrest import assert_that, is_
 
-from internal import Method, InvocationContext, ANY_ARG, MockBase
+from internal import Method, InvocationContext, ANY_ARG, MockBase, SpyBase, PropertyGet, PropertySet
 from exc import WrongApiUsage
 
-__all__ = ['called', 'called_with',
+__all__ = ['called',
            'never',
            'verify', 'any_order_verify',
+           'property_got', 'property_set',
            'assert_that', 'is_']
 
 
-class MethodCalled(BaseMatcher):
-    any_time = hamcrest.greater_than(0)
+any_time = hamcrest.greater_than(0)
 
-    def __init__(self, context, times=None):
-        self.context = context
-        self._times = times or self.any_time
+
+class OperationMatcher(BaseMatcher):
+    pass
+
+
+class MethodCalled(OperationMatcher):
+    def __init__(self, context=None, times=any_time):
+        self.context = context or InvocationContext(ANY_ARG)
+        self._times = times
 
     def _matches(self, method):
+        self._assure_is_spied_method(method)
         self.method = method
-        if not isinstance(method, Method):
-            raise WrongApiUsage(
-                "takes a double method (got %s instead)" % method)
-
         return method._was_called(self.context, self._times)
 
+    def _assure_is_spied_method(self, method):
+        if not isinstance(method, Method) or not isinstance(method.double, SpyBase):
+            raise WrongApiUsage("takes a spy method (got %s instead)" % method)
+
     def describe_to(self, description):
-        description.append_text('this call:\n')
+        description.append_text('these calls:\n')
         description.append_text(self.method.show(indent=10))
         description.append_text(str(self.context))
-        if self._times != self.any_time:
+        if self._times != any_time:
             description.append_text(' -- times: %s' % self._times)
 
     def describe_mismatch(self, actual, description):
         description.append_text("calls that actually ocurred were:\n")
         description.append_text(self.method.double._recorded.show(indent=10))
 
+    def with_args(self, *args, **kargs):
+        return MethodCalled(InvocationContext(*args, **kargs))
+
     def times(self, n):
         return MethodCalled(self.context, times=n)
 
 
 def called():
-    return MethodCalled(InvocationContext(ANY_ARG))
-
-
-def called_with(*args, **kargs):
-    return MethodCalled(InvocationContext(*args, **kargs))
+    return MethodCalled()
 
 
 class never(BaseMatcher):
     def __init__(self, matcher):
-        if not isinstance(matcher, MethodCalled):
+        if not isinstance(matcher, OperationMatcher):
             raise WrongApiUsage(
                 "takes called/called_with instance (got %s instead)" % matcher)
         self.matcher = matcher
@@ -62,7 +68,7 @@ class never(BaseMatcher):
         return not self.matcher.matches(item)
 
     def describe_to(self, description):
-        description.append_text('not ').append_description_of(self.matcher)
+        description.append_text('none of ').append_description_of(self.matcher)
 
     def describe_mismatch(self, actual, description):
         self.matcher.describe_mismatch(actual, description)
@@ -109,6 +115,64 @@ class verify(BaseMatcher):
 class any_order_verify(verify):
     def _expectations_match(self):
         return sorted(self.mock._stubs) == sorted(self.mock._recorded)
+
+
+# FIXME: refactor describe mismatch
+class property_got(OperationMatcher):
+    def __init__(self, propname, times=any_time):
+        super(property_got, self).__init__()
+        self.propname = propname
+        self._times = times
+
+    def _matches(self, double):
+        self.double = double
+        self.operation = PropertyGet(self.double, self.propname)
+        return double._was_called(self.operation, 1)
+
+    def times(self, n):
+        return property_got(self.property_name, n)
+
+    def describe_to(self, description):
+        description.append_text('these calls:\n')
+        description.append_text(self.operation.show(indent=10))
+#        description.append_text(str(self.value))
+        if self._times != any_time:
+            description.append_text(' -- times: %s' % self._times)
+
+    def describe_mismatch(self, actual, description):
+        description.append_text('calls that actually ocurred were:\n')
+        description.append_text(self.double._recorded.show(indent=10))
+
+
+# FIXME: refactor describe mismatch
+class property_set(OperationMatcher):
+    def __init__(self, property_name, value=hamcrest.anything(), times=any_time):
+        super(property_set, self).__init__()
+        self.property_name = property_name
+        self.value = value
+        self._times = times
+
+    def _matches(self, double):
+        self.double = double
+        self.operation = PropertySet(self.double, self.property_name,
+                                     self.value)
+        return self.double._was_called(self.operation, self._times)
+
+    def to(self, value):
+        return property_set(self.property_name, value)
+
+    def times(self, n):
+        return property_set(self.property_name, self.value, n)
+
+    def describe_to(self, description):
+        description.append_text('these calls:\n')
+        description.append_text(self.operation.show(indent=10))
+        if self._times != any_time:
+            description.append_text(' -- times: %s' % self._times)
+
+    def describe_mismatch(self, actual, description):
+        description.append_text('calls that actually ocurred were:\n')
+        description.append_text(self.double._recorded.show(indent=10))
 
 
 # just aliases
