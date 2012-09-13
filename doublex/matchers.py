@@ -47,7 +47,7 @@ class MethodCalled(OperationMatcher):
         description.append_text(self.method.double._recorded.show(indent=10))
 
     def with_args(self, *args, **kargs):
-        self.context.update(args, kargs)
+        self.context.update_args(args, kargs)
         return self
 
     def times(self, n):

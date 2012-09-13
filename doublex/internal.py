@@ -202,11 +202,11 @@ class Invocation(object):
 @total_ordering
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
-        self.update(args, kargs)
+        self.update_args(args, kargs)
         self.output = None
         self.delegate = func_returning(None)
 
-    def update(self, args, kargs):
+    def update_args(self, args, kargs):
         self.args = args
         self.kargs = kargs
 
