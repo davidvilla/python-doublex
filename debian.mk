@@ -5,7 +5,7 @@ clean:
 	$(RM) -r dist build
 
 vclean:
-	$(RM) -r .svn debian
+	$(RM) -r .svn debian MANIFEST
 
 debian:
 	svn co svn://svn.debian.org/svn/python-modules/packages/doublex/trunk -N
