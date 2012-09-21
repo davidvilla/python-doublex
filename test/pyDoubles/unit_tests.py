@@ -14,7 +14,6 @@ import re
 from nose.tools import nottest
 
 from doublex.pyDoubles import *
-from doublex.exc import WrongApiUsage
 
 
 class SomeException(Exception):

@@ -10,7 +10,7 @@ from hamcrest.library.object.hasproperty import has_property
 
 import doublex
 
-from doublex import ANY_ARG, method_returning, method_raising
+from doublex import ANY_ARG, method_returning, method_raising, WrongApiUsage
 
 UnexpectedBehavior = AssertionError
 ArgsDontMatch = AssertionError
@@ -111,7 +111,7 @@ class when(object):
 class assert_that_method(object):
     def __init__(self, method):
         if not isinstance(method, doublex.internal.Method):
-            raise doublex.exc.WrongApiUsage()
+            raise doublex.WrongApiUsage()
 
         self.method = method
         self.args = (ANY_ARG,)
@@ -128,13 +128,13 @@ class assert_that_method(object):
         self.args = args
         self.kargs = kargs
         hamcrest.assert_that(self.method,
-                             doublex.called_with(*args, **kargs))
+                             doublex.called().with_args(*args, **kargs))
         return self
 
     def times(self, n):
         hamcrest.assert_that(
             self.method,
-            doublex.called_with(*self.args, **self.kargs).times(
+            doublex.called().with_args(*self.args, **self.kargs).times(
                 hamcrest.greater_than_or_equal_to(n)))
 
 
