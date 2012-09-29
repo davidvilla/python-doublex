@@ -2,7 +2,7 @@
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
-from hamcrest import assert_that, is_
+from hamcrest import assert_that, is_, is_not
 
 from internal import Method, InvocationContext, ANY_ARG, MockBase, SpyBase, PropertyGet, PropertySet
 from internal import WrongApiUsage
@@ -11,7 +11,7 @@ __all__ = ['called',
            'never',
            'verify', 'any_order_verify',
            'property_got', 'property_set',
-           'assert_that', 'is_']
+           'assert_that', 'is_', 'is_not']
 
 
 any_time = hamcrest.greater_than(0)

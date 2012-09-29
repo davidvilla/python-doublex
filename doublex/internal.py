@@ -25,6 +25,9 @@ class SingleValue:
     def __repr__(self):
         return self.name
 
+    def __eq__(self, other):
+        return id(self) == id(other)
+
 
 ANY_ARG = SingleValue('ANY_ARG')
 IMPOSSIBLE = SingleValue('IMPOSSIBLE')
