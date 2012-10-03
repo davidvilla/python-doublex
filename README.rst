@@ -489,4 +489,4 @@ achieve full replacement instances (Liskov principle)::
 ..  ispell-local-dictionary: "american"
 .. End:
 
-LocalWords:  hamcrest
+.. LocalWords:  hamcrest
