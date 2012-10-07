@@ -1,6 +1,7 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
 import itertools
+import threading
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
@@ -73,11 +74,13 @@ class Method(Observable):
         super(Method, self).__init__()
         self.double = double
         self.name = name
+        self.event = threading.Event()
 
     def __call__(self, *args, **kargs):
         if not self.double._setting_up:
             self.notify(*args, **kargs)
 
+        self.event.set()
         invocation = self.create_invocation(args, kargs)
         return self.double._manage_invocation(invocation)
 
