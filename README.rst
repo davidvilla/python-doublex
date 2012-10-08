@@ -291,8 +291,8 @@ never
 
 ``never()`` is a convenient replacement for hamcrest.is_not::
 
- assert_that(spy.m5, is_not(called()))  # is_not() is a hamcrest matcher (it works)
- assert_that(spy.m5, never(called()))   # recommended (better error report messages)
+ assert_that(spy.m5, hamcrest.is_not(called()))  # is_not() works
+ assert_that(spy.m5, never(called()))            # but we recommend due to better error report messages
 
 
 
@@ -329,10 +329,10 @@ Also for stubs::
 But, if you want match any single value, use hamcrest matcher ``anything()``::
 
  spy.foo(1, 2, 3)
- assert_that(spy.foo, called().with_args(1, anything(), 3))
+ assert_that(spy.foo, called().with_args(1, hamcrest.anything(), 3))
 
  spy.bar(1, key=2)
- assert_that(spy.bar, called().with_args(1, key=anything()))
+ assert_that(spy.bar, called().with_args(1, key=hamcrest.anything()))
 
 
 matchers, matchers, hamcrest matchers...
@@ -353,6 +353,8 @@ checking spied calling args
  assert_that(spy.foo, called().with_args(has_length(less_than(5))))
  assert_that(spy.foo, never(called().with_args(has_length(greater_than(5)))))
 
+``has_length``, ``less_than`` and ``greater_than`` are hamcrest matchers.
+
 
 stubbing
 --------
@@ -372,6 +374,8 @@ stubbing
  assert_that(spy.foo('abcde'), is_('4<x<8'))
  assert_that(spy.foo([0] * 9), is_('>8'))
 
+
+``all_of``, ``has_length``, ``less_than`` and ``greater_than`` are hamcrest matchers.
 
 checking invocation 'times'
 ---------------------------
@@ -399,6 +403,8 @@ checking invocation 'times'
  assert_that(spy.foo, called().with_args(1).times(less_than(5)))     # < 5
  assert_that(spy.foo, called().with_args(1).times(
              all_of(greater_than(1), less_than(8))))                 # 1 < times < 8
+
+``anything``, ``all_of``, ``less_than`` and ``greater_than`` are hamcrest matchers.
 
 
 Stub observers
