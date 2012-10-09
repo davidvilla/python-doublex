@@ -16,7 +16,7 @@ Design principles
 - non-proxified doubles does not require collaborator instances, they may use classes
 - hamcrest.assert_that used for all assertions
 - mock invocation order is required by default
-- Compatible with old and new style classes
+- compatible with old and new style classes
 
 
 Doubles
@@ -25,7 +25,7 @@ Doubles
 "free" Stub
 -----------
 
-Hint: *Stub objects tell you what you wanna hear.*
+Hint: *Stubs tell you what you wanna hear.*
 
 A free Stub is an double object that have any method you invoke on it. Using the Stub
 context (``with`` keyword) you may program the double to return a specified value
@@ -57,7 +57,7 @@ A "checked Stub" forces the specified collaborator interface::
      def hello(self):
          return "hello"
 
- with Stub(Collaborator) as stub
+ with Stub(Collaborator) as stub:
      stub.hello().raises(SomeException)
      stub.foo().returns(True)  # interface mismatch exception
      stub.hello(1).returns(2)  # interface mismatch exception
@@ -172,7 +172,7 @@ Programmed invocation sequence also may specify stubbed return values::
 "checked" Mock
 ---------------
 
-The checked variant also for mocks::
+The checked variant for mocks too::
 
  class SMTP:
      def helo(self):
@@ -234,7 +234,7 @@ frameworks like python-mock::
 Property doubles require:
 
 * Using "checked" doubles, ie: specify a collaborator in constructor.
-* collaborator must be a new-style classXS.
+* collaborator must be a new-style class.
 
 
 doublex matchers
