@@ -44,10 +44,14 @@ class MethodCalled(OperationMatcher):
     def __init__(self, context=None, times=any_time):
         self.context = context or InvocationContext(ANY_ARG)
         self._times = times
+        self._async_timeout = None
 
     def _matches(self, method):
         self._assure_is_spied_method(method)
         self.method = method
+        if self._async_timeout:
+            method.event.wait(self._async_timeout)
+
         return method._was_called(self.context, self._times)
 
     def _assure_is_spied_method(self, method):
@@ -67,6 +71,10 @@ class MethodCalled(OperationMatcher):
 
     def with_args(self, *args, **kargs):
         self.context.update_args(args, kargs)
+        return self
+
+    def async(self, timeout):
+        self._async_timeout = timeout
         return self
 
     def times(self, n):

@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 # -*- mode:makefile -*-
 
-URL=svn+ssh://${ALIOTH_USER}@svn.debian.org/svn/python-modules/packages/doublex/trunk
+URL_AUTH=svn+ssh://${ALIOTH_USER}@svn.debian.org/svn/python-modules/packages/doublex/trunk
 URL_ANON=svn://svn.debian.org/svn/python-modules/packages/doublex/trunk
 
 debian:

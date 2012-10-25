@@ -1,3 +1,8 @@
+0.20121025
+==========
+
+- Merge feature-async branch: Spy async checking
+
 0.20121008
 ==========
 
@@ -16,6 +21,7 @@
 
 .. Local Variables:
 ..  coding: utf-8
+..  mode: rst
 ..  mode: flyspell
 ..  ispell-local-dictionary: "american"
 .. End:

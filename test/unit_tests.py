@@ -799,18 +799,48 @@ class PropertiesTests(TestCase):
 
 
 class AsyncTests(TestCase):
-    def test_spy(self):
+    class SUT(object):
+        def __init__(self, collaborator):
+            self.collaborator = collaborator
+
+        def send_data(self, data=0):
+            thread.start_new_thread(self.collaborator.write, (data,))
+
+    def test_spy_call_without_async_feature(self):
+        # given
         event = threading.Event()
+        with Spy() as spy:
+            spy.write.attach(lambda *args: event.set)
 
-        def delayed_ping(obj):
-            time.sleep(0.5)
-            obj.ping()
-            event.set()
+        sut = AsyncTests.SUT(spy)
 
+        # when
+        sut.send_data()
+        event.wait(1)    # test probably FAILS without this
+
+        # then
+        assert_that(spy.write, called())
+
+    def test_spy_call_with_async_feature(self):
+        # given
         spy = Spy()
-        thread.start_new_thread(delayed_ping, (spy,))
-        event.wait(1)
-        assert_that(spy.ping, called())
+        sut = AsyncTests.SUT(spy)
+
+        # when
+        sut.send_data()
+
+        # then
+        assert_that(spy.write, called().async(timeout=1))
+
+    def test_spy_async_call_fluent_methods(self):
+        spy = Spy()
+        sut = AsyncTests.SUT(spy)
+
+        sut.send_data(3)
+        sut.send_data(3)
+
+        # then
+        assert_that(spy.write, called().async(timeout=1).with_args(3).times(2))
 
 
 class Observer(object):
