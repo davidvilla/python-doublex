@@ -808,15 +808,15 @@ class AsyncTests(TestCase):
 
     def test_spy_call_without_async_feature(self):
         # given
-        event = threading.Event()
+        barrier = threading.Event()
         with Spy() as spy:
-            spy.write.attach(lambda *args: event.set)
+            spy.write.attach(lambda *args: barrier.set)
 
         sut = AsyncTests.SUT(spy)
 
         # when
         sut.send_data()
-        event.wait(1)    # test probably FAILS without this
+        barrier.wait(1)    # test probably FAILS without this
 
         # then
         assert_that(spy.write, called())
