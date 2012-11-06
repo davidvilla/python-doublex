@@ -1,5 +1,5 @@
-See full documentation on wiki_.
-================================
+See full documentation on [wiki_]
+=================================
 
 * sources: https://bitbucket.org/DavidVilla/python-doublex
 * PyPI project: http://pypi.python.org/pypi/doublex
