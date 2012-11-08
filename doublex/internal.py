@@ -357,14 +357,15 @@ class Property(object):
 
 class AttributeFactory(object):
     typemap = {
-        'instancemethod': Method,
-        'property':       Property
+        'instancemethod':    Method,
+        'method_descriptor': Method,
+        'property':          Property,
         }
 
     @classmethod
     def create(cls, double, key):
-        typeid = double._proxy.get_attr_typeid(key)
-        return cls.typemap[typeid](double, key)
+        typename = double._proxy.get_attr_typename(key)
+        return cls.typemap[typename](double, key)
 
 
 class SpyBase(object):

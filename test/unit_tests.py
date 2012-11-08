@@ -210,6 +210,21 @@ class SpyTests(TestCase):
         assert_that(self.spy.foo, called().with_args(2))
         assert_that(self.spy.foo, called().times(3))
 
+#    def test_called_anything_and_value(self):
+#        spy = Spy(Collaborator)
+#        spy.two_args_method(10, 20)
+#        assert_that(spy.two_args_method, called().with_args(anything(), 20))
+#
+#    def test_called_name_arg_value(self):
+#        spy = Spy(Collaborator)
+#        spy.two_args_method(10, 20)
+#        assert_that(spy.two_args_method, called().with_args(arg2=20))
+#
+#    def test_called_karg(self):
+#        spy = Spy(Collaborator)
+#        spy.mixed_method(2, True)
+#        assert_that(spy.mixed_method, called().with_args(key_param=True))
+
 
 class VerifiedSpyTests(TestCase):
     def setUp(self):
@@ -238,15 +253,24 @@ class VerifiedSpyTests(TestCase):
             assert_that(str(e), contains_string(expected))
 
     def test_create_from_oldstyle_class(self):
-        self.spy = Spy(Collaborator)
+        Spy(Collaborator)
 
     def test_create_from_newstyle_class(self):
-        self.spy = Spy(ObjCollaborator)
+        Spy(ObjCollaborator)
 
-    def test_spy_for_builtin_list(self):
+    def test_spy_for_builtin_method(self):
         spy = Spy(list)
         spy.append(10)
         assert_that(spy.append, called().with_args(10))
+
+    def test_spy_for_wrong_builtin_method(self):
+        spy = Spy(list)
+        try:
+            spy.wrong(10)
+            self.fail('AttributeError should be raised')
+        except AttributeError as e:
+            expected = "'list' object has no attribute 'wrong'"
+            assert_that(str(e), contains_string(expected))
 
 
 class ProxySpyTest(TestCase):
@@ -477,7 +501,7 @@ class ANY_ARG_SpyTests(TestCase):
         assert_that(self.spy.foo, called().with_args(1, ANY_ARG))
         assert_that(self.spy.foo, never(called().with_args(2, ANY_ARG)))
 
-    def test__called__and__called_with_args__any_args_is_the_same(self):
+    def test__called__and__called_with_args__ANY_ARGS_is_the_same(self):
         self.spy.foo()
         self.spy.foo(3)
         self.spy.foo('hi')
