@@ -258,12 +258,23 @@ class VerifiedSpyTests(TestCase):
     def test_create_from_newstyle_class(self):
         Spy(ObjCollaborator)
 
-    def test_spy_for_builtin_method(self):
+
+class BuiltinSpyTests(TestCase):
+    def test_builtin_method(self):
         spy = Spy(list)
         spy.append(10)
         assert_that(spy.append, called().with_args(10))
 
-    def test_spy_for_wrong_builtin_method(self):
+    def test_builtin_method_bad_use(self):
+        spy = Spy(list)
+        try:
+            spy.append(10, 20)
+            self.fail('AttributeError should be raised')
+        except TypeError as e:
+            expected = "list.append() takes exactly 1 argument (2 given)"
+            assert_that(str(e), contains_string(expected))
+
+    def test_wrong_builtin_method(self):
         spy = Spy(list)
         try:
             spy.wrong(10)

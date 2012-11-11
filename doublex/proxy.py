@@ -80,15 +80,16 @@ class Proxy(object):
 
         signature = create_signature(self, invocation.name)
 #        signature = Signature(self, invocation.name)
-        try:
-            signature.assure_match(invocation.context.args,
-                                   invocation.context.kargs)
-        except TypeError, e:
-            raise TypeError("%s.%s" % (self.collaborator_class, e))
+#        try:
+        signature.assure_match(invocation.context.args,
+                               invocation.context.kargs)
+#        except TypeError, e:
+#            raise TypeError("%s.%s" % (self.collaborator_class, e))
 
     def get_attr_typename(self, key):
         try:
-            return type(getattr(self.collaborator, key)).__name__
+            attr = getattr(self.collaborator, key)
+            return type(attr).__name__
         except AttributeError:
             reason = "'%s' object has no attribute '%s'" % \
                 (self.collaborator_classname(), key)
@@ -106,10 +107,9 @@ class Proxy(object):
 
 def create_signature(proxy, method_name):
     method = getattr(proxy.collaborator, method_name)
-    print method
     if not is_method_or_func(method):
-        print method_name, "is not function"
-        print type(method)
+#        print method_name, "is not function"
+#        print type(method)
         return BuiltinSignature(proxy, method_name)
 
     return Signature(proxy, method_name)
@@ -124,10 +124,23 @@ def is_method_or_func(func):
 class BuiltinSignature(object):
     "builtin collaborator method signature"
     def __init__(self, proxy, name):
-        pass
+        self.proxy = proxy
+        self.name = name
+        self.method = getattr(proxy.collaborator, name)
 
     def assure_match(self, args, kargs):
-        pass
+        doc = self.method.__doc__
+        if not ')' in doc:
+            return
+
+        rpar = doc.find(')')
+        params = doc[:rpar]
+        nkargs = params.count('=')
+        nargs = params.count(',') + 1 - nkargs
+#        print args, nargs, kargs, nkargs
+        if len(args) != nargs:
+            raise TypeError('%s.%s() takes exactly %s argument (%s given)' % (
+                    self.proxy.collaborator_classname(), self.name, nargs, len(args)))
 
 
 class Signature(object):
@@ -166,7 +179,10 @@ class Signature(object):
         if self.proxy.isclass():
             args = (None,) + args  # self
 
-        getcallargs(self.method, *args, **kargs)
+        try:
+            getcallargs(self.method, *args, **kargs)
+        except TypeError, e:
+            raise TypeError("%s.%s" % (self.proxy.collaborator_classname(), e))
 
     def __repr__(self):
         return "%s.%s%s" % (self._proxy.collaborator_classname(),
