@@ -76,15 +76,9 @@ class Proxy(object):
         return self.collaborator_class.__name__
 
     def assure_signature_matches(self, invocation):
-#        assert self.get_attr_typename(invocation.name) == 'instancemethod'
-
         signature = create_signature(self, invocation.name)
-#        signature = Signature(self, invocation.name)
-#        try:
         signature.assure_match(invocation.context.args,
                                invocation.context.kargs)
-#        except TypeError, e:
-#            raise TypeError("%s.%s" % (self.collaborator_class, e))
 
     def get_attr_typename(self, key):
         try:

@@ -129,6 +129,32 @@ class VerifiedStubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=2), is_(2000))
 
 
+class AdhocAttributesTests(TestCase):
+    def test_add_attribute_for_free_stub(self):
+        stub = Stub()
+        stub.foo = 1
+
+    def test_add_attribute_for_verified_stub(self):
+        stub = Stub(Collaborator)
+        stub.foo = 1
+
+    def test_add_attribute_for_free_spy(self):
+        stub = Spy()
+        stub.foo = 1
+
+    def test_add_attribute_for_verified_spy(self):
+        stub = Spy(Collaborator)
+        stub.foo = 1
+
+    def test_add_attribute_for_free_mock(self):
+        stub = Mock()
+        stub.foo = 1
+
+    def test_add_attribute_for_verified_mock(self):
+        stub = Mock(Collaborator)
+        stub.foo = 1
+
+
 class SpyTests(TestCase):
     def setUp(self):
         self.spy = Spy()
@@ -265,7 +291,7 @@ class BuiltinSpyTests(TestCase):
         spy.append(10)
         assert_that(spy.append, called().with_args(10))
 
-    def test_builtin_method_bad_use(self):
+    def test_builtin_method_wrong_num_args(self):
         spy = Spy(list)
         try:
             spy.append(10, 20)
@@ -297,7 +323,7 @@ class ProxySpyTest(TestCase):
                               ProxySpy, ObjCollaborator)
 
 
-class MockTests(TestCase):
+class MockOrderTests(TestCase):
     def setUp(self):
         self.mock = Mock()
 
@@ -354,7 +380,7 @@ class MockTests(TestCase):
         assert_that(self.mock, any_order_verify())
 
 
-class VerifiesMockTests(TestCase):
+class VerifiedMockTests(TestCase):
     def test_from_instance(self):
         mock = Mock(Collaborator())
         with mock:
@@ -680,6 +706,22 @@ class StubDelegateTests(TestCase):
             assert_that(str(e), contains_string(expected))
 
 
+class MockDelegateTest(TestCase):
+    def setUp(self):
+        self.mock = Mock()
+
+    def assert_012(self, method):
+        for x in range(3):
+            assert_that(method(), is_(x))
+
+    def test_delegate_to_list(self):
+        with self.mock:
+            self.mock.foo().delegates(range(3))
+
+        self.assert_012(self.mock.foo)
+        assert_that(self.mock, verify())
+
+
 class MimicTests(TestCase):
     class A(object):
         def method_a(self, n):
@@ -750,15 +792,6 @@ class PropertiesTests(TestCase):
             stub.prop = 2
 
         assert_that(stub.prop, is_(2))
-
-    def test_stub_missing_property(self):
-        stub = Stub(ObjCollaborator)
-        with stub:
-            try:
-                stub.missing = 2
-                self.fail('should raise exception')
-            except AttributeError:
-                pass
 
     def test_spy_get_property(self):
         spy = Spy(ObjCollaborator)
