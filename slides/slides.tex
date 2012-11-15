@@ -1,0 +1,612 @@
+\documentclass[11pt]{beamer}
+\usepackage{custom}
+
+\title{doublex: Python test doubles framework}
+% \subtitle{Un ejemplo práctico de pyparsing}
+\author{David Villa Alises}
+%\institute{}
+\date{}
+%\subject{}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Contenidos}
+  \tableofcontents
+\end{frame}
+
+\section{Intro}
+
+\begin{frame}{Another doubles library for Python?}
+  Yes, why not?
+\end{frame}
+
+\begin{frame}{doublex features}
+  \begin{itemize}
+  \item Stubs
+  \item Spies
+  \item Mocks
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Stubs}
+
+\begin{exampleblock}{override return values}
+\begin{lstlisting}
+ with Stub() as stub:
+     stub.foo.returns(5)
+
+ assert_that(stub.foo(), is_(5))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+
+
+\section{Parser para Slice}
+
+\begin{frame}[fragile]{Creando un parser de Slice con TDD}
+
+  \begin{itemize}
+  \item Como ejemplo veamos cómo implementar un parser para una versión simplificada del
+    lenguaje Sílice.
+  \item Utilizaremos una versión Python del mismo Visitor que define el libSlice estándar.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{ParserVisitor de libSlice}
+
+\begin{lstlisting}[language=Python]
+class ParserVisitor(object):
+    def visitUnitStart(self, unitdef): pass
+    def visitUnitEnd(self, unitdef): pass
+    def visitModuleStart(self, module_def): pass
+    def visitModuleEnd(self, module_def): pass
+    def visitClassDecl(self, class_decl): pass
+    def visitClassDefStart(self, class_def): pass
+    def visitClassDefEnd(self, class_def): pass
+    def visitExceptionStart(self, exception_def): pass
+    def visitExceptionEnd(self, exception_def): pass
+    def visitStructStart(self, struct_def): pass
+    def visitStructEnd(self, struct_def): pass
+    def visitOperation(self, operation_def): pass
+    def visitParamDecl(self, param_decl): pass
+    def visitDataMember(self, datamember): pass
+    def visitSequence(self, sequence_def): pass
+    def visitDictionary(self, dict_def): pass
+    def visitEnum(self, enum_def): pass
+    def visitConst(self, const_def): pass
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Módulos}
+
+\begin{frame}[fragile]{Primer test: Módulos}
+\begin{lstlisting}[language=Python]
+class SintacticTests(TestCase):
+    def setUp(self):
+        self.visitor = Spy(sp.ParserVisitor)
+
+    def test_module(self):
+        source = 'module DUO {};'
+
+        parser = sp.Parser(source)
+        parser.grammar = parser.module_defs()
+        parser.parse()
+        parser.accept(self.visitor)
+
+        assert_that(self.visitor.visitModuleStart,
+                    called().with_args(sp.Module('DUO')))
+\end{lstlisting}
+\end{frame}
+
+\subsection{AST}
+
+\begin{frame}[fragile]{Ejemplo: AST para el algoritmo de euclides}
+\framesubtitle{de Wikipedia}
+  \begin{columns}
+    \begin{column}{3cm}
+\begin{lstlisting}[language=Python]
+while b != 0:
+    if a > b:
+        a = a - b
+    else:
+        b = b - a
+return a
+\end{lstlisting}
+    \end{column}
+    \begin{column}{7cm}
+
+\end{column}
+  \end{columns}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Nuestra clase AST}
+\begin{lstlisting}[language=Python]
+class AST(list):
+    def __init__(self):
+        self.stack = [self]
+
+    def top(self):
+        return self.stack[-1]
+
+    def add(self, node):
+        self.top().append(node)
+
+    def push(self, node):
+        self.add(node)
+        self.stack.append(node)
+
+    def pop(self):
+        self.stack.pop()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Parser}
+\framesubtitle{Lo mínimo para pasar el test y un poco de refactoring}
+
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    def __init__(self, source):
+        self.source = source
+        self.ast = AST()
+        self.grammar = None
+
+    def parse(self):
+        self.grammar.parseString(self.source)
+
+    def accept(self, visitor):
+        for node in self.ast:
+            node.accept(visitor)
+
+    def module_defs(self):
+        name = identifier()
+        name.addParseAction(self.module_def_action)
+        start = pp.Keyword('module') + name + token('{')
+        end = token('}')
+        end.addParseAction(self.ast.pop)
+        return start + end
+
+    def module_def_action(self, source, pos, tokens):
+        self.ast.push(Module(tokens[0]))
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Un par de funciones por limpieza}
+\begin{lstlisting}[language=Python]
+def identifier():
+    return pp.Word(pp.alphas)
+
+def token(char):
+    return pp.Suppress(char)
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Interfaces}
+
+\begin{frame}[fragile]{test}
+  Los módulos contienen interfaces, pero vamos a parsear únicamente la definición de la
+  interfaz simulando que existe un módulo en el AST.
+
+\begin{lstlisting}[language=Python]
+class SintacticTests(TestCase):
+    [...]
+
+    def test_interface(self):
+        module = Spy(sp.Module)
+        source = 'interface R { };'
+
+        parser = sp.Parser(source)
+        parser.grammar = parser.interface_defs()
+        parser.ast.push(module)
+
+        parser.parse()
+
+        assert_that(module.append,
+                    called().with_args(sp.Interface('R')))
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{elementos sintácticos}
+\begin{lstlisting}[language=Python, basicstyle = \tiny\lstfont]
+class Module(object, list):
+    def accept(self, visitor):
+        visitor.visitModuleStart(self)
+
+    def append(self, item):
+        super(Module, self).append(item)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __repr__(self):
+        return "module %s" % self.name
+
+class Interface(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __repr__(self):
+        return "module %s" % self.name
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{elementos sintácticos}
+\framesubtitle{refactoring}
+\begin{lstlisting}[language=Python]
+class NamedContext(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __repr__(self):
+        return "%s %s" % (self.__class__.__name__, self.name)
+
+class Module(NamedContext, list):
+    def accept(self, visitor):
+        visitor.visitModuleStart(self)
+
+    def append(self, item):
+        super(Module, self).append(item)
+
+class Interface(NamedContext):
+    pass
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{parser}
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    [...]
+
+    def interface_defs(self):
+        name = identifier()
+        name.addParseAction(self.interface_def_action)
+        start = pp.Keyword('interface') + name + token('{')
+        end = token('}') + token(';')
+        end.addParseAction(self.ast.pop)
+        return start + end
+
+    def interface_def_action(self, source, pos, tokens):
+        self.ast.push(Interface(tokens[0]))
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Operaciones}
+
+\begin{frame}[fragile]{test}
+\begin{lstlisting}[language=Python]
+class SintacticTests(TestCase):
+    [...]
+
+    def test_operation(self):
+        source = 'bool get();'
+
+        parser = sp.Parser(source)
+        parser.grammar = parser.operation_defs()
+        interface = Spy(sp.Interface)
+        parser.ast.push(interface)
+
+        parser.parse()
+
+        operation = sp.Operation('get', 'bool')
+        assert_that(interface.append, called().with_args(operation))
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{elemento sintáctico}
+\begin{lstlisting}[language=Python]
+class Operation(object):
+    def __init__(self, name, return_type, params=None):
+        self.name = name
+        self.return_type = return_type
+        self.params = params or []
+
+    def __eq__(self, other):
+        return self.name == other.name and self.return_type == other.return_type and \
+            self.params == other.params
+
+    def __repr__(self):
+        return "operation %s %s" % (self.name)
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{parser}
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    [...]
+
+    def operation_defs(self):
+        type_ = pp.Keyword('bool')
+        operation = type_ + identifier() + token('(') + token(')') + token(';')
+        operation.addParseAction(self.operation_def_action)
+        return operation
+
+    def operation_def_action(self, source, pos, tokens):
+        params = [tuple(group) for group in tokens[2:]]
+        operation = Operation(tokens[1], tokens[0], params)
+        self.ast.add(operation)
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Varias operaciones}
+
+\begin{frame}[fragile]{test}
+\begin{lstlisting}[language=Python]
+class SintacticTests(TestCase):
+    [...]
+
+    def test_operation_seq(self):
+        source = '''\
+bool get();
+void ping();
+'''
+
+        parser = sp.Parser(source)
+        parser.grammar = parser.operation_seq()
+        interface = Spy(sp.Interface)
+        parser.ast.push(interface)
+
+        parser.parse()
+
+        operation_get = sp.Operation('get', 'bool')
+        assert_that(interface.append,
+                    called().with_args(operation_get))
+
+        operation_set = sp.Operation('ping', 'void')
+        assert_that(interface.append,
+                    called().with_args(operation_set))
+\end{lstlisting}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{parser}
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    [...]
+
+    def operation_seq(self):
+        return pp.ZeroOrMore(self.operation_def())
+
+    def operation_def(self):
+        type_ = pp.Keyword('bool') | pp.Keyword('void')
+        operation = type_ + identifier() + token('(') + \
+                    token(')') + token(';')
+        operation.addParseAction(self.operation_def_action)
+        return operation
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Operaciones con parámetros}
+
+\begin{frame}[fragile]{test}
+\begin{lstlisting}[language=Python]
+class SintacticTests(TestCase):
+    [...]
+
+    def test_operation_params(self):
+        source = 'void set(bool value, int time);'
+
+        parser = sp.Parser(source)
+        parser.grammar = parser.operation_def()
+        interface = Spy(sp.Interface)
+        parser.ast.push(interface)
+
+        parser.parse()
+
+        operation = sp.Operation('set', 'void',
+            [('bool', 'value'), ('int', 'time')])
+        assert_that(interface.append,
+                    called().with_args(operation))
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{parser}
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    [...]
+
+    def operation_def(self):
+        type_ = pp.Keyword('bool') | pp.Keyword('void') \
+                | pp.Keyword('int')
+        param = pp.Group(type_ + identifier())
+        params = pp.Optional(pp.delimitedList(param))
+        operation = type_ + identifier() + token('(') + params + token(')') + token(';')
+        operation.addParseAction(self.operation_def_action)
+        return operation
+
+    def operation_def_action(self, source, pos, tokens):
+        params = [tuple(group) for group in tokens[2:]]
+        self.ast.add(Operation(tokens[1], tokens[0], params))
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Módulos anidados}
+
+\begin{frame}[fragile]{test}
+\begin{lstlisting}[language=Python]
+class SintacticTests(TestCase):
+    [...]
+
+    def test_nested_modules(self):
+        source = 'module DUO { module IBool {}; };'
+
+        parser = sp.Parser(source)
+        parser.grammar = parser.module_def()
+        parser.parse()
+        parser.accept(self.visitor)
+
+        duo = sp.Module('DUO')
+        ibool = sp.Module('IBool')
+        assert_that(self.visitor.visitModuleStart,
+                    called().with_args(duo))
+        assert_that(self.visitor.visitModuleStart,
+                    called().with_args(ibool))
+        assert_that(self.visitor.visitModuleEnd,
+                    called().with_args(ibool))
+        assert_that(self.visitor.visitModuleEnd,
+                    called().with_args(duo))
+
+        assert_that(parser.ast[0].name, is_('DUO'))
+        assert_that(parser.ast[0][0].name, is_('IBool'))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{parser}
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    [...]
+
+    def module_def(self):
+        name = identifier()
+        name.addParseAction(self.module_def_action)
+        start = pp.Keyword('module') + name + token('{')
+        end = token('}') + token(';')
+        end.addParseAction(self.ast.pop)
+
+        module = pp.Forward()
+        modules = pp.Optional(pp.ZeroOrMore(module))
+        module << start + modules + end
+        return module
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{elemento sintáctico}
+\begin{lstlisting}[language=Python]
+class Module(NamedContext, list):
+    def accept(self, visitor):
+        visitor.visitModuleStart(self)
+
+        for item in self:
+            item.accept(visitor)
+
+        visitor.visitModuleEnd(self)
+
+    def append(self, item):
+        super(Module, self).append(item)
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Módulos, interfaces y operaciones}
+
+\begin{frame}[fragile]{test}
+\begin{lstlisting}[language=Python, basicstyle = \tiny\lstfont]
+    def test_duo_bool_RW(self):
+        source = '''\
+module DUO {
+    module IBool {
+        interface R { bool get(); };
+        interface W { void set(bool value); };
+   };
+};
+'''
+        parser = sp.Parser(source)
+        parser.grammar = parser.module_def()
+        parser.parse()
+        parser.accept(self.visitor)
+
+        duo = sp.Module('DUO')
+        ibool = sp.Module('IBool')
+        method_get = sp.Operation('get', 'bool')
+        method_set = sp.Operation('set', 'void', [('bool', 'value')])
+        assert_that(self.visitor.visitModuleStart, called().with_args(duo))
+        assert_that(self.visitor.visitModuleStart, called().with_args(ibool))
+        assert_that(self.visitor.visitOperation,
+                    called().with_args(method_get))
+        assert_that(self.visitor.visitOperation,
+                    called().with_args(method_set))
+
+        assert_that(self.visitor.visitModuleEnd, called().with_args(ibool))
+        assert_that(self.visitor.visitModuleEnd, called().with_args(duo))
+
+        assert_that(parser.ast[0].name, is_('DUO'))
+        assert_that(parser.ast[0][0].name, is_('IBool'))
+        assert_that(parser.ast[0][0][0].name, is_('R'))
+        assert_that(parser.ast[0][0][0][0].name, is_('get'))
+        assert_that(parser.ast[0][0][1].name, is_('W'))
+        assert_that(parser.ast[0][0][1][0].name, is_('set'))
+  \end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{elementos sintácticos}
+\begin{lstlisting}[language=Python]
+class Operation(object):
+    def __init__(self, name, return_type, params=None):
+        self.name = name
+        self.return_type = return_type
+        self.params = params or []
+
+    def accept(self, visitor):
+        visitor.visitOperation(self)
+
+    [...]
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{parser}
+\begin{lstlisting}[language=Python]
+class Parser(object):
+    [...]
+
+    def module_def(self):
+        name = identifier()
+        name.addParseAction(self.module_def_action)
+        start = pp.Keyword('module') + name + token('{')
+
+        module = pp.Forward()
+        item = module | self.interface_def()
+        body = pp.ZeroOrMore(item)
+
+        end = token('}') + token(';')
+        end.addParseAction(self.ast.pop)
+
+        module << start + body + end
+        return module
+
+    def interface_def(self):
+        name = identifier()
+        name.addParseAction(self.interface_def_action)
+        start = pp.Keyword('interface') + name + token('{')
+        end = token('}') + token(';')
+        end.addParseAction(self.ast.pop)
+        return start + self.operation_seq() + end
+\end{lstlisting}
+\end{frame}
+
+
+\end{document}
+
+%% Local Variables:
+%%  coding: utf-8
+%%  mode: flyspell
+%%  ispell-local-dictionary: "castellano8"
+%% End:
