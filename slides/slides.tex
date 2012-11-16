@@ -2,8 +2,8 @@
 \usepackage{custom}
 
 \title{doublex: Python test doubles framework}
-% \subtitle{Un ejemplo práctico de pyparsing}
-\author{David Villa Alises}
+\subtitle{\bfseries\small\url{http://bitbucket.org/DavidVilla/python-doublex}}
+\author{\bfseries\small\texttt{@david\_vi11a}}
 %\institute{}
 \date{}
 %\subject{}
@@ -15,7 +15,7 @@
   \titlepage
 \end{frame}
 
-\begin{frame}{Contenidos}
+\begin{frame}{Contents}
   \tableofcontents
 \end{frame}
 
@@ -30,583 +30,445 @@
   \item Stubs
   \item Spies
   \item Mocks
+  \item ah hoc stub methods
+  \item stub delegates
+  \item stub observers
+  \item properties
+  \item hamcrest matchers for \textbf{all} assertions
+  \item wrapper for legacy pyDoubles API
+  \item doublex never instantiates your classes!
   \end{itemize}
 \end{frame}
 
+\section{Stubs}
+
 \begin{frame}[fragile]{Stubs}
+\framesubtitle{set fixed return value}
 
-\begin{exampleblock}{override return values}
-\begin{lstlisting}
- with Stub() as stub:
-     stub.foo.returns(5)
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ class Collaborator:
+     def add(self, x, y):
+         return x + y
 
- assert_that(stub.foo(), is_(5))
+ with Stub(Collaborator) as stub:
+     stub.add(ANY_ARG).returns(1000)
+
+ assert_that(stub.add(2, 2), is_(1000))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{\... by calling arg values}
+Undefined stub methods returns None.
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Stub(Collaborator) as stub:
+     stub.add(2, 2).returns(1000)
+     stub.add(3, ANY_ARG).returns(0)
+
+ assert_that(stub.add(1, 1), is_(None))
+ assert_that(stub.add(2, 2), is_(1000))
+ assert_that(stub.add(3, 0), is_(0))
 \end{lstlisting}
 \end{exampleblock}
 
 \end{frame}
 
 
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{\... by hamcrest matcher}
 
-\section{Parser para Slice}
-
-\begin{frame}[fragile]{Creando un parser de Slice con TDD}
-
-  \begin{itemize}
-  \item Como ejemplo veamos cómo implementar un parser para una versión simplificada del
-    lenguaje Sílice.
-  \item Utilizaremos una versión Python del mismo Visitor que define el libSlice estándar.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{ParserVisitor de libSlice}
-
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class ParserVisitor(object):
-    def visitUnitStart(self, unitdef): pass
-    def visitUnitEnd(self, unitdef): pass
-    def visitModuleStart(self, module_def): pass
-    def visitModuleEnd(self, module_def): pass
-    def visitClassDecl(self, class_decl): pass
-    def visitClassDefStart(self, class_def): pass
-    def visitClassDefEnd(self, class_def): pass
-    def visitExceptionStart(self, exception_def): pass
-    def visitExceptionEnd(self, exception_def): pass
-    def visitStructStart(self, struct_def): pass
-    def visitStructEnd(self, struct_def): pass
-    def visitOperation(self, operation_def): pass
-    def visitParamDecl(self, param_decl): pass
-    def visitDataMember(self, datamember): pass
-    def visitSequence(self, sequence_def): pass
-    def visitDictionary(self, dict_def): pass
-    def visitEnum(self, enum_def): pass
-    def visitConst(self, const_def): pass
+ with Stub(Collaborator) as stub:
+     stub.add(2, greater_than(4)).returns(4)
+
+ assert_that(stub.add(2, 1), is_(None))
+ assert_that(stub.add(2, 5), is_(4))
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
 
-\subsection{Módulos}
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{\... by composite hamcrest matcher}
 
-\begin{frame}[fragile]{Primer test: Módulos}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class SintacticTests(TestCase):
-    def setUp(self):
-        self.visitor = Spy(sp.ParserVisitor)
+ with Stub(Collaborator) as stub:
+     stub.foo(has_length(all_of(
+         greater_than(4), less_than(8)))).returns(1000)
 
-    def test_module(self):
-        source = 'module DUO {};'
-
-        parser = sp.Parser(source)
-        parser.grammar = parser.module_defs()
-        parser.parse()
-        parser.accept(self.visitor)
-
-        assert_that(self.visitor.visitModuleStart,
-                    called().with_args(sp.Module('DUO')))
+ assert_that(stub.add(2, "bad"), is_(None))
+ assert_that(stub.add(2, "enough"), is_(1000))
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
-\subsection{AST}
 
-\begin{frame}[fragile]{Ejemplo: AST para el algoritmo de euclides}
-\framesubtitle{de Wikipedia}
-  \begin{columns}
-    \begin{column}{3cm}
+\section{Spies}
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{checking called methods}
+
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-while b != 0:
-    if a > b:
-        a = a - b
-    else:
-        b = b - a
-return a
-\end{lstlisting}
-    \end{column}
-    \begin{column}{7cm}
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add("hi", 3.0)
+ spy.add([1, 2], 'a')
 
-\end{column}
-  \end{columns}
+ assert_that(spy.add, called())
+ assert_that(spy.add, called())
+\end{lstlisting}
+\end{exampleblock}
 
 \end{frame}
 
+\begin{frame}[fragile]{Spies}
+\framesubtitle{collaborator signature checking}
 
-\begin{frame}[fragile]{Nuestra clase AST}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class AST(list):
-    def __init__(self):
-        self.stack = [self]
-
-    def top(self):
-        return self.stack[-1]
-
-    def add(self, node):
-        self.top().append(node)
-
-    def push(self, node):
-        self.add(node)
-        self.stack.append(node)
-
-    def pop(self):
-        self.stack.pop()
+ spy = Spy(Collaborator)
+ spy.add()
+TypeError: __main__.Collaborator.add() takes
+           exactly 3 arguments (1 given)
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
-\begin{frame}[fragile]{Parser}
-\framesubtitle{Lo mínimo para pasar el test y un poco de refactoring}
+\begin{frame}[fragile]{Spies}
+\framesubtitle{checking called times (with matcher too!)}
 
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Parser(object):
-    def __init__(self, source):
-        self.source = source
-        self.ast = AST()
-        self.grammar = None
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add("hi", 3.0)
+ spy.add([1, 2], 'a')
 
-    def parse(self):
-        self.grammar.parseString(self.source)
-
-    def accept(self, visitor):
-        for node in self.ast:
-            node.accept(visitor)
-
-    def module_defs(self):
-        name = identifier()
-        name.addParseAction(self.module_def_action)
-        start = pp.Keyword('module') + name + token('{')
-        end = token('}')
-        end.addParseAction(self.ast.pop)
-        return start + end
-
-    def module_def_action(self, source, pos, tokens):
-        self.ast.push(Module(tokens[0]))
+ assert_that(spy.add, called().times(3))
+ assert_that(spy.add, called().times(greater_than(2)))
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
+\begin{frame}[fragile]{Spies}
+\framesubtitle{filter by argument value: \texttt{with\_args()})}
 
-\begin{frame}[fragile]{Un par de funciones por limpieza}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-def identifier():
-    return pp.Word(pp.alphas)
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add(2, 8)
+ spy.add("hi", 3.0)
 
-def token(char):
-    return pp.Suppress(char)
+ assert_that(spy.add, called().with_args(2, ANY_ARG)).times(2)
+ assert_that(spy.add, never(called().with_args(0, 0)))
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\begin{frame}[fragile]{Spies}
+\framesubtitle{filter by key argument (with matcher)}
 
-\subsection{Interfaces}
-
-\begin{frame}[fragile]{test}
-  Los módulos contienen interfaces, pero vamos a parsear únicamente la definición de la
-  interfaz simulando que existe un módulo en el AST.
-
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class SintacticTests(TestCase):
-    [...]
+ spy = Spy()
+ spy.foo(name="Mary")
 
-    def test_interface(self):
-        module = Spy(sp.Module)
-        source = 'interface R { };'
-
-        parser = sp.Parser(source)
-        parser.grammar = parser.interface_defs()
-        parser.ast.push(module)
-
-        parser.parse()
-
-        assert_that(module.append,
-                    called().with_args(sp.Interface('R')))
+ assert_that(spy.foo, called().with_args(name="Mary"))
+ assert_that(spy.foo,
+             called().with_args(name=contains_string("ar")))
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
 
-\begin{frame}[fragile]{elementos sintácticos}
-\begin{lstlisting}[language=Python, basicstyle = \tiny\lstfont]
-class Module(object, list):
-    def accept(self, visitor):
-        visitor.visitModuleStart(self)
+\begin{frame}[fragile]{Spies}
+\framesubtitle{Verbose meaning-full report messages!}
 
-    def append(self, item):
-        super(Module, self).append(item)
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __repr__(self):
-        return "module %s" % self.name
-
-class Interface(object):
-    def __init__(self, name):
-        self.name = name
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __repr__(self):
-        return "module %s" % self.name
-\end{lstlisting}
-\end{frame}
-
-
-\begin{frame}[fragile]{elementos sintácticos}
-\framesubtitle{refactoring}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class NamedContext(object):
-    def __init__(self, name):
-        self.name = name
+ spy = Spy()
+ spy.foo(1)
+ spy.bar("hi")
 
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __repr__(self):
-        return "%s %s" % (self.__class__.__name__, self.name)
-
-class Module(NamedContext, list):
-    def accept(self, visitor):
-        visitor.visitModuleStart(self)
-
-    def append(self, item):
-        super(Module, self).append(item)
-
-class Interface(NamedContext):
-    pass
+ assert_that(spy.foo, called().with_args(4))
+AssertionError:
+Expected: these calls:
+          Spy.foo(4)
+     but: calls that actually ocurred were:
+          Spy.foo(1)
+          Spy.bar('hi')
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
+\subsection{ProxySpy}
 
-\begin{frame}[fragile]{parser}
+\begin{frame}[fragile]{ProxySpy}
+
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Parser(object):
-    [...]
+ with ProxySpy(Collaborator()) as spy:
+     spy.add(2, 2).returns(1000)
 
-    def interface_defs(self):
-        name = identifier()
-        name.addParseAction(self.interface_def_action)
-        start = pp.Keyword('interface') + name + token('{')
-        end = token('}') + token(';')
-        end.addParseAction(self.ast.pop)
-        return start + end
-
-    def interface_def_action(self, source, pos, tokens):
-        self.ast.push(Interface(tokens[0]))
+ assert_that(spy.add(2, 2), is_(1000))
+ assert_that(spy.add(1, 1), is_(2))
 \end{lstlisting}
+\end{exampleblock}
+
 \end{frame}
 
 
-\subsection{Operaciones}
+\section{Mocks}
 
-\begin{frame}[fragile]{test}
+\begin{frame}[fragile]{Mocks}
+
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class SintacticTests(TestCase):
-    [...]
+ with Mock() as smtp:
+     smtp.helo()
+     smtp.mail(ANY_ARG)
+     smtp.rcpt("bill@apple.com")
+     smtp.data(ANY_ARG).returns(True).times(2)
 
-    def test_operation(self):
-        source = 'bool get();'
+ smtp.helo()
+ smtp.mail("poormen@home.net")
+ smtp.rcpt("bill@apple.com")
+ smtp.data("somebody there?")
+ assert_that(smtp.data("I am afraid.."), is_(True))
 
-        parser = sp.Parser(source)
-        parser.grammar = parser.operation_defs()
-        interface = Spy(sp.Interface)
-        parser.ast.push(interface)
-
-        parser.parse()
-
-        operation = sp.Operation('get', 'bool')
-        assert_that(interface.append, called().with_args(operation))
+ assert_that(smtp, verify())
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\begin{frame}[fragile]{Mocks}
+\framesubtitle{invocation order is important}
 
-\begin{frame}[fragile]{elemento sintáctico}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Operation(object):
-    def __init__(self, name, return_type, params=None):
-        self.name = name
-        self.return_type = return_type
-        self.params = params or []
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
 
-    def __eq__(self, other):
-        return self.name == other.name and self.return_type == other.return_type and \
-            self.params == other.params
+ mock.bar()
+ mock.foo()
 
-    def __repr__(self):
-        return "operation %s %s" % (self.name)
+ assert_that(mock, verify())
+AssertionError:
+Expected: these calls:
+          Mock.foo()
+          Mock.bar()
+     but: calls that actually ocurred were:
+          Mock.bar()
+          Mock.foo()
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\begin{frame}[fragile]{Mocks}
+\framesubtitle{unless you do not mind: \texttt{any\_order\_verify()}}
 
-\begin{frame}[fragile]{parser}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Parser(object):
-    [...]
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
 
-    def operation_defs(self):
-        type_ = pp.Keyword('bool')
-        operation = type_ + identifier() + token('(') + token(')') + token(';')
-        operation.addParseAction(self.operation_def_action)
-        return operation
+ mock.bar()
+ mock.foo()
 
-    def operation_def_action(self, source, pos, tokens):
-        params = [tuple(group) for group in tokens[2:]]
-        operation = Operation(tokens[1], tokens[0], params)
-        self.ast.add(operation)
+ assert_that(mock, any_order_verify())
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
 
-\subsection{Varias operaciones}
+\section{ah hoc stub methods}
 
-\begin{frame}[fragile]{test}
+\begin{frame}[fragile]{ah hoc stub methods}
+
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class SintacticTests(TestCase):
-    [...]
+ collaborator = Collaborator()
+ collaborator.foo = method_returning('bye')
+ assert_that(self.collaborator.foo(), is_('bye'))
 
-    def test_operation_seq(self):
-        source = '''\
-bool get();
-void ping();
-'''
-
-        parser = sp.Parser(source)
-        parser.grammar = parser.operation_seq()
-        interface = Spy(sp.Interface)
-        parser.ast.push(interface)
-
-        parser.parse()
-
-        operation_get = sp.Operation('get', 'bool')
-        assert_that(interface.append,
-                    called().with_args(operation_get))
-
-        operation_set = sp.Operation('ping', 'void')
-        assert_that(interface.append,
-                    called().with_args(operation_set))
+ collaborator.foo = method_raising(SomeException)
+ collaborator.foo()
+SomeException:
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\section{stub observers}
 
+\begin{frame}[fragile]{stub observers}
 
-\begin{frame}[fragile]{parser}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Parser(object):
-    [...]
+ class Observer(object):
+     def __init__(self):
+         self.state = None
 
-    def operation_seq(self):
-        return pp.ZeroOrMore(self.operation_def())
+     def update(self, *args, **kargs):
+         self.state = args[0]
 
-    def operation_def(self):
-        type_ = pp.Keyword('bool') | pp.Keyword('void')
-        operation = type_ + identifier() + token('(') + \
-                    token(')') + token(';')
-        operation.addParseAction(self.operation_def_action)
-        return operation
+ observer = Observer()
+ stub = Stub()
+ stub.foo.attach(observer.update)
+ stub.foo(2)
+
+ assert_that(observer.state, is_(2))
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\section{stub delegates}
 
-\subsection{Operaciones con parámetros}
+\begin{frame}[fragile]{stub delegates}
+\framesubtitle{delegating to callables}
 
-\begin{frame}[fragile]{test}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class SintacticTests(TestCase):
-    [...]
+ def get_user():
+     return "Freddy"
 
-    def test_operation_params(self):
-        source = 'void set(bool value, int time);'
+ with Stub() as stub:
+     stub.user().delegates(get_user)
+     stub.foo().delegates(lambda: "hello")
 
-        parser = sp.Parser(source)
-        parser.grammar = parser.operation_def()
-        interface = Spy(sp.Interface)
-        parser.ast.push(interface)
-
-        parser.parse()
-
-        operation = sp.Operation('set', 'void',
-            [('bool', 'value'), ('int', 'time')])
-        assert_that(interface.append,
-                    called().with_args(operation))
+ assert_that(stub.user(), is_("Freddy"))
+ assert_that(stub.foo(), is_("hello"))
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\begin{frame}[fragile]{stub delegates}
+\framesubtitle{delegating to iterables}
 
-\begin{frame}[fragile]{parser}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Parser(object):
-    [...]
+ with Stub() as stub:
+     stub.foo().delegates([1, 2, 3])
 
-    def operation_def(self):
-        type_ = pp.Keyword('bool') | pp.Keyword('void') \
-                | pp.Keyword('int')
-        param = pp.Group(type_ + identifier())
-        params = pp.Optional(pp.delimitedList(param))
-        operation = type_ + identifier() + token('(') + params + token(')') + token(';')
-        operation.addParseAction(self.operation_def_action)
-        return operation
-
-    def operation_def_action(self, source, pos, tokens):
-        params = [tuple(group) for group in tokens[2:]]
-        self.ast.add(Operation(tokens[1], tokens[0], params))
+ assert_that(stub.foo(), is_(1))
+ assert_that(stub.foo(), is_(2))
+ assert_that(stub.foo(), is_(3))
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\section{properties}
 
-\subsection{Módulos anidados}
+\begin{frame}[fragile]{stubbing properties}
 
-\begin{frame}[fragile]{test}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class SintacticTests(TestCase):
-    [...]
+ class Collaborator(object):
+     @property
+     def prop(self):
+         return 1
 
-    def test_nested_modules(self):
-        source = 'module DUO { module IBool {}; };'
+     @prop.setter
+     def prop(self, value):
+         pass
 
-        parser = sp.Parser(source)
-        parser.grammar = parser.module_def()
-        parser.parse()
-        parser.accept(self.visitor)
+ with Spy(Collaborator) as spy:
+     spy.prop = 2
 
-        duo = sp.Module('DUO')
-        ibool = sp.Module('IBool')
-        assert_that(self.visitor.visitModuleStart,
-                    called().with_args(duo))
-        assert_that(self.visitor.visitModuleStart,
-                    called().with_args(ibool))
-        assert_that(self.visitor.visitModuleEnd,
-                    called().with_args(ibool))
-        assert_that(self.visitor.visitModuleEnd,
-                    called().with_args(duo))
-
-        assert_that(parser.ast[0].name, is_('DUO'))
-        assert_that(parser.ast[0][0].name, is_('IBool'))
+ assert_that(spy.prop, is_(2))  # double property getter invoked
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
-\begin{frame}[fragile]{parser}
+\begin{frame}[fragile]{spying properties (with matchers!)}
+
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Parser(object):
-    [...]
+ assert_that(spy, property_got('prop'))
 
-    def module_def(self):
-        name = identifier()
-        name.addParseAction(self.module_def_action)
-        start = pp.Keyword('module') + name + token('{')
-        end = token('}') + token(';')
-        end.addParseAction(self.ast.pop)
+ spy.prop = 4  # double property setter invoked
+ spy.prop = 5  # --
+ spy.prop = 5  # --
 
-        module = pp.Forward()
-        modules = pp.Optional(pp.ZeroOrMore(module))
-        module << start + modules + end
-        return module
+ assert_that(spy, property_set('prop'))  # set to any value
+ assert_that(spy, property_set('prop').to(4))
+ assert_that(spy, property_set('prop').to(5).times(2))
+ assert_that(spy,
+             never(property_set('prop').to(greater_than(6))))
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
 
-\begin{frame}[fragile]{elemento sintáctico}
+\section{Mimics}
+
+\begin{frame}[fragile]{normal doubles support only duck-typing}
+
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Module(NamedContext, list):
-    def accept(self, visitor):
-        visitor.visitModuleStart(self)
+ class A(object):
+     pass
 
-        for item in self:
-            item.accept(visitor)
+ class B(A):
+     pass
 
-        visitor.visitModuleEnd(self)
-
-    def append(self, item):
-        super(Module, self).append(item)
+ >>> spy = Spy(B())
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, B)
+ False
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
+\begin{frame}[fragile]{Mimics support full LSP}
 
-\subsection{Módulos, interfaces y operaciones}
-
-\begin{frame}[fragile]{test}
-\begin{lstlisting}[language=Python, basicstyle = \tiny\lstfont]
-    def test_duo_bool_RW(self):
-        source = '''\
-module DUO {
-    module IBool {
-        interface R { bool get(); };
-        interface W { void set(bool value); };
-   };
-};
-'''
-        parser = sp.Parser(source)
-        parser.grammar = parser.module_def()
-        parser.parse()
-        parser.accept(self.visitor)
-
-        duo = sp.Module('DUO')
-        ibool = sp.Module('IBool')
-        method_get = sp.Operation('get', 'bool')
-        method_set = sp.Operation('set', 'void', [('bool', 'value')])
-        assert_that(self.visitor.visitModuleStart, called().with_args(duo))
-        assert_that(self.visitor.visitModuleStart, called().with_args(ibool))
-        assert_that(self.visitor.visitOperation,
-                    called().with_args(method_get))
-        assert_that(self.visitor.visitOperation,
-                    called().with_args(method_set))
-
-        assert_that(self.visitor.visitModuleEnd, called().with_args(ibool))
-        assert_that(self.visitor.visitModuleEnd, called().with_args(duo))
-
-        assert_that(parser.ast[0].name, is_('DUO'))
-        assert_that(parser.ast[0][0].name, is_('IBool'))
-        assert_that(parser.ast[0][0][0].name, is_('R'))
-        assert_that(parser.ast[0][0][0][0].name, is_('get'))
-        assert_that(parser.ast[0][0][1].name, is_('W'))
-        assert_that(parser.ast[0][0][1][0].name, is_('set'))
-  \end{lstlisting}
-\end{frame}
-
-
-\begin{frame}[fragile]{elementos sintácticos}
+\begin{exampleblock}{}
 \begin{lstlisting}[language=Python]
-class Operation(object):
-    def __init__(self, name, return_type, params=None):
-        self.name = name
-        self.return_type = return_type
-        self.params = params or []
-
-    def accept(self, visitor):
-        visitor.visitOperation(self)
-
-    [...]
+ >>> spy = Mimic(Spy, B)
+ >>> isinstance(spy, B)
+ True
+ >>> isinstance(spy, A)
+ True
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, Stub)
+ True
+ >>> isinstance(spy, object)
+ True
 \end{lstlisting}
+\end{exampleblock}
 \end{frame}
 
-\begin{frame}[fragile]{parser}
-\begin{lstlisting}[language=Python]
-class Parser(object):
-    [...]
+\section{Questions}
 
-    def module_def(self):
-        name = identifier()
-        name.addParseAction(self.module_def_action)
-        start = pp.Keyword('module') + name + token('{')
+\begin{frame}{}
+  \begin{center}
+    {\huge Questions?}
+  \end{center}
 
-        module = pp.Forward()
-        item = module | self.interface_def()
-        body = pp.ZeroOrMore(item)
-
-        end = token('}') + token(';')
-        end.addParseAction(self.ast.pop)
-
-        module << start + body + end
-        return module
-
-    def interface_def(self):
-        name = identifier()
-        name.addParseAction(self.interface_def_action)
-        start = pp.Keyword('interface') + name + token('{')
-        end = token('}') + token(';')
-        end.addParseAction(self.ast.pop)
-        return start + self.operation_seq() + end
-\end{lstlisting}
 \end{frame}
-
 
 \end{document}
 
 %% Local Variables:
 %%  coding: utf-8
 %%  mode: flyspell
-%%  ispell-local-dictionary: "castellano8"
+%%  ispell-local-dictionary: "american"
 %% End:
