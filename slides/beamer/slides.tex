@@ -1,0 +1,474 @@
+\documentclass[11pt]{beamer}
+\usepackage{custom}
+
+\title{doublex: Python test doubles framework}
+\subtitle{\bfseries\small\url{http://bitbucket.org/DavidVilla/python-doublex}}
+\author{\bfseries\small\texttt{@david\_vi11a}}
+%\institute{}
+\date{}
+%\subject{}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Contents}
+  \tableofcontents
+\end{frame}
+
+\section{Intro}
+
+\begin{frame}{Another doubles library for Python?}
+  Yes, why not?
+\end{frame}
+
+\begin{frame}{doublex features}
+  \begin{itemize}
+  \item Stubs
+  \item Spies
+  \item Mocks
+  \item ah hoc stub methods
+  \item stub delegates
+  \item stub observers
+  \item properties
+  \item hamcrest matchers for \textbf{all} assertions
+  \item wrapper for legacy pyDoubles API
+  \item doublex never instantiates your classes!
+  \end{itemize}
+\end{frame}
+
+\section{Stubs}
+
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{set fixed return value}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ class Collaborator:
+     def add(self, x, y):
+         return x + y
+
+ with Stub(Collaborator) as stub:
+     stub.add(ANY_ARG).returns(1000)
+
+ assert_that(stub.add(2, 2), is_(1000))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{\... by calling arg values}
+Undefined stub methods returns None.
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Stub(Collaborator) as stub:
+     stub.add(2, 2).returns(1000)
+     stub.add(3, ANY_ARG).returns(0)
+
+ assert_that(stub.add(1, 1), is_(None))
+ assert_that(stub.add(2, 2), is_(1000))
+ assert_that(stub.add(3, 0), is_(0))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{\... by hamcrest matcher}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Stub(Collaborator) as stub:
+     stub.add(2, greater_than(4)).returns(4)
+
+ assert_that(stub.add(2, 1), is_(None))
+ assert_that(stub.add(2, 5), is_(4))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Stubs}
+\framesubtitle{\... by composite hamcrest matcher}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Stub(Collaborator) as stub:
+     stub.foo(has_length(all_of(
+         greater_than(4), less_than(8)))).returns(1000)
+
+ assert_that(stub.add(2, "bad"), is_(None))
+ assert_that(stub.add(2, "enough"), is_(1000))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+
+\section{Spies}
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{checking called methods}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add("hi", 3.0)
+ spy.add([1, 2], 'a')
+
+ assert_that(spy.add, called())
+ assert_that(spy.add, called())
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{collaborator signature checking}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ spy = Spy(Collaborator)
+ spy.add()
+TypeError: __main__.Collaborator.add() takes
+           exactly 3 arguments (1 given)
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{checking called times (with matcher too!)}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add("hi", 3.0)
+ spy.add([1, 2], 'a')
+
+ assert_that(spy.add, called().times(3))
+ assert_that(spy.add, called().times(greater_than(2)))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{filter by argument value: \texttt{with\_args()})}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add(2, 8)
+ spy.add("hi", 3.0)
+
+ assert_that(spy.add, called().with_args(2, ANY_ARG)).times(2)
+ assert_that(spy.add, never(called().with_args(0, 0)))
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{filter by key argument (with matcher)}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ spy = Spy()
+ spy.foo(name="Mary")
+
+ assert_that(spy.foo, called().with_args(name="Mary"))
+ assert_that(spy.foo,
+             called().with_args(name=contains_string("ar")))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Spies}
+\framesubtitle{Verbose meaning-full report messages!}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ spy = Spy()
+ spy.foo(1)
+ spy.bar("hi")
+
+ assert_that(spy.foo, called().with_args(4))
+AssertionError:
+Expected: these calls:
+          Spy.foo(4)
+     but: calls that actually ocurred were:
+          Spy.foo(1)
+          Spy.bar('hi')
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+\subsection{ProxySpy}
+
+\begin{frame}[fragile]{ProxySpy}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with ProxySpy(Collaborator()) as spy:
+     spy.add(2, 2).returns(1000)
+
+ assert_that(spy.add(2, 2), is_(1000))
+ assert_that(spy.add(1, 1), is_(2))
+\end{lstlisting}
+\end{exampleblock}
+
+\end{frame}
+
+
+\section{Mocks}
+
+\begin{frame}[fragile]{Mocks}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Mock() as smtp:
+     smtp.helo()
+     smtp.mail(ANY_ARG)
+     smtp.rcpt("bill@apple.com")
+     smtp.data(ANY_ARG).returns(True).times(2)
+
+ smtp.helo()
+ smtp.mail("poormen@home.net")
+ smtp.rcpt("bill@apple.com")
+ smtp.data("somebody there?")
+ assert_that(smtp.data("I am afraid.."), is_(True))
+
+ assert_that(smtp, verify())
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{Mocks}
+\framesubtitle{invocation order is important}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
+
+ mock.bar()
+ mock.foo()
+
+ assert_that(mock, verify())
+AssertionError:
+Expected: these calls:
+          Mock.foo()
+          Mock.bar()
+     but: calls that actually ocurred were:
+          Mock.bar()
+          Mock.foo()
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{Mocks}
+\framesubtitle{unless you do not mind: \texttt{any\_order\_verify()}}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
+
+ mock.bar()
+ mock.foo()
+
+ assert_that(mock, any_order_verify())
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+
+\section{ah hoc stub methods}
+
+\begin{frame}[fragile]{ah hoc stub methods}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ collaborator = Collaborator()
+ collaborator.foo = method_returning('bye')
+ assert_that(self.collaborator.foo(), is_('bye'))
+
+ collaborator.foo = method_raising(SomeException)
+ collaborator.foo()
+SomeException:
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\section{stub observers}
+
+\begin{frame}[fragile]{stub observers}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ class Observer(object):
+     def __init__(self):
+         self.state = None
+
+     def update(self, *args, **kargs):
+         self.state = args[0]
+
+ observer = Observer()
+ stub = Stub()
+ stub.foo.attach(observer.update)
+ stub.foo(2)
+
+ assert_that(observer.state, is_(2))
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\section{stub delegates}
+
+\begin{frame}[fragile]{stub delegates}
+\framesubtitle{delegating to callables}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ def get_user():
+     return "Freddy"
+
+ with Stub() as stub:
+     stub.user().delegates(get_user)
+     stub.foo().delegates(lambda: "hello")
+
+ assert_that(stub.user(), is_("Freddy"))
+ assert_that(stub.foo(), is_("hello"))
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{stub delegates}
+\framesubtitle{delegating to iterables}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ with Stub() as stub:
+     stub.foo().delegates([1, 2, 3])
+
+ assert_that(stub.foo(), is_(1))
+ assert_that(stub.foo(), is_(2))
+ assert_that(stub.foo(), is_(3))
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\section{properties}
+
+\begin{frame}[fragile]{stubbing properties}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ class Collaborator(object):
+     @property
+     def prop(self):
+         return 1
+
+     @prop.setter
+     def prop(self, value):
+         pass
+
+ with Spy(Collaborator) as spy:
+     spy.prop = 2
+
+ assert_that(spy.prop, is_(2))  # double property getter invoked
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{spying properties (with matchers!)}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ assert_that(spy, property_got('prop'))
+
+ spy.prop = 4  # double property setter invoked
+ spy.prop = 5  # --
+ spy.prop = 5  # --
+
+ assert_that(spy, property_set('prop'))  # set to any value
+ assert_that(spy, property_set('prop').to(4))
+ assert_that(spy, property_set('prop').to(5).times(2))
+ assert_that(spy,
+             never(property_set('prop').to(greater_than(6))))
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+
+\section{Mimics}
+
+\begin{frame}[fragile]{normal doubles support only duck-typing}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ class A(object):
+     pass
+
+ class B(A):
+     pass
+
+ >>> spy = Spy(B())
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, B)
+ False
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{Mimics support full LSP}
+
+\begin{exampleblock}{}
+\begin{lstlisting}[language=Python]
+ >>> spy = Mimic(Spy, B)
+ >>> isinstance(spy, B)
+ True
+ >>> isinstance(spy, A)
+ True
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, Stub)
+ True
+ >>> isinstance(spy, object)
+ True
+\end{lstlisting}
+\end{exampleblock}
+\end{frame}
+
+\section{Questions}
+
+\begin{frame}{}
+  \begin{center}
+    {\huge Questions?}
+  \end{center}
+
+\end{frame}
+
+\end{document}
+
+%% Local Variables:
+%%  coding: utf-8
+%%  mode: flyspell
+%%  ispell-local-dictionary: "american"
+%% End:
