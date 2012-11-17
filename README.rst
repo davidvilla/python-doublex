@@ -1,6 +1,7 @@
 See full documentation on [wiki_]
 =================================
 
+* slides: http://arco.esi.uclm.es/~david.villa/python-doublex/slides
 * sources: https://bitbucket.org/DavidVilla/python-doublex
 * PyPI project: http://pypi.python.org/pypi/doublex
 * pydoubles.org: http://www.pydoubles.org/doublex-documentation/
