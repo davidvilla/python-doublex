@@ -101,7 +101,7 @@ class Method(Observable):
 
         self.event.set()
         invocation = self.create_invocation(args, kargs)
-        return self.double._manage_invocation(invocation)
+        return self.double._prepare_invocation(invocation)
 
     def create_invocation(self, args, kargs):
         return Invocation.from_args(
@@ -195,7 +195,7 @@ class Invocation(object):
             raise WrongApiUsage("times must be >= 1. Use is_not(called()) for 0 times")
 
         for i in range(1, n):
-            self.double._manage_invocation(self)
+            self.double._prepare_invocation(self)
 
     def perform(self, actual_invocation):
         return self.context.exec_delegate(actual_invocation.context)
@@ -340,7 +340,7 @@ class Property(object):
         self.value = None
 
     def __get__(self, obj, type=None):
-        self._manage(PropertyGet(self.double, self.key))
+        self._prepare(PropertyGet(self.double, self.key))
         return self.value
 
     def __set__(self, obj, value):
@@ -348,11 +348,11 @@ class Property(object):
         if prop.fset is None:
             raise AttributeError("can't set attribute")
 
-        self._manage(PropertySet(self.double, self.key, value))
+        self._prepare(PropertySet(self.double, self.key, value))
         self.value = value
 
-    def _manage(self, operation):
-        self.double._manage_invocation(operation, check=False)
+    def _prepare(self, operation):
+        self.double._prepare_invocation(operation, check=False)
 
 
 class AttributeFactory(object):

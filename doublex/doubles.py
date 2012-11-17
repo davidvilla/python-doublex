@@ -53,7 +53,7 @@ class Stub(object):
     def __exit__(self, *args):
         self._setting_up = False
 
-    def _manage_invocation(self, invocation, check=True):
+    def _prepare_invocation(self, invocation, check=True):
         if check:
             self._proxy.assure_signature_matches(invocation)
 
@@ -61,7 +61,7 @@ class Stub(object):
             self._stubs.append(invocation)
             return invocation
 
-        self._do_manage_invocation(invocation)
+        self._do_prepare_invocation(invocation)
 
         if invocation in self._stubs:
             stubbed = self._stubs.lookup(invocation)
@@ -69,7 +69,7 @@ class Stub(object):
 
         return self._perform_invocation(invocation)
 
-    def _do_manage_invocation(self, invocation):
+    def _do_prepare_invocation(self, invocation):
         pass
 
     def _perform_invocation(self, invocation):
@@ -100,16 +100,11 @@ class Spy(Stub, SpyBase):
         self._recorded = OperationList()
         super(Spy, self).__init__(collaborator)
 
-    def _do_manage_invocation(self, invocation):
+    def _do_prepare_invocation(self, invocation):
         self._recorded.append(invocation)
 
     def _was_called(self, invocation, times):
-        try:
-            hamcrest.assert_that(self._recorded.count(invocation),
-                                 hamcrest.is_(times))
-            return True
-        except AssertionError:
-            return False
+        return hamcrest.is_(times).matches(self._recorded.count(invocation))
 
     def _get_invocations_to(self, name):
         return [i for i in self._recorded
@@ -130,9 +125,9 @@ class ProxySpy(Spy):
 
 
 class Mock(Spy, MockBase):
-    def _do_manage_invocation(self, invocation):
+    def _do_prepare_invocation(self, invocation):
         hamcrest.assert_that(self, MockExpectInvocation(invocation))
-        super(Mock, self)._do_manage_invocation(invocation)
+        super(Mock, self)._do_prepare_invocation(invocation)
 
 
 def Mimic(double, collab):

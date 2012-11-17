@@ -75,7 +75,7 @@ class expect_call(object):
 
         with self.method.double:
             for i in range(n - 1):
-                self.method.double._manage_invocation(self.invocation)
+                self.method.double._prepare_invocation(self.invocation)
 
     def _remove_previous(self):
         if self.invocation is None:
