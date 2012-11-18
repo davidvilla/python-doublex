@@ -130,6 +130,8 @@ class VerifiedStubTests(TestCase):
 
 
 class AdhocAttributesTests(TestCase):
+    "all doubles accepts ad-hoc attributes"
+
     def test_add_attribute_for_free_stub(self):
         stub = Stub()
         stub.foo = 1
@@ -714,11 +716,11 @@ class MockDelegateTest(TestCase):
         for x in range(3):
             assert_that(method(), is_(x))
 
-    def test_delegate_to_list(self):
+    def test_delegate_to_list_is_only_an_expectation(self):
         with self.mock:
             self.mock.foo().delegates(range(3))
 
-        self.assert_012(self.mock.foo)
+        self.mock.foo()
         assert_that(self.mock, verify())
 
 
@@ -781,7 +783,7 @@ class MimicTests(TestCase):
         assert_that(mock, verify())
 
 
-class PropertiesTests(TestCase):
+class PropertyTests(TestCase):
     def test_stub_notset_property_is_None(self):
         stub = Stub(ObjCollaborator)
         assert_that(stub.prop, is_(None))
@@ -795,7 +797,7 @@ class PropertiesTests(TestCase):
 
     def test_spy_get_property(self):
         spy = Spy(ObjCollaborator)
-        discard = spy.prop
+        skip = spy.prop
         assert_that(spy, property_got('prop'))
 
     def test_spy_not_get_property(self):
@@ -853,7 +855,7 @@ class PropertiesTests(TestCase):
 
     def test_spy_get_readonly_property_with_deco(self):
         spy = Spy(ObjCollaborator)
-        discard = spy.prop_deco_readonly
+        skip = spy.prop_deco_readonly
         assert_that(spy, property_got('prop_deco_readonly'))
 
     def test_spy_SET_readonly_property_with_deco(self):
