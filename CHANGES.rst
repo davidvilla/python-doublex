@@ -1,3 +1,8 @@
+0.20121118
+==========
+
+- ProxySpy propagates stubbed invocations too.
+
 0.20121025
 ==========
 
