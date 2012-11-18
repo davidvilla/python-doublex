@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+
+    <title>doublex</title>
+
+    <meta name="description" content="A framework for easily creating beautiful presentations using HTML"/>
+    <meta name="author" content="@david_vi11a"/>
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="stylesheet" href="css/reveal.min.css" />
+    <link rel="stylesheet" href="css/theme/default.css" id="theme" />
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css" />
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+        document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+
+     <style type="text/css">
+.reveal h2 {
+  font-size: 40px;
+}
+
+     </style>
+  </head>
+
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+	<section>
+	  <h1>doublex</h1>
+	  <h3>Python test doubles framework</h3>
+	  <p>
+	    <small><a href="http://twitter.com/david_vi11a">@david_vi11a</a></small>
+	  </p>
+	</section>
+
+	<section>
+	  <h2>Another doubles library for Python?</h2>
+	  <p>
+	    <pan class="fragment">Yep</pan><pan class="fragment">, why not?</pan>
+	  </p>
+	</section>
+
+	<section>
+	  <h2>doublex features</h2>
+	  <ul>
+	    <li> Stubs </li>
+	    <li> Spies </li>
+	    <li> Mocks </li>
+	    <li> ah hoc stub methods </li>
+	    <li> stub delegates </li>
+	    <li> stub observers </li>
+	    <li> properties </li>
+	    <li> <a href="http://code.google.com/p/hamcrest/">hamcrest matchers</a> for <b>all</b> assertions </li>
+	    <li> wrapper for the legacy pyDoubles API </li>
+	    <li> doublex never instantiates your classes! </li>
+	  </ul>
+	</section>
+
+<!-- Stubs -->
+
+	<section>
+	  <section>
+	    <h2>Stubs</h2>
+	  <p>set fixed return values</p>
+
+	  <pre><code contenteditable>
+ class Collaborator:
+     def add(self, x, y):
+         return x + y
+
+ with Stub(Collaborator) as stub:
+     stub.add(ANY_ARG).returns(1000)
+
+ assert_that(stub.add(2, 2), is_(1000))
+	    </code></pre>
+
+	    <a href="#" class="image navigate-down">
+	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+	    </a>
+	  </section>
+
+	<section>
+	  <h2>Stubs</h2>
+	  <p>... by calling arg values</p>
+	  <pre><code contenteditable>
+ with Stub(Collaborator) as stub:
+     stub.add(2, 2).returns(1000)
+     stub.add(3, ANY_ARG).returns(0)
+
+ assert_that(stub.add(1, 1), is_(None))
+ assert_that(stub.add(2, 2), is_(1000))
+ assert_that(stub.add(3, 0), is_(0))
+	    </code></pre>
+	    </section>
+
+	<section>
+	  <h2>Stubs</h2>
+	  <p>... by hamcrest matcher</p>
+	  <pre><code contenteditable>
+ with Stub(Collaborator) as stub:
+     stub.add(2, greater_than(4)).returns(4)
+
+ assert_that(stub.add(2, 1), is_(None))
+ assert_that(stub.add(2, 5), is_(4))
+	    </code></pre>
+	</section>
+
+	<section>
+	  <h2>Stubs</h2>
+	  <p>... by composite hamcrest matcher</p>
+	  <pre><code contenteditable>
+ with Stub(Collaborator) as stub:
+     stub.add(2, has_length(all_of(
+         greater_than(4), less_than(8)))).returns(1000)
+
+ assert_that(stub.add(2, "bad"), is_(None))
+ assert_that(stub.add(2, "enough"), is_(1000))
+	    </code></pre>
+	</section>
+	</section>
+
+<!-- Spies -->
+<section>
+	<section>
+<h2>Spies</h2>
+<p>checking called methods</p>
+
+	  <pre><code contenteditable>
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add("hi", 3.0)
+ spy.add([1, 2], 'a')
+
+ assert_that(spy.add, called())
+	      </code></pre>
+
+	    <a href="#" class="image navigate-down">
+	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+	    </a>
+
+	</section>
+
+	<section>
+	  <h2>Spies</h2>
+	  <p>collaborator signature checking</p>
+
+	    <pre><code contentditable>
+ spy = Spy(Collaborator)
+ spy.add()
+TypeError: __main__.Collaborator.add() takes
+           exactly 3 arguments (1 given)
+	      </code></pre>
+</section>
+
+	<section>
+	  <h2>Spies</h2>
+	  <p>checking called times (with matcher too!)</p>
+
+	  <pre><code contentditable>
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add("hi", 3.0)
+ spy.add([1, 2], 'a')
+
+ assert_that(spy.add, called().times(3))
+ assert_that(spy.add, called().times(greater_than(2)))
+	    </code></pre>
+	</section>
+
+<section>
+<h2>Spies</h2>
+<p>filter by argument value: with_args()</p>
+
+	  <pre><code contentditable>
+ spy = Spy(Collaborator)
+ spy.add(2, 3)
+ spy.add(2, 8)
+ spy.add("hi", 3.0)
+
+ assert_that(spy.add, called().with_args(2, ANY_ARG)).times(2)
+ assert_that(spy.add, never(called().with_args(0, 0)))
+	    </code></pre>
+	</section>
+
+<section>
+<h2>Spies</h2>
+<p>filter by key argument (with matcher)</p>
+
+ <pre><code contentditable>
+ spy = Spy()
+ spy.foo(name="Mary")
+
+ assert_that(spy.foo, called().with_args(name="Mary"))
+ assert_that(spy.foo,
+             called().with_args(name=contains_string("ar")))
+ </code></pre>
+ </section>
+
+<section>
+<h2>Spies</h2>
+<p>Verbose meaning-full report messages!</p>
+
+ <pre><code contentditable>
+ spy = Spy()
+ spy.foo(1)
+ spy.bar("hi")
+
+ assert_that(spy.foo, called().with_args(4))
+AssertionError:
+Expected: these calls:
+          Spy.foo(4)
+     but: calls that actually ocurred were:
+          Spy.foo(1)
+          Spy.bar('hi')
+ </code></pre>
+ </section>
+
+<section>
+<h2>ProxySpy</h2>
+
+<pre><code contentditable>
+ with ProxySpy(Collaborator()) as spy:
+     spy.add(2, 2).returns(1000)
+
+ assert_that(spy.add(2, 2), is_(1000))
+ assert_that(spy.add(1, 1), is_(2))
+	    </code></pre>
+	</section>
+</section>
+
+
+<!-- mocks -->
+
+<section>
+<section>
+<h2>Mocks</h2>
+
+<pre><code contentditable>
+ with Mock() as smtp:
+     smtp.helo()
+     smtp.mail(ANY_ARG)
+     smtp.rcpt("bill@apple.com")
+     smtp.data(ANY_ARG).returns(True).times(2)
+
+ smtp.helo()
+ smtp.mail("poormen@home.net")
+ smtp.rcpt("bill@apple.com")
+ smtp.data("somebody there?")
+ assert_that(smtp.data("I am afraid.."), is_(True))
+
+ assert_that(smtp, verify())
+	    </code></pre>
+
+	    <a href="#" class="image navigate-down">
+	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+	    </a>
+
+	</section>
+
+<section>
+<h2>Mocks</h2>
+<p>invocation order is important</p>
+
+<pre><code contentditable>
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
+
+ mock.bar()
+ mock.foo()
+
+ assert_that(mock, verify())
+AssertionError:
+Expected: these calls:
+          Mock.foo()
+          Mock.bar()
+     but: calls that actually ocurred were:
+          Mock.bar()
+          Mock.foo()
+	    </code></pre>
+	</section>
+
+<section>
+<h2>Mocks</h2>
+<p>...unless you do not mind: any_order_verify()</p>
+
+ <pre><code contentditable>
+ with Mock() as mock:
+     mock.foo()
+     mock.bar()
+
+ mock.bar()
+ mock.foo()
+
+ assert_that(mock, any_order_verify())
+ </code></pre>
+	  </section>
+	</section>
+
+<section>
+<h2>ah hoc stub methods</h2>
+
+<pre><code contentditable>
+ collaborator = Collaborator()
+ collaborator.foo = method_returning('bye')
+ assert_that(self.collaborator.foo(), is_('bye'))
+
+ collaborator.foo = method_raising(SomeException)
+ collaborator.foo()
+SomeException:
+	    </code></pre>
+	</section>
+
+<section>
+<h2>stub observers</h2>
+<p>attach additional behavior</p>
+
+<pre><code contentditable>
+ class Observer(object):
+     def __init__(self):
+         self.state = None
+
+     def update(self, *args, **kargs):
+         self.state = args[0]
+
+ observer = Observer()
+ stub = Stub()
+ stub.foo.attach(observer.update)
+ stub.foo(2)
+
+ assert_that(observer.state, is_(2))
+	    </code></pre>
+	</section>
+
+<!-- delegates -->
+
+<section>
+<section>
+<h2>stub delegates</h2>
+<p>delegating to callables</p>
+
+<pre><code contentditable>
+ def get_user():
+     return "Freddy"
+
+ with Stub() as stub:
+     stub.user().delegates(get_user)
+     stub.foo().delegates(lambda: "hello")
+
+ assert_that(stub.user(), is_("Freddy"))
+ assert_that(stub.foo(), is_("hello"))
+	    </code></pre>
+
+	    <a href="#" class="image navigate-down">
+	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+	    </a>
+
+	</section>
+
+<section>
+<h2>stub delegates</h2>
+<p>delegating to iterables</p>
+
+<pre><code contentditable>
+ with Stub() as stub:
+     stub.foo().delegates([1, 2, 3])
+
+ assert_that(stub.foo(), is_(1))
+ assert_that(stub.foo(), is_(2))
+ assert_that(stub.foo(), is_(3))
+	    </code></pre>
+	</section>
+	</section>
+
+<!-- properties -->
+
+<section>
+<section>
+<h2>stubbing properties</h2>
+
+<pre><code contentditable>
+ class Collaborator(object):
+     @property
+     def prop(self):
+         return 1
+
+     @prop.setter
+     def prop(self, value):
+         pass
+
+ with Spy(Collaborator) as spy:
+     spy.prop = 2
+
+ assert_that(spy.prop, is_(2))  # double property getter invoked
+	    </code></pre>
+
+	    <a href="#" class="image navigate-down">
+	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+	    </a>
+
+	  </section>
+
+<section>
+<h2>spying properties (with matchers!)</h2>
+
+<pre><code contentditable>
+ assert_that(spy, property_got('prop'))
+
+ spy.prop = 4  # double property setter invoked
+ spy.prop = 5  # --
+ spy.prop = 5  # --
+
+ assert_that(spy, property_set('prop'))  # set to any value
+ assert_that(spy, property_set('prop').to(4))
+ assert_that(spy, property_set('prop').to(5).times(2))
+ assert_that(spy,
+             never(property_set('prop').to(greater_than(6))))
+	    </code></pre>
+	</section>
+	</section>
+
+<!-- mimics -->
+
+<section>
+<section>
+<h2>normal doubles support only duck-typing</h2>
+
+<pre><code contentditable>
+ class A(object):
+     pass
+
+ class B(A):
+     pass
+
+ >>> spy = Spy(B())
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, B)
+ False
+	    </code></pre>
+	</section>
+
+<section>
+<h2>Mimics support full LSP</h2>
+
+<pre><code contentditable>
+ >>> spy = Mimic(Spy, B)
+ >>> isinstance(spy, B)
+ True
+ >>> isinstance(spy, A)
+ True
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, Stub)
+ True
+ >>> isinstance(spy, object)
+ True
+	    </code></pre>
+	</section>
+	</section>
+
+<section>
+<h2>That's all!</h2>
+</section>
+
+
+      </div>
+
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+      controls: true,
+      progress: true,
+      history: true,
+      center: true,
+      overview: true,
+      rollingLinks: false,
+
+      // theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+      theme: 'night',
+      transition: Reveal.getQueryHash().transition || 'default', // default/cube/<p></p>age/concave/zoom/linear/none
+
+      // Optional libraries used to extend on reveal.js
+      dependencies: [
+      { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+      // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+      ]
+      });
+
+    </script>
+  </body>
+</html>
+
+
+<!-- Local Variables: -->
+<!--  coding: utf-8 -->
+<!--  mode: flyspell -->
+<!--  ispell-local-dictionary: "american" -->
+<!-- End: -->

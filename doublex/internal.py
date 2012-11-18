@@ -104,12 +104,11 @@ class Method(Observable):
         return self.double._manage_invocation(invocation)
 
     def create_invocation(self, args, kargs):
-        return Invocation.from_args(
-            self.double, self.name, args, kargs)
+        return Invocation.from_args(self.double, self.name, args, kargs)
 
     def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
-        return self.double._was_called(invocation, times)
+        return self.double._received_invocation(invocation, times)
 
     def describe_to(self, description):
         pass

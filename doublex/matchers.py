@@ -33,6 +33,9 @@ __all__ = ['called',
            'assert_that', 'is_']
 
 
+# just hamcrest aliases
+at_least = hamcrest.greater_than_or_equal_to
+at_most = hamcrest.less_than_or_equal_to
 any_time = hamcrest.greater_than(0)
 
 
@@ -104,6 +107,7 @@ class never(BaseMatcher):
 
 
 class MockExpectInvocation(BaseMatcher):
+    'assert the invocation is a mock expectation'
     def __init__(self, invocation):
         self.invocation = invocation
 
@@ -123,8 +127,7 @@ class MockExpectInvocation(BaseMatcher):
 class verify(BaseMatcher):
     def _matches(self, mock):
         if not isinstance(mock, MockBase):
-            raise WrongApiUsage(
-                "takes Mock instance (got %s instead)" % mock)
+            raise WrongApiUsage("takes Mock instance (got %s instead)" % mock)
 
         self.mock = mock
         return self._expectations_match()
@@ -146,7 +149,6 @@ class any_order_verify(verify):
         return sorted(self.mock._stubs) == sorted(self.mock._recorded)
 
 
-# FIXME: refactor describe mismatch
 class property_got(OperationMatcher):
     def __init__(self, propname, times=any_time):
         super(property_got, self).__init__()
@@ -156,7 +158,7 @@ class property_got(OperationMatcher):
     def _matches(self, double):
         self.double = double
         self.operation = PropertyGet(self.double, self.propname)
-        return double._was_called(self.operation, 1)
+        return double._received_invocation(self.operation, 1)
 
     def times(self, n):
         return property_got(self.property_name, n)
@@ -164,7 +166,6 @@ class property_got(OperationMatcher):
     def describe_to(self, description):
         description.append_text('these calls:\n')
         description.append_text(self.operation.show(indent=10))
-#        description.append_text(str(self.value))
         if self._times != any_time:
             description.append_text(' -- times: %s' % self._times)
 
@@ -173,7 +174,6 @@ class property_got(OperationMatcher):
         description.append_text(self.double._recorded.show(indent=10))
 
 
-# FIXME: refactor describe mismatch
 class property_set(OperationMatcher):
     def __init__(self, property_name, value=hamcrest.anything(), times=any_time):
         super(property_set, self).__init__()
@@ -185,7 +185,7 @@ class property_set(OperationMatcher):
         self.double = double
         self.operation = PropertySet(self.double, self.property_name,
                                      self.value)
-        return self.double._was_called(self.operation, self._times)
+        return self.double._received_invocation(self.operation, self._times)
 
     def to(self, value):
         return property_set(self.property_name, value)
@@ -202,8 +202,3 @@ class property_set(OperationMatcher):
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
         description.append_text(self.double._recorded.show(indent=10))
-
-
-# just aliases
-at_least = hamcrest.greater_than_or_equal_to
-at_most = hamcrest.less_than_or_equal_to

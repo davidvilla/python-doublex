@@ -62,15 +62,22 @@ class Stub(object):
             self._stubs.append(invocation)
             return invocation
 
-        self._do_manage_invocation(invocation)
+        self._prepare_invocation(invocation)
 
+        have_retval = False
         if invocation in self._stubs:
             stubbed = self._stubs.lookup(invocation)
-            return stubbed.perform(invocation)
+            retval = stubbed.perform(invocation)
+            have_retval = True
 
-        return self._perform_invocation(invocation)
+        actual_retval = self._perform_invocation(invocation)
 
-    def _do_manage_invocation(self, invocation):
+        if not have_retval:
+            return actual_retval
+
+        return retval
+
+    def _prepare_invocation(self, invocation):
         pass
 
     def _perform_invocation(self, invocation):
@@ -104,16 +111,11 @@ class Spy(Stub, SpyBase):
         self._recorded = OperationList()
         super(Spy, self).__init__(collaborator)
 
-    def _do_manage_invocation(self, invocation):
+    def _prepare_invocation(self, invocation):
         self._recorded.append(invocation)
 
-    def _was_called(self, invocation, times):
-        try:
-            hamcrest.assert_that(self._recorded.count(invocation),
-                                 hamcrest.is_(times))
-            return True
-        except AssertionError:
-            return False
+    def _received_invocation(self, invocation, times):
+        return hamcrest.is_(times).matches(self._recorded.count(invocation))
 
     def _get_invocations_to(self, name):
         return [i for i in self._recorded
@@ -122,10 +124,10 @@ class Spy(Stub, SpyBase):
 
 class ProxySpy(Spy):
     def __init__(self, collaborator):
-        self._assure_instance(collaborator)
+        self._assure_is_instance(collaborator)
         super(ProxySpy, self).__init__(collaborator)
 
-    def _assure_instance(self, thing):
+    def _assure_is_instance(self, thing):
         if thing is None or inspect.isclass(thing):
             raise TypeError("ProxySpy takes an instance (got %s instead)" % thing)
 
@@ -134,9 +136,9 @@ class ProxySpy(Spy):
 
 
 class Mock(Spy, MockBase):
-    def _do_manage_invocation(self, invocation):
+    def _prepare_invocation(self, invocation):
         hamcrest.assert_that(self, MockExpectInvocation(invocation))
-        super(Mock, self)._do_manage_invocation(invocation)
+        super(Mock, self)._prepare_invocation(invocation)
 
 
 def Mimic(double, collab):
