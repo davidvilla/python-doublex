@@ -158,7 +158,7 @@ class property_got(OperationMatcher):
     def _matches(self, double):
         self.double = double
         self.operation = PropertyGet(self.double, self.propname)
-        return double._was_called(self.operation, 1)
+        return double._received_invocation(self.operation, 1)
 
     def times(self, n):
         return property_got(self.property_name, n)
@@ -185,7 +185,7 @@ class property_set(OperationMatcher):
         self.double = double
         self.operation = PropertySet(self.double, self.property_name,
                                      self.value)
-        return self.double._was_called(self.operation, self._times)
+        return self.double._received_invocation(self.operation, self._times)
 
     def to(self, value):
         return property_set(self.property_name, value)

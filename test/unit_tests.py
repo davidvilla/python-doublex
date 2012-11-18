@@ -129,6 +129,17 @@ class VerifiedStubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=2), is_(2000))
 
 
+class StubReturnValueTests(TestCase):
+    def setUp(self):
+        self.spy = Spy(Collaborator)
+
+    def test_returning_tuple(self):
+        with self.spy:
+            self.spy.hello().returns((3, 4))
+
+        assert_that(self.spy.hello(), (3, 4))
+
+
 class SpyTests(TestCase):
     def setUp(self):
         self.spy = Spy()
@@ -244,7 +255,7 @@ class VerifiedSpyTests(TestCase):
         self.spy = Spy(ObjCollaborator)
 
 
-class ProxySpyTest(TestCase):
+class ProxySpyTests(TestCase):
     def test_must_give_argument(self):
         self.failUnlessRaises(TypeError, ProxySpy)
 
@@ -255,6 +266,24 @@ class ProxySpyTest(TestCase):
     def test_given_argument_can_not_be_newstyle_class(self):
         self.failUnlessRaises(TypeError,
                               ProxySpy, ObjCollaborator)
+
+    def test_propagate_stubbed_calls_to_collaborator(self):
+        class Foo:
+            def __init__(self):
+                self.value = 0
+
+            def store_add(self, value):
+                self.value = value
+                return value + 1
+
+        foo = Foo()
+        with ProxySpy(foo) as spy:
+            spy.store_add(3).returns(1000)
+
+        assert_that(spy.store_add(2), is_(3))
+        assert_that(foo.value, is_(2))
+        assert_that(spy.store_add(3), is_(1000))
+        assert_that(foo.value, is_(3))
 
 
 class MockTests(TestCase):
