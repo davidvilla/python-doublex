@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # hack to prevent 'test' target exception:
 # http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html
@@ -15,9 +15,9 @@ config = dict(
     author           = 'David Villa Alises',
     author_email     = 'David.Villa@gmail.com',
     url              = 'https://bitbucket.org/DavidVilla/python-doublex',
-    packages         = ['doublex', 'doublex/pyDoubles'],
+    packages         = find_packages(),
     data_files       = [('share/doc/python-doublex', ['README.rst'])],
-    test_suite       = 'test',
+    test_suite       = 'doublex.test',
     license          = 'GPLv3',
     long_description = open('README.rst').read(),
     classifiers      = [
@@ -37,6 +37,6 @@ config = dict(
 if sys.version_info >= (3,):
     config.update(
         use_2to3 = True,
-        test_suite = '')
+        )
 
 setup(**config)

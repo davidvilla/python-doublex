@@ -18,12 +18,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-
+import sys
 from unittest import TestCase
 import itertools
 import thread
 import threading
-import time
 
 from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
@@ -106,7 +105,7 @@ class VerifiedStubTests(TestCase):
             with self.stub:
                 self.stub.wrong().returns("bye")
 
-        except AttributeError, e:
+        except AttributeError as e:
             expected = "'Collaborator' object has no attribute 'wrong'"
             assert_that(str(e), contains_string(expected))
 
@@ -115,8 +114,10 @@ class VerifiedStubTests(TestCase):
             with self.stub:
                 self.stub.hello(1).returns("bye")
 
-        except TypeError, e:
+        except TypeError as e:
             expected = "hello() takes exactly 1 argument (2 given)"
+            if sys.version_info >= (3,):
+                expected = "hello() takes exactly 1 positional argument (2 given)"
             assert_that(str(e), contains_string(expected))
 
     # bitbucket issue #6
@@ -497,7 +498,7 @@ class ApiMismatchTest(TestCase):
             self.spy.missing()
             self.fail("TypeError should be raised")
 
-        except AttributeError, e:
+        except AttributeError as e:
             expected = "'Collaborator' object has no attribute 'missing'"
             assert_that(str(e), contains_string(expected))
 
@@ -506,8 +507,10 @@ class ApiMismatchTest(TestCase):
             self.spy.hello("wrong")
             self.fail("TypeError should be raised")
 
-        except TypeError, e:
+        except TypeError as e:
             expected = "Collaborator.hello() takes exactly 1 argument (2 given)"
+            if sys.version_info >= (3,):
+                expected = "Collaborator.hello() takes exactly 1 positional argument (2 given)"
             assert_that(str(e), contains_string(expected))
 
     def test_fail_wrong_kargs(self):
@@ -515,7 +518,7 @@ class ApiMismatchTest(TestCase):
             self.spy.kwarg_method(wrong_key=1)
             self.fail("TypeError should be raised")
 
-        except TypeError, e:
+        except TypeError as e:
             expected = "Collaborator.kwarg_method() got an unexpected keyword argument 'wrong_key'"
             assert_that(str(e), contains_string(expected))
 
@@ -730,7 +733,7 @@ class StubDelegateTests(TestCase):
                 self.stub.foo().delegates(None)
             fail("Exception should be raised")
 
-        except WrongApiUsage, e:
+        except WrongApiUsage as e:
             expected = "delegates() must be called with callable or iterable instance (got 'None' instead)"
             assert_that(str(e), contains_string(expected))
 
