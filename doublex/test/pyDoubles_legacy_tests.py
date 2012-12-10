@@ -648,7 +648,7 @@ class pyDoubles__MatchersTests(TestCase):
         with self.spy:
             self.spy.one_arg_method(contains_string("abc")).returns(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method("XabcX"))
+        self.assertEqual(1000, self.spy.one_arg_method("XabcX"))
 
     def test_str_containing_with_substr_unicode(self):
         with self.spy:
