@@ -6,11 +6,11 @@ See full documentation on [wiki_]
 * PyPI project: http://pypi.python.org/pypi/doublex
 * pydoubles.org: http://www.pydoubles.org/doublex-documentation/
 
-* official debian package: ``http://packages.debian.org/source/sid/doublex``
-* debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
+* official debian package: http://packages.debian.org/source/sid/doublex
 
+  * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
   * amateur debian package at: ``deb http://babel.esi.uclm.es/arco/ sid main``
-  * official ubuntu package: ``https://launchpad.net/ubuntu/+source/doublex``
+  * official ubuntu package: https://launchpad.net/ubuntu/+source/doublex
 
 
 .. _wiki: https://bitbucket.org/DavidVilla/python-doublex/wiki
