@@ -21,3 +21,4 @@ clean:
 	find . -name *~ -delete
 	$(RM) -r dist build
 	$(RM) -r .svn debian MANIFEST
+	$(RM) -r *.egg-info
