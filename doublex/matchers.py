@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import logging
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
@@ -52,11 +53,15 @@ class MethodCalled(OperationMatcher):
     def _matches(self, method):
         self._assure_is_spied_method(method)
         self.method = method
-        if self._async_timeout:
-            with method.condition:
-                method.condition.wait(self._async_timeout)
+        if not self._async_timeout:
+            return method._was_called(self.context, self._times)
 
-        return method._was_called(self.context, self._times)
+        with method.condition:
+            while method.condition.wait(self._async_timeout):
+                if method._was_called(self.context, self._times):
+                    return True
+
+        return False
 
     def _assure_is_spied_method(self, method):
         if not isinstance(method, Method) or not isinstance(method.double, SpyBase):

@@ -38,7 +38,7 @@ class Stub(object):
         '''Creates a fresh class per instance. This is required due to
         ad-hoc stub properties are class attributes'''
         klass = type(cls.__name__, (cls,), dict(cls.__dict__))
-        return object.__new__(klass, collaborator)
+        return object.__new__(klass)
 
     def __init__(self, collaborator=None):
         self._proxy = create_proxy(collaborator)
