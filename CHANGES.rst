@@ -1,3 +1,11 @@
+0.20130110
+==========
+
+- Release 1.6
+- Ad-hoc stub attributes
+- AttributeFactory callable types: function, method (Closes: #bitbucket:issue/7)
+- BuiltingSignature for non Python functions
+
 0.20121118
 ==========
 

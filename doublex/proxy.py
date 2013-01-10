@@ -102,8 +102,6 @@ class Proxy(object):
 def create_signature(proxy, method_name):
     method = getattr(proxy.collaborator, method_name)
     if not is_method_or_func(method):
-#        print method_name, "is not function"
-#        print type(method)
         return BuiltinSignature(proxy, method_name)
 
     return Signature(proxy, method_name)
@@ -131,7 +129,6 @@ class BuiltinSignature(object):
         params = doc[:rpar]
         nkargs = params.count('=')
         nargs = params.count(',') + 1 - nkargs
-#        print args, nargs, kargs, nkargs
         if len(args) != nargs:
             raise TypeError('%s.%s() takes exactly %s argument (%s given)' % (
                     self.proxy.collaborator_classname(), self.name, nargs, len(args)))
