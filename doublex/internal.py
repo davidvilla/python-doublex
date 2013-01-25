@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012 David Villa Alises
+# Copyright © 2012,2013 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -94,14 +94,13 @@ class Method(Observable):
         super(Method, self).__init__()
         self.double = double
         self.name = name
-        self.condition = threading.Condition()
+        self._event = threading.Event()
 
     def __call__(self, *args, **kargs):
         if not self.double._setting_up:
             self.notify(*args, **kargs)
 
-        with self.condition:
-            self.condition.notify()
+        self._event.set()
 
         invocation = self.create_invocation(args, kargs)
         return self.double._manage_invocation(invocation)

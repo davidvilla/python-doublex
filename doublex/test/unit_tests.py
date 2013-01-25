@@ -18,12 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import time
+
 import sys
 from unittest import TestCase
 import itertools
 import thread
 import threading
-import time
 
 from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
@@ -140,6 +141,7 @@ class StubReturnValueTests(TestCase):
             self.spy.hello().returns((3, 4))
 
         assert_that(self.spy.hello(), (3, 4))
+
 
 class AdhocAttributesTests(TestCase):
     "all doubles accepts ad-hoc attributes"
@@ -946,7 +948,8 @@ class AsyncTests(TestCase):
         sut.send_data(3)
 
         # then
-        assert_that(spy.write, called().async(timeout=1).with_args(3).times(2))
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.write, called().async(timeout=1).with_args(3).times(2))
 
 
 class Observer(object):

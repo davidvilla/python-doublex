@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012 David Villa Alises
+# Copyright © 2012,2013 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import logging
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
@@ -56,12 +55,12 @@ class MethodCalled(OperationMatcher):
         if not self._async_timeout:
             return method._was_called(self.context, self._times)
 
-        with method.condition:
-            while method.condition.wait(self._async_timeout):
-                if method._was_called(self.context, self._times):
-                    return True
+        if self._async_timeout:
+            if self._times != any_time:
+                raise WrongApiUsage("'times' and 'async' are exclusive")
+            self.method._event.wait(self._async_timeout)
 
-        return False
+        return method._was_called(self.context, self._times)
 
     def _assure_is_spied_method(self, method):
         if not isinstance(method, Method) or not isinstance(method.double, SpyBase):
