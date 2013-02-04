@@ -5,6 +5,7 @@ See full documentation on [wiki_]
 * sources: https://bitbucket.org/DavidVilla/python-doublex
 * PyPI project: http://pypi.python.org/pypi/doublex
 * pydoubles.org: http://www.pydoubles.org/doublex-documentation/
+* jenkins job: https://fowler.esi.uclm.es/job/python-doublex/
 
 * official debian package: http://packages.debian.org/source/sid/doublex
 
