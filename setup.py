@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import sys
 from setuptools import setup, find_packages
 
@@ -9,17 +10,18 @@ import multiprocessing, logging
 
 config = dict(
     name             = 'doublex',
-    version          = '1.6',
+    version          = '1.6.1',
     description      = 'Test doubles for Python',
     keywords         = ['unit test', 'double', 'stub', 'spy', 'mock'],
     author           = 'David Villa Alises',
     author_email     = 'David.Villa@gmail.com',
     url              = 'https://bitbucket.org/DavidVilla/python-doublex',
     packages         = find_packages(),
-    data_files       = [('share/doc/python-doublex', ['README.rst'])],
+    data_files       = [('', ['README.rst']),
+                        ('share/doc/python-doublex', ['README.rst'])],
     test_suite       = 'doublex.test',
     license          = 'GPLv3',
-    long_description = open('README.rst').read(),
+    long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     classifiers      = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
@@ -32,7 +34,6 @@ config = dict(
         'Topic :: Software Development :: Quality Assurance',
         'Topic :: Software Development :: Testing',
         ])
-
 
 if sys.version_info >= (3,):
     config.update(
