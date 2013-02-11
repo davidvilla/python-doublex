@@ -267,7 +267,24 @@ class SpyTests(TestCase):
 #        spy.mixed_method(2, True)
 #        assert_that(spy.mixed_method, called().with_args(key_param=True))
 
-    def test_called_with_object(self):
+
+class SpyCallsTests(TestCase):
+    def test_list_recorded_calls(self):
+        class Collaborator:
+            def method(self, *args, **kargs):
+                pass
+
+        with Spy(Collaborator) as spy:
+            spy.method(ANY_ARG).returns(100)
+
+        spy.method(1, 2, 3)
+        spy.method(key=2, val=5)
+
+        assert_that(spy.method.calls[0].args, is_((1, 2, 3)))
+        assert_that(spy.method.calls[1].kargs, is_(dict(key=2, val=5)))
+        assert_that(spy.method.calls[1].retval, is_(100))
+
+    def test_called_with_an_object(self):
         class Module:
             def getName(self):
                 return "Module"

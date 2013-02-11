@@ -183,7 +183,7 @@ class Invocation(object):
             raise WrongApiUsage(reason)
 
     def returns(self, value):
-        self.context.output = value
+        self.context.retval = value
         self.delegates(func_returning(value))
         return self
 
@@ -235,7 +235,7 @@ class Invocation(object):
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
         self.update_args(args, kargs)
-        self.output = None
+        self.retval = None
         self.delegate = func_returning(None)
 
     def update_args(self, args, kargs):
@@ -286,20 +286,21 @@ class InvocationContext(object):
     def __str__(self):
         return str(InvocationFormatter(self))
 
+    def __repr__(self):
+        return str(self)
+
 
 class InvocationFormatter(object):
     def __init__(self, context):
-        self.args = context.args
-        self.kargs = context.kargs
-        self.output = context.output
+        self.context = context
 
     def __str__(self):
-        arg_values = self._format_args(self.args)
-        arg_values.extend(self._format_kargs(self.kargs))
+        arg_values = self._format_args(self.context.args)
+        arg_values.extend(self._format_kargs(self.context.kargs))
 
         retval = "(%s)" % str.join(', ', arg_values)
-        if self.output is not None:
-            retval += "-> %s" % repr(self.output)
+        if self.context.retval is not None:
+            retval += "-> %s" % repr(self.context.retval)
         return retval
 
     @classmethod

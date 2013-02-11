@@ -63,17 +63,15 @@ class Stub(object):
 
         self._prepare_invocation(invocation)
 
-        have_retval = False
+        stubbed_retval = None
         if invocation in self._stubs:
             stubbed = self._stubs.lookup(invocation)
-            retval = stubbed.perform(invocation)
-            have_retval = True
+            stubbed_retval = stubbed.perform(invocation)
 
         actual_retval = self._perform_invocation(invocation)
 
-        if not have_retval:
-            return actual_retval
-
+        retval = stubbed_retval if stubbed_retval is not None else actual_retval
+        invocation.context.retval = retval
         return retval
 
     def _prepare_invocation(self, invocation):

@@ -29,20 +29,20 @@ from doublex.internal import Invocation, InvocationContext
 from unit_tests import ObjCollaborator
 
 
-def create_invocation(name, args=None, kargs=None, output=None):
+def create_invocation(name, args=None, kargs=None, retval=None):
     stub = doublex.Stub()
 
     args = args or tuple()
     kargs = kargs or {}
     context = InvocationContext(*args, **kargs)
-    context.output = output
+    context.retval = retval
     invocation = Invocation(stub, name, context)
     return invocation
 
 
 class InvocationReportTests(TestCase):
     def test_int_arg_method_returning_int(self):
-        invocation = create_invocation('foo', (1,), None, output=1)
+        invocation = create_invocation('foo', (1,), None, retval=1)
         assert_that(str(invocation), is_('Stub.foo(1)-> 1'))
 
     def test_ANY_arg_method_returning_none(self):

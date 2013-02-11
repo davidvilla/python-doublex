@@ -95,9 +95,9 @@ class when(object):
         self.kargs = kargs
         return self
 
-    def then_return(self, output):
+    def then_return(self, retval):
         with self.method.double:
-            self.method(*self.args, **self.kargs).returns(output)
+            self.method(*self.args, **self.kargs).returns(retval)
 
     def then_return_input(self):
         with self.method.double:
