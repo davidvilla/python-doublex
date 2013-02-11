@@ -170,6 +170,7 @@ class AdhocAttributesTests(TestCase):
         stub = Mock(Collaborator)
         stub.foo = 1
 
+
 class SpyTests(TestCase):
     def setUp(self):
         self.spy = Spy()
@@ -265,6 +266,28 @@ class SpyTests(TestCase):
 #        spy = Spy(Collaborator)
 #        spy.mixed_method(2, True)
 #        assert_that(spy.mixed_method, called().with_args(key_param=True))
+
+    def test_called_with_object(self):
+        class Module:
+            def getName(self):
+                return "Module"
+
+        class Visitor:
+            def visitModule(self, m):
+                pass
+
+        class Parser:
+            def __init__(self, visitor):
+                self.visitor = visitor
+
+            def accept(self, visitor):
+                self.visitor.visitModule(Module())
+
+        visitor = Spy(Visitor)
+        parser = Parser(visitor)
+        parser.accept(visitor)
+
+        assert_that(visitor.visitModule.calls[0].args[0].getName(), is_("Module"))
 
 
 class VerifiedSpyTests(TestCase):

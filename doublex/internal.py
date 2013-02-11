@@ -108,6 +108,12 @@ class Method(Observable):
     def create_invocation(self, args, kargs):
         return Invocation.from_args(self.double, self.name, args, kargs)
 
+    @property
+    def calls(self):
+        if not isinstance(self.double, SpyBase):
+            raise WrongApiUsage("Only Spy derivates store invocations")
+        return [x.context for x in self.double._get_invocations_to(self.name)]
+
     def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
         return self.double._received_invocation(invocation, times)

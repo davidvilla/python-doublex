@@ -1,3 +1,8 @@
+0.20130211
+==========
+
+- Access to spy invocations with _method_.calls
+
 0.20130110
 ==========
 
