@@ -68,13 +68,7 @@ class OperationList(list):
         return compatible[0]
 
     def show(self, indent=0):
-        if not self:
-            return add_indent("No one", indent)
-
-        lines = []
-        for i in self:
-            lines.append(add_indent(i, indent))
-        return str.join('\n', lines)
+        return str.join('\n', (add_indent(i, indent) for i in self)) if self else add_indent("No one", indent)
 
 
 class Observable(object):
@@ -212,20 +206,10 @@ class Invocation(object):
             self.context.matches(other.context)
 
     def __lt__(self, other):
-        if ANY_ARG in other.context.args:
-            return True
-
-        if self.name < other.name:
-            return True
-
-        if self.context < other.context:
-            return True
-
-        return False
+        return ANY_ARG in other.context.args or self.name < other.name or self.context < other.context
 
     def __repr__(self):
-        return "%s.%s%s" % (self.double._classname(),
-                            self.name, self.context)
+        return "%s.%s%s" % (self.double._classname(), self.name, self.context)
 
     def show(self, indent=0):
         return add_indent(self, indent)
@@ -305,11 +289,7 @@ class InvocationFormatter(object):
 
     @classmethod
     def _format_args(cls, args):
-        items = []
-        for arg in args:
-            items.append(cls._format_value(arg))
-
-        return items
+        return [cls._format_value(arg) for arg in args]
 
     @classmethod
     def _format_kargs(cls, kargs):
@@ -323,8 +303,7 @@ class InvocationFormatter(object):
 
         if isinstance(arg, (int, str, dict)):
             return repr(arg)
-        else:
-            return str(arg)
+        return str(arg)
 
 
 class PropertyGet(Invocation):
