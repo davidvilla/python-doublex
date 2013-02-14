@@ -1,13 +1,12 @@
 See full documentation on [wiki_]
 =================================
 
-=============  ==========================================================
-slides         http://arco.esi.uclm.es/~david.villa/python-doublex/slides
-sources        https://bitbucket.org/DavidVilla/python-doublex
-PyPI project   http://pypi.python.org/pypi/doublex
-pydoubles.org  http://www.pydoubles.org/doublex-documentation/
-jenkins job    https://fowler.esi.uclm.es/job/python-doublex/
-=============  ==========================================================
+* slides         - http://arco.esi.uclm.es/~david.villa/python-doublex/slides
+* sources        - https://bitbucket.org/DavidVilla/python-doublex
+* PyPI project   - http://pypi.python.org/pypi/doublex
+* pydoubles.org  - http://www.pydoubles.org/doublex-documentation/
+* jenkins job    - https://fowler.esi.uclm.es/job/python-doublex/
+
 
 debian package http://packages.debian.org/source/sid/doublex
 
