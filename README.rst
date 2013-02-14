@@ -9,10 +9,7 @@ See full documentation on [wiki_]
 
 * official debian package: http://packages.debian.org/source/sid/doublex
 
-  * debian dir::
-
-      ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
-
+  * debian dir |br| ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
   * amateur debian package at::
 
       ``deb http://babel.esi.uclm.es/arco/ sid main``
@@ -23,3 +20,4 @@ See full documentation on [wiki_]
 
 
 .. _wiki: https://bitbucket.org/DavidVilla/python-doublex/wiki
+.. |br| raw:: html
