@@ -64,11 +64,14 @@ class OperationList(list):
             raise LookupError
 
         compatible = [i for i in self if i == invocation]
-        compatible.sort()
-        return compatible[0]
+        return sorted(compatible)[0]
 
     def show(self, indent=0):
-        return str.join('\n', (add_indent(i, indent) for i in self)) if self else add_indent("No one", indent)
+        if not self:
+            return add_indent("No one", indent)
+
+        lines = [add_indent(i, indent) for i in self]
+        return str.join('\n', lines)
 
 
 class Observable(object):
@@ -206,7 +209,9 @@ class Invocation(object):
             self.context.matches(other.context)
 
     def __lt__(self, other):
-        return ANY_ARG in other.context.args or self.name < other.name or self.context < other.context
+        return any([ANY_ARG in other.context.args,
+                    self.name < other.name,
+                    self.context < other.context])
 
     def __repr__(self):
         return "%s.%s%s" % (self.double._classname(), self.name, self.context)
