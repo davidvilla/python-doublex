@@ -97,10 +97,11 @@ class Method(Observable):
         if not self.double._setting_up:
             self.notify(*args, **kargs)
 
-        self._event.set()
-
         invocation = self.create_invocation(args, kargs)
-        return self.double._manage_invocation(invocation)
+        retval = self.double._manage_invocation(invocation)
+
+        self._event.set()
+        return retval
 
     def create_invocation(self, args, kargs):
         return Invocation.from_args(self.double, self.name, args, kargs)
