@@ -94,13 +94,13 @@ class Method(Observable):
         self._event = threading.Event()
 
     def __call__(self, *args, **kargs):
-        if not self.double._setting_up:
-            self.notify(*args, **kargs)
-
         invocation = self.create_invocation(args, kargs)
         retval = self.double._manage_invocation(invocation)
 
-        self._event.set()
+        if not self.double._setting_up:
+            self._event.set()
+            self.notify(*args, **kargs)
+
         return retval
 
     def create_invocation(self, args, kargs):

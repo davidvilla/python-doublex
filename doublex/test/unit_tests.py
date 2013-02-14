@@ -980,16 +980,31 @@ class AsyncTests(TestCase):
         # then
         assert_that(spy.write, called().async(timeout=1))
 
-    def test_spy_async_call_fluent_methods(self):
+    def test_spy_async_support_1_call_only(self):
+        # given
         spy = Spy()
         sut = AsyncTests.SUT(spy)
 
+        # when
         sut.send_data(3)
         sut.send_data(3)
 
         # then
         with self.assertRaises(WrongApiUsage):
             assert_that(spy.write, called().async(timeout=1).with_args(3).times(2))
+
+    def test_spy_async_stubbed(self):
+        # given
+        with Spy() as spy:
+            spy.write(ANY_ARG).returns(100)
+
+        sut = AsyncTests.SUT(spy)
+
+        # when
+        sut.send_data(3)
+
+        # then
+        assert_that(spy.write, called().async(timeout=1))
 
 
 class Observer(object):
