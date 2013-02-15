@@ -1,3 +1,9 @@
+0.20130215
+==========
+
+- Release 1.6.3
+- async race condition bug fixed
+
 0.20130211
 ==========
 
@@ -14,7 +20,7 @@
 0.20121118
 ==========
 
-- ProxySpy propagates stubbed invocations too.
+- ProxySpy propagates stubbed invocations too
 
 0.20121025
 ==========
@@ -34,7 +40,7 @@
 0.20120911
 ==========
 
-- API CHANGE: called_with() is now called().with_args()
+- API CHANGE: called_with() is now called().with_args() (magmax suggestion)
 
 
 .. Local Variables:
