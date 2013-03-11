@@ -147,28 +147,32 @@ class AdhocAttributesTests(TestCase):
     "all doubles accepts ad-hoc attributes"
 
     def test_add_attribute_for_free_stub(self):
-        stub = Stub()
-        stub.foo = 1
+        sut = Stub()
+        sut.foo = 1
 
     def test_add_attribute_for_verified_stub(self):
-        stub = Stub(Collaborator)
-        stub.foo = 1
+        sut = Stub(Collaborator)
+        sut.foo = 1
 
     def test_add_attribute_for_free_spy(self):
-        stub = Spy()
-        stub.foo = 1
+        sut = Spy()
+        sut.foo = 1
 
     def test_add_attribute_for_verified_spy(self):
-        stub = Spy(Collaborator)
-        stub.foo = 1
+        sut = Spy(Collaborator)
+        sut.foo = 1
+
+    def test_add_attribute_for_proxyspy(self):
+        sut = Spy(Collaborator())
+        sut.test_field = 'other'
 
     def test_add_attribute_for_free_mock(self):
-        stub = Mock()
-        stub.foo = 1
+        sut = Mock()
+        sut.foo = 1
 
     def test_add_attribute_for_verified_mock(self):
-        stub = Mock(Collaborator)
-        stub.foo = 1
+        sut = Mock(Collaborator)
+        sut.foo = 1
 
 
 class SpyTests(TestCase):

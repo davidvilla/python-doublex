@@ -86,7 +86,11 @@ class Observable(object):
             ob(*args, **kargs)
 
 
-class Method(Observable):
+class DoubleAttribute(object):
+    pass
+
+
+class Method(Observable, DoubleAttribute):
     def __init__(self, double, name):
         super(Method, self).__init__()
         self.double = double
@@ -331,7 +335,10 @@ class PropertySet(Invocation):
             self.double._classname(), self.name, self.value)
 
 
-class Property(object):
+class Property(DoubleAttribute):
+    """
+    Property descriptor for doubles
+    """
     def __init__(self, double, key):
         self.double = double
         self.key = key
@@ -365,8 +372,10 @@ class AttributeFactory(object):
 
     @classmethod
     def create(cls, double, key):
+        get_actual_attr = lambda double, key: double._proxy.get_attr(key)
         typename = double._proxy.get_attr_typename(key)
-        return cls.typemap[typename](double, key)
+        factory = cls.typemap.get(typename, get_actual_attr)
+        return factory(double, key)
 
 
 class SpyBase(object):
