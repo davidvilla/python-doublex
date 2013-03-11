@@ -86,11 +86,7 @@ class Observable(object):
             ob(*args, **kargs)
 
 
-class DoubleAttribute(object):
-    pass
-
-
-class Method(Observable, DoubleAttribute):
+class Method(Observable):
     def __init__(self, double, name):
         super(Method, self).__init__()
         self.double = double
@@ -335,7 +331,7 @@ class PropertySet(Invocation):
             self.double._classname(), self.name, self.value)
 
 
-class Property(DoubleAttribute):
+class Property(object):
     """
     Property descriptor for doubles
     """
@@ -361,6 +357,10 @@ class Property(DoubleAttribute):
 
 
 class AttributeFactory(object):
+    """
+    Create double methods, properties or attributes from collaborator
+    """
+
     typemap = {
         'instancemethod':    Method,
         'method_descriptor': Method,

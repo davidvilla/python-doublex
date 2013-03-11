@@ -24,7 +24,7 @@ import inspect
 import hamcrest
 
 from .internal import (ANY_ARG, OperationList, Method, MockBase, SpyBase,
-                       AttributeFactory, DoubleAttribute)
+                       AttributeFactory, Property)
 from .proxy import create_proxy, get_class
 from .matchers import MockExpectInvocation
 
@@ -82,25 +82,26 @@ class Stub(object):
         return None
 
     def __getattr__(self, key):
-        self._add_attr(key)
+        self._add_attr_from_collaborator(key)
         return object.__getattribute__(self, key)
 
     def __setattr__hook(self, key, value):
         if key in self.__dict__:
-            return object.__setattr__(self, key, value)
+            object.__setattr__(self, key, value)
+            return
 
         try:
-            self._add_attr(key)
+            self._add_attr_from_collaborator(key)
         except AttributeError:
-            #  attribute 'key' does not exists, creaing it ad-hoc
+            #  collaborator has not attribute 'key', creaing it ad-hoc
             pass
 
         # descriptor protocol compliant
         object.__setattr__(self, key, value)
 
-    def _add_attr(self, key):
+    def _add_attr_from_collaborator(self, key):
         attr = AttributeFactory.create(self, key)
-        if isinstance(attr, DoubleAttribute):
+        if isinstance(attr, Property):
             setattr(self.__class__, key, attr)
         else:
             object.__setattr__(self, key, attr)
