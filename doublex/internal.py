@@ -171,6 +171,7 @@ class Invocation(object):
         self.double = double
         self.name = name
         self.context = context or InvocationContext()
+        self.delegate = func_returning(None)
 
     @classmethod
     def from_args(cls, double, name, args=(), kargs={}):
@@ -178,11 +179,11 @@ class Invocation(object):
 
     def delegates(self, delegate):
         if isinstance(delegate, collections.Callable):
-            self.context.delegate = delegate
+            self.delegate = delegate
             return
 
         try:
-            self.context.delegate = iter(delegate).next
+            self.delegate = iter(delegate).next
         except TypeError:
             reason = "delegates() must be called with callable or iterable instance (got '%s' instead)" % delegate
             raise WrongApiUsage(reason)
@@ -211,7 +212,8 @@ class Invocation(object):
 
     # FIXME: rename to apply_stub?
     def perform(self, actual_invocation):
-        return self.context.exec_delegate(actual_invocation.context)
+        context = actual_invocation.context
+        return self.delegate(*context.args, **context.kargs)
 
     def apply_on_collaborator(self):
         return self.double._proxy.perform_invocation(self)
@@ -237,7 +239,6 @@ class InvocationContext(object):
     def __init__(self, *args, **kargs):
         self.update_args(args, kargs)
         self.retval = None
-        self.delegate = func_returning(None)
 
     def update_args(self, args, kargs):
         self.args = args
@@ -252,9 +253,6 @@ class InvocationContext(object):
             return True
         except AssertionError:
             return False
-
-    def exec_delegate(self, context):
-        return self.delegate(*context.args, **context.kargs)
 
     @classmethod
     def _assert_args_match(cls, args1, args2):
