@@ -157,24 +157,25 @@ def Mimic(double, collab):
         return self._get_method(key)
 
     def _get_method(self, key):
-        if key not in list(self._methods.keys()):
-            typename = self._proxy.get_attr_typename(key)
-            assert typename in ['instancemethod', 'function', 'method'], typename
-            method = Method(self, key)
-            self._methods[key] = method
+        if key in list(self._methods.keys()):
+            return self._methods[key]
 
+        typename = self._proxy.get_attr_typename(key)
+        assert typename in ['instancemethod', 'function', 'method'], typename
+        method = Method(self, key)
+        self._methods[key] = method
         return self._methods[key]
 
     assert issubclass(double, Stub), \
-        "Mimic() takes a double class as first argument (got %s instead)" & double
+        "Mimic() takes a double class as first argument (got %s instead)" % double
 
     collab_class = get_class(collab)
     generated_class = type(
         "Mimic_%s_for_%s" % (double.__name__, collab_class.__name__),
         (double, collab_class) + collab_class.__bases__,
-        dict(_methods = {},
-             __getattribute__ = __getattribute__hook,
-             _get_method = _get_method))
+        dict(_methods={},
+             __getattribute__=__getattribute__hook,
+             _get_method=_get_method))
     return generated_class(collab)
 
 
