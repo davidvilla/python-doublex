@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import time
 
 import sys
 from unittest import TestCase
@@ -778,7 +777,7 @@ class StubDelegateTests(TestCase):
         try:
             with self.stub:
                 self.stub.foo().delegates(None)
-            fail("Exception should be raised")
+            self.fail("Exception should be raised")
 
         except WrongApiUsage as e:
             expected = "delegates() must be called with callable or iterable instance (got 'None' instead)"
@@ -872,8 +871,13 @@ class PropertyTests(TestCase):
 
         assert_that(stub.prop, is_(2))
 
-    def test_spy_get_property(self):
+    def test_spy_get_property_using_class(self):
         spy = Spy(ObjCollaborator)
+        skip = spy.prop
+        assert_that(spy, property_got('prop'))
+
+    def test_spy_get_property_using_instance(self):
+        spy = Spy(ObjCollaborator())
         skip = spy.prop
         assert_that(spy, property_got('prop'))
 
@@ -887,8 +891,13 @@ class PropertyTests(TestCase):
             AssertionError,
             assert_that, spy, property_got('prop'))
 
-    def test_spy_set_property(self):
+    def test_spy_set_property_using_class(self):
         spy = Spy(ObjCollaborator)
+        spy.prop = 2
+        assert_that(spy, property_set('prop'))
+
+    def test_spy_set_property_using_instance(self):
+        spy = Spy(ObjCollaborator())
         spy.prop = 2
         assert_that(spy, property_set('prop'))
 
@@ -947,7 +956,28 @@ class PropertyTests(TestCase):
         spy = Spy(ObjCollaborator)
         spy.prop = 2
         spy.prop = 3
-        assert_that(spy, property_set('prop').to(greater_than(1)).times(less_than(3)))
+        assert_that(spy,
+                    property_set('prop').to(greater_than(1)).
+                    times(less_than(3)))
+
+    def test_proxy_spy_get_actual_property(self):
+        collaborator = ObjCollaborator()
+        print collaborator.prop
+        sut = ProxySpy(collaborator)
+        assert_that(sut.prop, is_(1))
+
+    def test_proxy_spy_get_stubbed_property(self):
+        collaborator = ObjCollaborator()
+        with ProxySpy(collaborator) as sut:
+            sut.prop = 2
+        assert_that(sut.prop, is_(2))
+
+    def test_proxy_spy_set_property(self):
+        collaborator = ObjCollaborator()
+        sut = ProxySpy(collaborator)
+        sut.prop = 20
+        assert_that(sut.prop, is_(20))
+        assert_that(collaborator.prop, is_(20))
 
 
 class AsyncTests(TestCase):

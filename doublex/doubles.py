@@ -54,9 +54,8 @@ class Stub(object):
     def __exit__(self, *args):
         self._setting_up = False
 
-    def _manage_invocation(self, invocation, check=True):
-        if check:
-            self._proxy.assure_signature_matches(invocation)
+    def _manage_invocation(self, invocation):
+        self._proxy.assure_signature_matches(invocation)
 
         if self._setting_up:
             self._stubs.append(invocation)
@@ -119,8 +118,9 @@ class Spy(Stub, SpyBase):
     def _prepare_invocation(self, invocation):
         self._recorded.append(invocation)
 
-    def _received_invocation(self, invocation, times):
-        return hamcrest.is_(times).matches(self._recorded.count(invocation))
+    def _received_invocation(self, invocation, times, cmp_pred=None):
+        return hamcrest.is_(times).matches(
+            self._recorded.count(invocation, cmp_pred))
 
     def _get_invocations_to(self, name):
         return [i for i in self._recorded
@@ -137,7 +137,7 @@ class ProxySpy(Spy):
             raise TypeError("ProxySpy takes an instance (got %s instead)" % thing)
 
     def _perform_invocation(self, invocation):
-        return self._proxy.perform_invocation(invocation)
+        return invocation.apply_on_collaborator()
 
 
 class Mock(Spy, MockBase):

@@ -73,6 +73,13 @@ class OperationList(list):
         lines = [add_indent(i, indent) for i in self]
         return str.join('\n', lines)
 
+    def count(self, invocation, pred=None):
+        print pred
+        if pred is None:
+            return list.count(self, invocation)
+
+        return sum(1 for i in self if pred(invocation, i))
+
 
 class Observable(object):
     def __init__(self):
@@ -94,7 +101,7 @@ class Method(Observable):
         self._event = threading.Event()
 
     def __call__(self, *args, **kargs):
-        invocation = self.create_invocation(args, kargs)
+        invocation = self._create_invocation(args, kargs)
         retval = self.double._manage_invocation(invocation)
 
         if not self.double._setting_up:
@@ -103,7 +110,7 @@ class Method(Observable):
 
         return retval
 
-    def create_invocation(self, args, kargs):
+    def _create_invocation(self, args, kargs):
         return Invocation.from_args(self.double, self.name, args, kargs)
 
     @property
@@ -202,8 +209,12 @@ class Invocation(object):
         for i in range(1, n):
             self.double._manage_invocation(self)
 
+    # FIXME: rename to apply_stub?
     def perform(self, actual_invocation):
         return self.context.exec_delegate(actual_invocation.context)
+
+    def apply_on_collaborator(self):
+        return self.double._proxy.perform_invocation(self)
 
     def __eq__(self, other):
         return self.double._proxy.same_method(self.name, other.name) and \
@@ -312,23 +323,34 @@ class InvocationFormatter(object):
         return str(arg)
 
 
-class PropertyGet(Invocation):
+class PropertyInvocation(Invocation):
+    def __eq__(self, other):
+        return self.name == other.name
+
+
+class PropertyGet(PropertyInvocation):
+    def __init__(self, double, name):
+        super(PropertyGet, self).__init__(double, name)
+
+    def apply_on_collaborator(self):
+        return getattr(self.double._proxy.collaborator, self.name)
+
     def __repr__(self):
         return "get %s.%s" % (self.double._classname(), self.name)
 
 
-class PropertySet(Invocation):
-    def __init__(self, double, name, value=None):
-        super(PropertySet, self).__init__(
-            double, name, InvocationContext(value))
+class PropertySet(PropertyInvocation):
+    def __init__(self, double, name, value):
         self.value = value
+        param = InvocationContext(value)
+        super(PropertySet, self).__init__(double, name, param)
 
-    def _was_called(self, times):
-        return self.double._was_called(self, times)
+    def apply_on_collaborator(self):
+        return setattr(self.double._proxy.collaborator, self.name, self.value)
 
     def __repr__(self):
-        return "set %s.%s to %s" % (
-            self.double._classname(), self.name, self.value)
+        return "set %s.%s to %s" % (self.double._classname(),
+                                    self.name, self.value)
 
 
 class Property(object):
@@ -338,22 +360,23 @@ class Property(object):
     def __init__(self, double, key):
         self.double = double
         self.key = key
-        self.value = None
 
-    def __get__(self, obj, type=None):
-        self._manage(PropertyGet(self.double, self.key))
-        return self.value
+    def __get__(self, obj, type_=None):
+        return self._manage(PropertyGet(self.double, self.key))
 
     def __set__(self, obj, value):
         prop = self.double._proxy.get_class_attr(self.key)
         if prop.fset is None:
-            raise AttributeError("can't set attribute")
+            raise AttributeError("can't set attribute %s" % self.key)
 
-        self._manage(PropertySet(self.double, self.key, value))
-        self.value = value
+        invocation = self._manage(
+            PropertySet(self.double, self.key, value))
 
-    def _manage(self, operation):
-        self.double._manage_invocation(operation, check=False)
+        if self.double._setting_up:
+            invocation.returns(value)
+
+    def _manage(self, invocation):
+        return self.double._manage_invocation(invocation)
 
 
 class AttributeFactory(object):
@@ -374,8 +397,8 @@ class AttributeFactory(object):
     def create(cls, double, key):
         get_actual_attr = lambda double, key: double._proxy.get_attr(key)
         typename = double._proxy.get_attr_typename(key)
-        factory = cls.typemap.get(typename, get_actual_attr)
-        return factory(double, key)
+        attr = cls.typemap.get(typename, get_actual_attr)
+        return attr(double, key)
 
 
 class SpyBase(object):

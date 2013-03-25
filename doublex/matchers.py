@@ -23,8 +23,9 @@ import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 from hamcrest import assert_that, is_
 
-from .internal import (Method, InvocationContext, ANY_ARG, MockBase, SpyBase,
-                       PropertyGet, PropertySet, WrongApiUsage)
+from .internal import (
+    Method, InvocationContext, ANY_ARG, MockBase, SpyBase,
+    PropertyGet, PropertySet, WrongApiUsage, Invocation)
 
 __all__ = ['called',
            'never',
@@ -163,7 +164,8 @@ class property_got(OperationMatcher):
     def _matches(self, double):
         self.double = double
         self.operation = PropertyGet(self.double, self.propname)
-        return double._received_invocation(self.operation, 1)
+        return double._received_invocation(
+            self.operation, 1, cmp_pred=Invocation.__eq__)
 
     def times(self, n):
         return property_got(self.property_name, n)
@@ -188,9 +190,9 @@ class property_set(OperationMatcher):
 
     def _matches(self, double):
         self.double = double
-        self.operation = PropertySet(self.double, self.property_name,
-                                     self.value)
-        return self.double._received_invocation(self.operation, self._times)
+        self.operation = PropertySet(self.double, self.property_name, self.value)
+        return self.double._received_invocation(
+            self.operation, self._times, cmp_pred=Invocation.__eq__)
 
     def to(self, value):
         return property_set(self.property_name, value)

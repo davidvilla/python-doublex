@@ -82,7 +82,7 @@ class Proxy(object):
 
     def get_attr_typename(self, key):
         try:
-            attr = getattr(self.collaborator, key)
+            attr = getattr(self.collaborator_class, key)
             return type(attr).__name__
         except AttributeError:
             reason = "'%s' object has no attribute '%s'" % \
@@ -96,18 +96,26 @@ class Proxy(object):
     def perform_invocation(self, invocation):
         method = getattr(self.collaborator, invocation.name)
         return method(*invocation.context.args,
-                       **invocation.context.kargs)
+                      **invocation.context.kargs)
 
 
 def create_signature(proxy, method_name):
-    method = getattr(proxy.collaborator, method_name)
-    if not is_method_or_func(method):
+    if is_property(proxy, method_name):
+        return PropertySignature(proxy, method_name)
+
+    if not is_method_or_func(proxy, method_name):
         return BuiltinSignature(proxy, method_name)
 
     return Signature(proxy, method_name)
 
 
-def is_method_or_func(func):
+def is_property(proxy, attr_name):
+    attr = getattr(proxy.collaborator_class, attr_name)
+    return isinstance(attr, property)
+
+
+def is_method_or_func(proxy, method_name):
+    func = getattr(proxy.collaborator, method_name)
     if inspect.ismethod(func):
         func = func.im_func
     return inspect.isfunction(func)
@@ -158,3 +166,10 @@ class Signature(object):
         return "%s.%s%s" % (self._proxy.collaborator_classname(),
                             self.name,
                             inspect.formatargspec(*self.argspec))
+
+class PropertySignature(object):
+    def __init__(self, proxy, name):
+        pass
+
+    def assure_match(self, args, kargs):
+        pass
