@@ -368,7 +368,7 @@ class BuiltinSpyTests(TestCase):
             assert_that(str(e), contains_string(expected))
 
 
-class ProxySpyTest(TestCase):
+class ProxySpyTests(TestCase):
     def test_must_give_argument(self):
         self.failUnlessRaises(TypeError, ProxySpy)
 
@@ -397,6 +397,19 @@ class ProxySpyTest(TestCase):
         assert_that(foo.value, is_(2))
         assert_that(spy.store_add(3), is_(1000))
         assert_that(foo.value, is_(3))
+
+    def test_propagate_attribute_setting_to_collaborator(self):
+        class Foo:
+            def __init__(self):
+                self.value = 0
+
+        foo = Foo()
+        sut = ProxySpy(foo)
+
+        sut.value = 100
+
+        assert_that(sut.value, is_(100))
+        assert_that(foo.value, is_(100))
 
 
 class MockOrderTests(TestCase):
