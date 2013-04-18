@@ -39,19 +39,16 @@ class WrongApiUsage(Exception):
     pass
 
 
-class SingleValue:
-    def __init__(self, name):
-        self.name = name
-
+class Constant(str):
     def __repr__(self):
-        return self.name
+        return str(self)
 
     def __eq__(self, other):
-        return id(self) == id(other)
+        return self is other
 
 
-ANY_ARG = SingleValue('ANY_ARG')
-IMPOSSIBLE = SingleValue('IMPOSSIBLE')
+ANY_ARG = Constant('ANY_ARG')
+IMPOSSIBLE = Constant('IMPOSSIBLE')
 
 
 def add_indent(text, indent=0):
@@ -279,8 +276,11 @@ class InvocationContext(object):
         return self.matches(other)
 
     def __lt__(self, other):
-        return (self.args, sorted(self.kargs.items())) < \
-            (other.args, sorted(other.kargs.items()))
+        for a, b in itertools.izip_longest(self.args, other.args, fillvalue=IMPOSSIBLE):
+            if b is ANY_ARG or a < b:
+                return True
+
+        return sorted(self.kargs.items()) < sorted(other.kargs.items())
 
     def __str__(self):
         return str(InvocationFormatter(self))

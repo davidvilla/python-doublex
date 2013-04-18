@@ -25,12 +25,34 @@ import itertools
 import thread
 import threading
 
+
 from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
 from hamcrest.library.object.hasproperty import *
 from hamcrest.library.number.ordering_comparison import *
 
 from doublex import *
+from doublex.internal import InvocationContext
+
+
+class InvocationContextTests(TestCase):
+    def test_order(self):
+        c1 = InvocationContext(1)
+        c2 = InvocationContext(2)
+        contexts = [c2, c1]
+
+        contexts.sort()
+
+        assert_that(contexts[0], is_(c1))
+
+    def test_order_ANY_ARG(self):
+        c1 = InvocationContext(1)
+        c2 = InvocationContext(ANY_ARG)
+        contexts = [c2, c1]
+
+        contexts.sort()
+
+        assert_that(contexts[0], is_(c1))
 
 
 class StubTests(TestCase):
@@ -238,13 +260,13 @@ class SpyTests(TestCase):
         self.spy.foo(3.0, [1, 2], 'hi', color='red', width=10)
 
         assert_that(self.spy.foo, called().with_args(
-                3.0, [1, 2], 'hi', color='red', width=10))
+            3.0, [1, 2], 'hi', color='red', width=10))
         assert_that(self.spy.foo, called().with_args(
-                3.0, [1, 2], 'hi', width=10, color='red'))
+            3.0, [1, 2], 'hi', width=10, color='red'))
         assert_that(self.spy.foo, is_not(called().with_args(
-                [1, 2], 'hi', width=10, color='red')))
+            [1, 2], 'hi', width=10, color='red')))
         assert_that(self.spy.foo, is_not(called().with_args(
-                [1, 2], 3.0, 'hi', width=10, color='red')))
+            [1, 2], 3.0, 'hi', width=10, color='red')))
 
     def test_called_with_args_and_times(self):
         self.spy.foo(1)
