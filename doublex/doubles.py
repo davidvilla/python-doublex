@@ -24,7 +24,7 @@ import inspect
 import hamcrest
 
 from .internal import (ANY_ARG, OperationList, Method, MockBase, SpyBase,
-                       AttributeFactory, Property)
+                       AttributeFactory)
 from .proxy import create_proxy, get_class
 from .matchers import MockExpectInvocation
 
@@ -36,7 +36,7 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
 
 class Stub(object):
     def __new__(cls, collaborator=None):
-        '''Creates a fresh class per instance. This is required due to
+        '''Creates a fresh class clone per instance. This is required due to
         ad-hoc stub properties are class attributes'''
         klass = type(cls.__name__, (cls,), dict(cls.__dict__))
         return object.__new__(klass)
@@ -100,7 +100,7 @@ class Stub(object):
 
     def _add_attr_from_collaborator(self, key):
         attr = AttributeFactory.create(self, key)
-        if isinstance(attr, Property):
+        if isinstance(attr, property):
             setattr(self.__class__, key, attr)
         else:
             object.__setattr__(self, key, attr)

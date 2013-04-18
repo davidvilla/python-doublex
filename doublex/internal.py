@@ -351,30 +351,24 @@ class PropertySet(PropertyInvocation):
                                     self.name, self.value)
 
 
-class Property(object):
-    """
-    Property descriptor for doubles
-    """
-    def __init__(self, double, key):
-        self.double = double
-        self.key = key
+def property_factory(double, key):
+    def manage(invocation):
+        return double._manage_invocation(invocation)
 
-    def __get__(self, obj, type_=None):
-        return self._manage(PropertyGet(self.double, self.key))
+    def get_property(obj):
+        return manage(PropertyGet(double, key))
 
-    def __set__(self, obj, value):
-        prop = self.double._proxy.get_class_attr(self.key)
+    def set_property(obj, value):
+        prop = double._proxy.get_class_attr(key)
         if prop.fset is None:
-            raise AttributeError("can't set attribute %s" % self.key)
+            raise AttributeError("can't set attribute %s" % key)
 
-        invocation = self._manage(
-            PropertySet(self.double, self.key, value))
+        invocation = manage(PropertySet(double, key, value))
 
-        if self.double._setting_up:
+        if double._setting_up:
             invocation.returns(value)
 
-    def _manage(self, invocation):
-        return self.double._manage_invocation(invocation)
+    return property(get_property, set_property)
 
 
 class AttributeFactory(object):
@@ -382,14 +376,14 @@ class AttributeFactory(object):
     Create double methods, properties or attributes from collaborator
     """
 
-    typemap = {
-        'instancemethod':    Method,
-        'method_descriptor': Method,
-        'property':          Property,
+    typemap = dict(
+        instancemethod    = Method,
+        method_descriptor = Method,
+        property          = property_factory,
         # -- python3 --
-        'method':            Method,
-        'function':          Method,
-        }
+        method            = Method,
+        function          = Method,
+        )
 
     @classmethod
     def create(cls, double, key):
