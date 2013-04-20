@@ -81,13 +81,23 @@ class Proxy(object):
                                invocation.context.kargs)
 
     def get_attr_typename(self, key):
+        def raise_no_attribute():
+            reason = "'%s' object has no attribute '%s'" % \
+                (self.collaborator_classname(), key)
+            raise AttributeError(reason)
+
         try:
             attr = getattr(self.collaborator_class, key)
             return type(attr).__name__
         except AttributeError:
-            reason = "'%s' object has no attribute '%s'" % \
-                (self.collaborator_classname(), key)
-            raise AttributeError(reason)
+            if self.collaborator is self.collaborator_class:
+                raise_no_attribute()
+
+        try:
+            attr = getattr(self.collaborator, key)
+            return type(attr).__name__
+        except AttributeError:
+            raise_no_attribute()
 
     def same_method(self, name1, name2):
         return getattr(self.collaborator, name1) == \

@@ -55,7 +55,7 @@ class InvocationContextTests(TestCase):
         assert_that(contexts[0], is_(c1))
 
 
-class StubTests(TestCase):
+class FreeStubTests(TestCase):
     def setUp(self):
         self.stub = Stub()
 
@@ -106,7 +106,7 @@ class StubTests(TestCase):
             pass
 
 
-class VerifiedStubTests(TestCase):
+class StubTests(TestCase):
     def setUp(self):
         self.stub = Stub(Collaborator)
 
@@ -152,16 +152,26 @@ class VerifiedStubTests(TestCase):
         assert_that(self.stub.kwarg_method(1), is_(1000))
         assert_that(self.stub.kwarg_method(key_param=2), is_(2000))
 
-
-class StubReturnValueTests(TestCase):
-    def setUp(self):
-        self.spy = Spy(Collaborator)
-
     def test_returning_tuple(self):
-        with self.spy:
-            self.spy.hello().returns((3, 4))
+        with self.stub:
+            self.stub.hello().returns((3, 4))
 
-        assert_that(self.spy.hello(), (3, 4))
+        assert_that(self.stub.hello(), (3, 4))
+
+
+class AccessingActualAttributes(TestCase):
+    def test_read_class_attribute_providing_class(self):
+        stub = Stub(Collaborator)
+        assert_that(stub.class_attr, is_("OK"))
+
+    def test_read_class_attribute_providing_instance(self):
+        stub = Stub(Collaborator())
+        assert_that(stub.class_attr, is_("OK"))
+
+    # New in version 1.6.5
+    def test_proxyspy_read_instance_attribute(self):
+        stub = Stub(Collaborator())
+        assert_that(stub.instance_attr, is_(300))
 
 
 class AdhocAttributesTests(TestCase):
@@ -196,7 +206,7 @@ class AdhocAttributesTests(TestCase):
         sut.adhoc = 1
 
 
-class SpyTests(TestCase):
+class FreeSpyTests(TestCase):
     def setUp(self):
         self.spy = Spy()
 
@@ -332,7 +342,7 @@ class SpyCallsTests(TestCase):
         assert_that(visitor.visitModule.calls[0].args[0].getName(), is_("Module"))
 
 
-class VerifiedSpyTests(TestCase):
+class SpyTests(TestCase):
     def setUp(self):
         self.spy = Spy(Collaborator())
 
@@ -478,7 +488,7 @@ class MockOrderTests(TestCase):
         assert_that(self.mock, any_order_verify())
 
 
-class VerifiedMockTests(TestCase):
+class MockTests(TestCase):
     def test_from_instance(self):
         mock = Mock(Collaborator())
         with mock:
@@ -1019,7 +1029,7 @@ class AsyncTests(TestCase):
 
         # when
         sut.send_data()
-        barrier.wait(1)    # test probably FAILS without this
+        barrier.wait(1)  # test probably FAILS without this
 
         # then
         assert_that(spy.write, called())
@@ -1090,15 +1100,14 @@ class ObjCollaborator(object):
         return 2
 
 
-#----------------------------#
-#- pyDoubles migrated tests -#
-#----------------------------#
-
 class Collaborator:
     """
     The original object we double in tests
     """
-    test_field = "OK"
+    class_attr = "OK"
+
+    def __init__(self):
+        self.instance_attr = 300
 
     def hello(self):
         return "hello"
