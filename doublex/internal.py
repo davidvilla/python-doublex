@@ -71,7 +71,6 @@ class OperationList(list):
         return str.join('\n', lines)
 
     def count(self, invocation, pred=None):
-        print pred
         if pred is None:
             return list.count(self, invocation)
 
