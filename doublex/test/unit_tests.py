@@ -457,6 +457,20 @@ class MockOrderTests(TestCase):
             AssertionError,
             assert_that, self.mock, verify())
 
+    def test_several_args(self):
+        with self.mock:
+            self.mock.foo(1, 1)
+            self.mock.bar(1)
+            self.mock.foo(2, 2)
+            self.mock.bar(2)
+
+        self.mock.foo(1, 1)
+        self.mock.bar(1)
+        self.mock.foo(2, 2)
+        self.mock.bar(2)
+
+        assert_that(self.mock, verify())
+
     def test_method_name_order_does_not_matter_with_any_order(self):
         with self.mock:
             self.mock.foo()
@@ -484,6 +498,34 @@ class MockOrderTests(TestCase):
 
         self.mock.foo(1, key='b')
         self.mock.foo(1, key='a')
+
+        assert_that(self.mock, any_order_verify())
+
+    def test_several_args_with_any_order(self):
+        with self.mock:
+            self.mock.foo(2, 2)
+            self.mock.bar(1)
+            self.mock.foo(1, 1)
+            self.mock.bar(2)
+
+        self.mock.foo(1, 1)
+        self.mock.bar(1)
+        self.mock.foo(2, 2)
+        self.mock.bar(2)
+
+        assert_that(self.mock, any_order_verify())
+
+    def test_several_args_with_matcher_any_order(self):
+        with self.mock:
+            self.mock.foo(2, anything())
+            self.mock.bar(1)
+            self.mock.foo(1, anything())
+            self.mock.bar(2)
+
+        self.mock.foo(1, 1)
+        self.mock.bar(1)
+        self.mock.foo(2, 2)
+        self.mock.bar(2)
 
         assert_that(self.mock, any_order_verify())
 

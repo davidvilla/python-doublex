@@ -33,6 +33,7 @@ body .reveal {
 
 .reveal h2 {
   font-size: larger;
+  color: #e7ad52;
 }
 
 .reveal .question {
@@ -55,7 +56,7 @@ body .reveal {
       <div class="slides">
 
 	<section>
-	  <h1>doublex</h1>
+	  <h1><a href="https://bitbucket.org/DavidVilla/python-doublex">doublex</a></h1>
 	  <h4>Python test doubles framework</h4>
 	  <p>
 	    <small><a href="http://twitter.com/david_vi11a">@david_vi11a</a></small>
@@ -71,17 +72,15 @@ body .reveal {
 	  </section>
 	  <section>
 	    <p><b>why should I use doubles?</b></p>
-	    <ul>
-	      <li class="fragment"> unit tests must isolate the <a href="http://en.wikipedia.org/wiki/System_under_test">SUT</a></li>
-	      <li class="fragment"> so all collaborators should be substituted by doubles</li>
-	      <li class="fragment"> they require (and promote) your classes meets <a href="http://en.wikipedia.org/wiki/Dependency_inversion_principle">DIP</a> and <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">LSP</a> principles</li>
-	    </ul>
+	    <p class="fragment"> Unit tests must isolate the <a href="http://en.wikipedia.org/wiki/System_under_test">SUT</a>.</p>
+	    <p class="fragment"> So all collaborators should be replaced.</p>
+	    <p class="fragment"> They require (and promote) your classes meets <a href="http://en.wikipedia.org/wiki/Dependency_inversion_principle">DIP</a> and <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">LSP</a>.</p>
 	  </section>
 	</section>
 
 	<section>
 	  <section>
-	    <b>instead of a production class instance ...</b>
+	    <b>then, instead of a production class instance...</b>
 	    <pre><code contenteditable>
  collaborator = Collaborator()
 
@@ -101,19 +100,57 @@ body .reveal {
  sut.exercise()
 	    </code></pre>
 	  </section>
+	</section>
 
+	<section>
+	  <section>
+	  <h2>example:<br/>account service</h2>
 
+	    <pre><code contenteditable>  class AccountService:
+      def __init__(self, store, password_service):
+          self.store = store
+          self.password_service = password_service
+
+      def create(self, login):
+          if self.store.has_user(login):
+              raise AlreadyExists()
+
+          password = self.password_service.generate()
+          if not password:
+              raise InvalidPassword()
+
+          self.store.save(login, password)
+	    </code></pre>
+	  </section>
+	  <section>
+	    <h2>account service</h2>
+	    <p>collaborators</p>
+
+	    <pre><code contenteditable>
+  class AccountStore:
+      def save(self, login, password):
+          pass
+
+      def has_user(self, login):
+          pass
+
+  class PasswordService:
+      def generate(self):
+          pass
+	    </code></pre>
+	  </section>
+	</section>
 
 	</section>
 
 	<section>
-	  <h2>types</h2>
+	  <h2>what is the right double?</h2>
 	  <ul>
-	    <li class="fragment"> <b>Dummy</b>: a placeholder object, never invoked </li>
-	    <li class="fragment"> <b>Fake</b>: Q&amp;D implementation, not suitable for production </li>
-	    <li class="fragment"> <b>Stub</b>: returns hardcoded responses: <em>It say you want to hear</em> </li>
-	    <li class="fragment"> <b>Spy</b>:  <em>Stub</em> that records received invocations </li>
-	    <li class="fragment"> <b>Mock</b>: holds and check programmed expectations </li>
+	    <li> <b>Dummy</b>: a placeholder object, never invoked </li>
+	    <li> <b>Fake</b>: Q&amp;D replacement, not suitable for production </li>
+	    <li> <b>Stub</b>: returns hardcoded responses: <em>It say you want to hear</em> </li>
+	    <li> <b>Spy</b>:  <em>Stub</em> that records received invocations </li>
+	    <li> <b>Mock</b>: holds and check programmed expectations </li>
 	  </ul>
 	</section>
 
@@ -126,6 +163,8 @@ body .reveal {
 	    <li> <a href="http://code.google.com/p/hamcrest/">hamcrest matchers</a> for <b>all</b> assertions </li>
 	    <li> wrapper for the legacy pyDoubles API </li>
 	    <li> doublex never instantiates your classes! </li>
+
+	    <p>that works, but, is something actually called?</p>
 -->
 
 <!-- Stubs -->
@@ -133,39 +172,31 @@ body .reveal {
 
 	<section>
 	  <section>
-	    <h2>Stubs</h2>
+	    <h2>Stub</h2>
 
-	    In a <em>free stub</em>, you may invoke any method:
+	    <p>
+	      In a <em>free stub</em>, any method may be invoked:<br/>
+	    </p>
 
 	    <pre><code contenteditable>
- stub = Stub()
+  class AccountTests(TestCase):
+      def test_account_creation(self):
+          with Stub() as password_service:
+              password_service.generate().returns('some')
 
- retval = stub.anymethod()
+          service = AccountService(store=Stub(), password_service)
 
- assert_that(retval, is_(None))
+          service.create('John')
 	    </code></pre>
 
-	    <p>that returns <tt>None</tt> by default.</p>
 	    <a href="#" class="image navigate-down">
 	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
 	    </a>
 	  </section>
 
 	  <section>
-	    <h2>Stubs</h2>
-	    <p>setting return values is easy:</p>
-
-	    <pre><code contenteditable>
- with Stub() as stub:
-     stub.foo().returns(1000)
-
- assert_that(stub.foo(), is_(1000))
-	    </code></pre>
-	  </section>
-
-	  <section>
-	    <h2>Stubs</h2>
-	    <p>... depending on arguments:</p>
+	    <h2>[Stub]</h2>
+	    <p>... you can set return value depending on arguments</p>
 	    <pre><code contenteditable>
  with Stub() as stub:
      stub.foo(2, 2).returns(100)
@@ -178,8 +209,8 @@ body .reveal {
 	    </section>
 
 	  <section>
-	    <h2>Stubs</h2>
-	    <p>... by hamcrest matcher</p>
+	    <h2>[Stub]</h2>
+	    <p>... or by hamcrest matcher</p>
 	    <pre><code contenteditable>
  with Stub() as stub:
      stub.foo(2, greater_than(4)).returns(100)
@@ -190,8 +221,8 @@ body .reveal {
 	  </section>
 
 	  <section>
-	    <h2>Stubs</h2>
-	    <p>... by composite hamcrest matcher</p>
+	    <h2>[Stub]</h2>
+	    <p>... or by composite hamcrest matcher</p>
 	    <pre><code contenteditable>
  with Stub() as stub:
      stub.foo(2, has_length(all_of(
@@ -203,85 +234,111 @@ body .reveal {
 	  </section>
 
 	  <section>
-	    <h2>Stubs</h2>
+	    <h2>Stub</h2>
 	    <p>interface may be restricted to a given class:</p>
 
 	    <pre><code contenteditable>
- class Collaborator:
-     def add(self, x, y):
-         return x + y
+ with Stub(PasswordService) as password_service:
+     password_service.generate().returns('some')
 
- with Stub(Collaborator) as stub:
-     stub.add(2, 2).returns(5)
-
- stub.add(2, 2)
- stub.add(9)
-TypeError: Collaborator.add() takes exactly 3 arguments (2 given)
+ stub.generate()
+ stub.generate(9)
+TypeError: PasswordService.generate() takes exactly 1 argument (2 given)
 
  stub.wrong()
-AttributeError: 'Collaborator' object has no attribute 'wrong'
+AttributeError: 'PasswordService' object has no attribute 'wrong'
 	    </code></pre>
 	  </section>
-
-
 	</section>
 
 <!-- Spies -->
 <section>
   <section>
-    <h2>Spies</h2>
-    <p>checking called methods</p>
-
+    <h2>remember our AccountService test</h2>
     <pre><code contenteditable>
- spy = Spy(Collaborator)
- spy.add(2, 3)
- spy.add("hi", 3.0)
- spy.add([1, 2], 'a')
+  class AccountTests(TestCase):
+      def test_account_creation(self):
+          with Stub(PasswordService) as password_service:
+              password_service.generate().returns('some')
 
- assert_that(spy.add, called())
+          service = AccountService(store=Stub(), password_service)
+
+          service.create('John')
     </code></pre>
 
+    <p>... is 'store' really called??</p>
+    <p class="fragment"> you need a <b>spy</b></p>
+
+<!--
     <a href="#" class="image navigate-down">
       <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
     </a>
+-->
+
+  </section>
+  <section>
+    <h2>Spy</h2>
+    <p>checking double invocations: called()</p>
+
+    <pre><code contenteditable>
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create('John')
+ service.create('Peter')
+ service.create('Alice')
+
+ assert_that(store.save, called())
+    </code></pre>
+
+    <p class="fragment"> but... is really called three times?</p>
   </section>
 
   <section>
-    <h2>Spies</h2>
-    <p>checking called times (also with matcher)</p>
+    <h2>Spy</h2>
+    <p>checking called times: times()</p>
+    <p style="font-size: 18pt" > (also with matchers)</p>
 
     <pre><code contentditable>
- spy = Spy(Collaborator)
- spy.add(2, 3)
- spy.add("hi", 3.0)
- spy.add([1, 2], 'a')
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
 
- assert_that(spy.add, called().times(3))
- assert_that(spy.add, called().times(greater_than(2)))
+ service.create('John')
+ service.create('Peter')
+ service.create('Alice')
+
+ assert_that(store.save, called().times(3))
+ assert_that(store.save, called().times(greater_than(2)))
+    </code></pre>
+
+    <p class="fragment"> but... is really called with the right arguments?</p>
+
+  </section>
+
+  <section>
+    <h2>Spy</h2>
+    <p>check argument values: with_args()</p>
+    <p style="font-size: 18pt" > (also with matchers)</p>
+
+    <pre><code contentditable>
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create('John')
+
+ assert_that(store.save, called().with_args('John', 'some'))
+ assert_that(store.save, called().with_args('John', ANY_ARG))
+ assert_that(store.save,
+             called().with_args(contains_string('oh'), ANY_ARG))
+ assert_that(store.save,
+             never(called().with_args('Alice', anything())))
     </code></pre>
   </section>
 
   <section>
-    <h2>Spies</h2>
-    <p>filter by argument value: with_args()</p>
-
-    <pre><code contentditable>
- spy = Spy(Collaborator)
- spy.add(2, 3)
- spy.add(2, 8)
- spy.add("hi", 3.0)
-
- assert_that(spy.add,
-             called().with_args(2, ANY_ARG)).times(2)
-
- assert_that(spy.add,
-             never(called().with_args(0, 0)))
-    </code></pre>
-  </section>
-
-  <section>
-    <h2>Spies</h2>
-    <p>filter by key argument (with matcher)</p>
+    <h2>[Spy]</h2>
+    <p>check keyword argument</p>
+    <p style="font-size: 18pt" > (also with matcher)</p>
 
     <pre><code contentditable>
  spy = Spy()
@@ -296,21 +353,22 @@ AttributeError: 'Collaborator' object has no attribute 'wrong'
   </section>
 
   <section>
-    <h2>Spies</h2>
+    <h2>Spy</h2>
     <p>meaning-full report messages!</p>
 
     <pre><code contentditable>
- spy = Spy()
- spy.foo(1)
- spy.bar("hi")
+ service.create('John')
+ service.create('Alice')
 
- assert_that(spy.foo, called().with_args(4))
+ assert_that(store.save, called().with_args('Peter'))
 AssertionError:
 Expected: these calls:
-          Spy.foo(4)
+          AccountStore.save('Peter')
      but: calls that actually ocurred were:
-          Spy.foo(1)
-          Spy.bar('hi')
+          AccountStore.has_user('John')
+          AccountStore.save('John', 'some')
+          AccountStore.has_user('Alice')
+          AccountStore.save('Alice', 'some')
     </code></pre>
   </section>
 
@@ -318,89 +376,59 @@ Expected: these calls:
     <h2>ProxySpy</h2>
     <p>propagates invocations to the collaborator</p>
 
+    <pre><code contentditable>
+ with ProxySpy(AccountStore()) as store:
+     store.has_user('John').returns(True)
 
-<pre><code contentditable>
- with ProxySpy(Collaborator()) as spy:
-     spy.add(2, 2).returns(1000)
+ service = AccountService(store, password_service)
 
- assert_that(spy.add(2, 2), is_(1000))
- assert_that(spy.add(1, 1), is_(2))
-	    </code></pre>
-	</section>
+ with self.assertRaises(AlreadyExists):
+     service.create('John')
+    </code></pre>
+
+    <p class="fragment">
+      <b>CAUTION</b>: this invokes the actual <tt>AccountStore</tt> instance!
+    </p>
+  </section>
 </section>
 
 
 <!-- mocks -->
 
 <section>
-<section>
-<h2>Mocks</h2>
+  <section>
+    <h2>Mock</h2>
+    <p>programming expectations</p>
+    <pre><code contentditable>
+        with Mock(AccountStore) as store:
+            store.has_user('John')
+            store.save('John', anything())
+            store.has_user('Peter')
+            store.save('Peter', anything())
 
-<pre><code contentditable>
- with Mock() as smtp:
-     smtp.helo()
-     smtp.mail(ANY_ARG)
-     smtp.rcpt("bill@apple.com")
-     smtp.data(ANY_ARG).returns(True).times(2)
+        service = AccountService(store, password_service)
 
- smtp.helo()
- smtp.mail("poormen@home.net")
- smtp.rcpt("bill@apple.com")
- smtp.data("somebody there?")
- assert_that(smtp.data("I am afraid.."), is_(True))
+        service.create('John')
+        service.create('Peter')
 
- assert_that(smtp, verify())
-	    </code></pre>
+        assert_that(store, verify())
+    </code></pre>
 
-	    <a href="#" class="image navigate-down">
-	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-	    </a>
+    <p class="fragment">
+      Mock assures these invocations (and only these) are ocurred.
+    </p>
 
-	</section>
+    <a href="#" class="image navigate-down">
+      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+    </a>
 
-<section>
-<h2>Mocks</h2>
-<p>invocation order is important</p>
-
-<pre><code  contentditable>
- with Mock() as mock:
-     mock.foo()
-     mock.bar()
-
- mock.bar()
- mock.foo()
-
- assert_that(mock, verify())
-Expected: these calls:
-          Mock.foo()
-          Mock.bar()
-     but: calls that actually ocurred were:
-          Mock.bar()
-          Mock.foo()
-</code></pre>
-	</section>
+  </section>
+</section>
 
 <section>
-<h2>Mocks</h2>
-<p>...unless you do not mind: any_order_verify()</p>
+  <h2>ah hoc stub methods</h2>
 
- <pre><code contentditable>
- with Mock() as mock:
-     mock.foo()
-     mock.bar()
-
- mock.bar()
- mock.foo()
-
- assert_that(mock, any_order_verify())
- </code></pre>
-	  </section>
-	</section>
-
-<section>
-<h2>ah hoc stub methods</h2>
-
-<pre><code contentditable>
+  <pre><code contentditable>
  collaborator = Collaborator()
  collaborator.foo = method_returning('bye')
  assert_that(self.collaborator.foo(), is_('bye'))
@@ -408,14 +436,14 @@ Expected: these calls:
  collaborator.foo = method_raising(SomeException)
  collaborator.foo()
 SomeException:
-	    </code></pre>
-	</section>
+  </code></pre>
+</section>
 
 <section>
-<h2>stub observers</h2>
-<p>attach additional behavior</p>
+  <h2>stub observers</h2>
+  <p>attach additional behavior</p>
 
-<pre><code contentditable>
+  <pre><code contentditable>
  class Observer(object):
      def __init__(self):
          self.state = None
@@ -429,56 +457,65 @@ SomeException:
  stub.foo(2)
 
  assert_that(observer.state, is_(2))
-	    </code></pre>
-	</section>
+  </code></pre>
+</section>
 
 <!-- delegates -->
 
 <section>
-<section>
-<h2>stub delegates</h2>
-<p>delegating to callables</p>
+  <section>
+    <h2>stub delegates</h2>
+    <p>delegating to callables</p>
 
-<pre><code contentditable>
- def get_user():
-     return "Freddy"
+    <pre><code contentditable>
+ def get_pass():
+     return "12345"
 
- with Stub() as stub:
-     stub.user().delegates(get_user)
-     stub.foo().delegates(lambda: "hello")
+ with Stub(PasswordService) as password_service:
+     password_service.generate().delegates(get_pass)
 
- assert_that(stub.user(), is_("Freddy"))
- assert_that(stub.foo(), is_("hello"))
-	    </code></pre>
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
 
-	    <a href="#" class="image navigate-down">
-	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-	    </a>
+ service.create('John')
 
-	</section>
+ assert_that(store.save, called().with_args('John', '12345'))
+    </code></pre>
 
-<section>
-<h2>stub delegates</h2>
-<p>delegating to iterables</p>
+    <a href="#" class="image navigate-down">
+      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+    </a>
 
-<pre><code contentditable>
- with Stub() as stub:
-     stub.foo().delegates([1, 2, 3])
+  </section>
+  <section>
+    <h2>stub delegates</h2>
+    <p>delegating to iterables</p>
 
- assert_that(stub.foo(), is_(1))
- assert_that(stub.foo(), is_(2))
- assert_that(stub.foo(), is_(3))
-	    </code></pre>
-	</section>
-	</section>
+    <pre><code contentditable>
+with Stub(PasswordService) as password_service:
+    password_service.generate().delegates(["12345", "mypass", "nothing"])
+
+store = Spy(AccountStore)
+service = AccountService(store, password_service)
+
+service.create('John')
+service.create('Peter')
+service.create('Alice')
+
+assert_that(store.save, called().with_args('John', '12345'))
+assert_that(store.save, called().with_args('Peter', 'mypass'))
+assert_that(store.save, called().with_args('Alice', 'nothing'))
+    </code></pre>
+  </section>
+</section>
 
 <!-- properties -->
 
 <section>
-<section>
-<h2>stubbing properties</h2>
+  <section>
+    <h2>stubbing properties</h2>
 
-<pre><code contentditable>
+    <pre><code contentditable>
  class Collaborator(object):
      @property
      def prop(self):
@@ -492,19 +529,18 @@ SomeException:
      spy.prop = 2
 
  assert_that(spy.prop, is_(2))  # double property getter invoked
-	    </code></pre>
+    </code></pre>
 
-	    <a href="#" class="image navigate-down">
-	      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-	    </a>
+    <a href="#" class="image navigate-down">
+      <img style="border:0" width="60" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+    </a>
 
-	  </section>
+  </section>
+  <section>
+    <h2>spying properties</h2>
+    <p style="font-size: 18pt" > (also with matcher)</p>
 
-<section>
-<h2>spying properties</h2>
-<p>(supports matchers too)</p>
-
-<pre><code contentditable>
+    <pre><code contentditable>
  assert_that(spy, property_got('prop'))
 
  spy.prop = 4  # double property setter invoked
@@ -516,17 +552,17 @@ SomeException:
  assert_that(spy, property_set('prop').to(5).times(2))
  assert_that(spy,
              never(property_set('prop').to(greater_than(6))))
-	    </code></pre>
-	</section>
-	</section>
+    </code></pre>
+  </section>
+</section>
 
 <!-- mimics -->
-
+<!--
 <section>
-<section>
-<h2>normal doubles support only duck-typing</h2>
+  <section>
+    <h2>normal doubles support only duck-typing</h2>
 
-<pre><code contentditable>
+    <pre><code contentditable>
  class A(object):
      pass
 
@@ -538,13 +574,12 @@ SomeException:
  True
  >>> isinstance(spy, B)
  False
-	    </code></pre>
-	</section>
+    </code></pre>
+  </section>
+  <section>
+    <h2>Mimics support full LSP</h2>
 
-<section>
-<h2>Mimics support full LSP</h2>
-
-<pre><code contentditable>
+    <pre><code contentditable>
  >>> spy = Mimic(Spy, B)
  >>> isinstance(spy, B)
  True
@@ -556,12 +591,21 @@ SomeException:
  True
  >>> isinstance(spy, object)
  True
-	    </code></pre>
-	</section>
-	</section>
+    </code></pre>
+  </section>
+</section>
+-->
+<section>
+  <h2 style="font-size: 80pt">Questions?</h2>
+</section>
 
 <section>
-<h2>Questions?</h2>
+  <h2>References</h2>
+
+  <ul>
+    <li><a href="https://bitbucket.org/DavidVilla/python-doublex">python-doublex</a></li>
+    <li><a href="http://www.pydoubles.org">pydoubles.org</a></li>
+  </ul>
 </section>
 
 
@@ -584,7 +628,7 @@ SomeException:
       overview: true,
       rollingLinks: false,
 
-      width: 1080,
+      width: 1200,
       height: 800,
       margin: 0.1,
 
