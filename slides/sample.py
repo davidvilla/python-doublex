@@ -24,6 +24,11 @@ class AccountStore:
         pass
 
 
+class UserGroup(set):
+    def __init__(self, name):
+        pass
+
+
 class PasswordService:
     def generate(self):
         pass
@@ -34,7 +39,7 @@ class AccountService:
         self.store = store
         self.password_service = password_service
 
-    def create(self, login):
+    def create_user(self, login):
         if self.store.has_user(login):
             raise AlreadyExists()
 
@@ -43,6 +48,15 @@ class AccountService:
             raise InvalidPassword()
 
         self.store.save(login, password)
+
+    def create_group(self, group_name, user_names):
+        group = UserGroup(group_name)
+        for name in user_names:
+            try:
+                self.create_user(name)
+            except AlreadyExists:
+                pass
+            group.add(name)
 
 
 class AccountTests(TestCase):
@@ -53,7 +67,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
+        service.create_group('team', ['John', 'Peter', 'Alice'])
 
         assert_that(store.save, called())
 
@@ -64,7 +78,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
+        service.create_user('John')
 
         assert_that(store.save, called())
 
@@ -75,9 +89,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
-        service.create('Peter')
-        service.create('Alice')
+        service.create_group('team', ['John', 'Peter', 'Alice'])
 
         assert_that(store.save, called().times(3))
         assert_that(store.save, called().times(greater_than(2)))
@@ -89,7 +101,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
+        service.create_user('John')
 
         assert_that(store.save, called().with_args('John', 'some'))
         assert_that(store.save, called().with_args('John', ANY_ARG))
@@ -104,8 +116,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
-        service.create('Alice')
+        service.create_group('team', ['John', 'Alice'])
 
         # assert_that(store.save, called().with_args('Peter'))
 
@@ -119,7 +130,7 @@ class AccountTests(TestCase):
         service = AccountService(store, password_service)
 
         with self.assertRaises(AlreadyExists):
-            service.create('John')
+            service.create_user('John')
 
     def test_account_behaviour_with_mock(self):
         with Stub(PasswordService) as password_service:
@@ -133,8 +144,7 @@ class AccountTests(TestCase):
 
         service = AccountService(store, password_service)
 
-        service.create('John')
-        service.create('Peter')
+        service.create_group('team', ['John', 'Peter'])
 
         assert_that(store, verify())
 
@@ -150,8 +160,8 @@ class AccountTests(TestCase):
 #
 #        service = AccountService(store, password_service)
 #
-#        service.create('John')
-#        service.create('Peter')
+#        service.create_user('John')
+#        service.create_user('Peter')
 #
 #        assert_that(store, any_order_verify())
 
@@ -165,7 +175,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
+        service.create_user('John')
 
         assert_that(store.save, called().with_args('John', '12345'))
 
@@ -176,9 +186,7 @@ class AccountTests(TestCase):
         store = Spy(AccountStore)
         service = AccountService(store, password_service)
 
-        service.create('John')
-        service.create('Peter')
-        service.create('Alice')
+        service.create_group('team', ['John', 'Peter', 'Alice'])
 
         assert_that(store.save, called().with_args('John', '12345'))
         assert_that(store.save, called().with_args('Peter', 'mypass'))

@@ -371,9 +371,7 @@ def property_factory(double, key):
 
 
 class AttributeFactory(object):
-    """
-    Create double methods, properties or attributes from collaborator
-    """
+    """Create double methods, properties or attributes from collaborator"""
 
     typemap = dict(
         instancemethod    = Method,
