@@ -53,6 +53,13 @@ html.example .state-background {
   background-color:  #555;
 }
 
+html.attrezo .state-background {
+  background-image: url('http://4.bp.blogspot.com/-klE9QIb-T8c/T-IDIPIXTSI/AAAAAAAAAls/0cwR0Wcwf4E/s1600/Truman+Show.jpg');
+  background-repeat:no-repeat;
+  background-position: center;
+  background-color: white;
+}
+
 html.nested {
   border-top: 10px double #555;
 }
@@ -77,14 +84,11 @@ p.small {
 	  </p>
 	</section>
 
-	<section>
-	  <section data-state="nested">
-	    <p><b>what are <em>doubles</em>?</b></p>
-	    <pan class="fragment">
+	<section >
+	  <section  data-state="nested attrezo">
+	    <p><b style="color:black;font-size:40pt">what are <em>doubles</em>?</b></p>
+	    <pan style="color:black;font-size:40pt" class="fragment">
 	      Test doubles are <em>atrezzo</em> objects.
-	    </pan>
-	    <pan class="fragment">
-	      <img style="border:0" width="1200" src="unaciutatbrillant01.jpg" alt="scenario">
 	    </pan>
 	  </section>
 	  <section>
@@ -510,7 +514,7 @@ SomeException:
 
     <pre><code class="python" contentditable>
  with Stub(PasswordService) as password_service:
-     password_service.generate().delegates(["12345", "mypass", "nothing"])
+     password_service.generate().delegates(["12345", "mypass", "nope"])
 
  store = Spy(AccountStore)
  service = AccountService(store, password_service)
@@ -519,7 +523,7 @@ SomeException:
 
  assert_that(store.save, called().with_args('John', '12345'))
  assert_that(store.save, called().with_args('Peter', 'mypass'))
- assert_that(store.save, called().with_args('Alice', 'nothing'))
+ assert_that(store.save, called().with_args('Alice', 'nope'))
     </code></pre>
   </section>
 </section>
@@ -645,7 +649,7 @@ SomeException:
 
       // theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
       theme: 'night',
-      transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+      transition: Reveal.getQueryHash().transition || 'cube', // default/cube/page/concave/zoom/linear/none
 
       // Optional libraries used to extend on reveal.js
       dependencies: [
