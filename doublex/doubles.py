@@ -26,7 +26,7 @@ import hamcrest
 from .internal import (ANY_ARG, OperationList, Method, MockBase, SpyBase,
                        AttributeFactory)
 from .proxy import create_proxy, get_class
-from .matchers import MockExpectInvocation
+from .matchers import MockIsExpectedInvocation
 
 
 __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
@@ -142,7 +142,7 @@ class ProxySpy(Spy):
 
 class Mock(Spy, MockBase):
     def _prepare_invocation(self, invocation):
-        hamcrest.assert_that(self, MockExpectInvocation(invocation))
+        hamcrest.assert_that(self, MockIsExpectedInvocation(invocation))
         super(Mock, self)._prepare_invocation(invocation)
 
 

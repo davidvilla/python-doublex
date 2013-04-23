@@ -112,7 +112,7 @@ class never(BaseMatcher):
         self.matcher.describe_mismatch(actual, description)
 
 
-class MockExpectInvocation(BaseMatcher):
+class MockIsExpectedInvocation(BaseMatcher):
     'assert the invocation is a mock expectation'
     def __init__(self, invocation):
         self.invocation = invocation
