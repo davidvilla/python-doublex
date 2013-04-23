@@ -219,8 +219,7 @@ class Invocation(object):
             self.context.matches(other.context)
 
     def __lt__(self, other):
-        return any([ANY_ARG in other.context.args,
-                    self.name < other.name,
+        return any([self.name < other.name,
                     self.context < other.context])
 
     def __repr__(self):
@@ -275,9 +274,8 @@ class InvocationContext(object):
         return self.matches(other)
 
     def __lt__(self, other):
-        for a, b in itertools.izip_longest(self.args, other.args, fillvalue=IMPOSSIBLE):
-            if b is ANY_ARG or a < b:
-                return True
+        if ANY_ARG in other.args or self.args < other.args:
+            return True
 
         return sorted(self.kargs.items()) < sorted(other.kargs.items())
 
