@@ -384,8 +384,13 @@ class AttributeFactory(object):
     def create(cls, double, key):
         get_actual_attr = lambda double, key: double._proxy.get_attr(key)
         typename = double._proxy.get_attr_typename(key)
-        attr = cls.typemap.get(typename, get_actual_attr)
-        return attr(double, key)
+        factory = cls.typemap.get(typename, get_actual_attr)
+        attr = factory(double, key)
+
+        if isinstance(attr, property):
+            setattr(double.__class__, key, attr)
+        else:
+            object.__setattr__(double, key, attr)
 
 
 class SpyBase(object):

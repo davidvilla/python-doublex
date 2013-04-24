@@ -24,7 +24,7 @@ class AccountStore:
         pass
 
 
-class UserGroup(set):
+class Group(set):
     def __init__(self, name):
         pass
 
@@ -50,7 +50,7 @@ class AccountService:
         self.store.save(login, password)
 
     def create_group(self, group_name, user_names):
-        group = UserGroup(group_name)
+        group = Group(group_name)
         for name in user_names:
             try:
                 self.create_user(name)

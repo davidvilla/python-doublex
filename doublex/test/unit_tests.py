@@ -431,6 +431,56 @@ class ProxySpyTests(TestCase):
         assert_that(foo.value, is_(3))
 
 
+class MockTests(TestCase):
+    def test_with_args(self):
+        mock = Mock()
+        with mock:
+            mock.hello(1)
+            mock.bye(2)
+            mock.bye(3)
+
+        mock.hello(1)
+        mock.bye(2)
+        mock.bye(3)
+
+        assert_that(mock, verify())
+
+    def test_with_several_args(self):
+        mock = Mock()
+        with mock:
+            mock.hello(1, 1)
+            mock.bye(2, 2)
+            mock.bye(3, 3)
+
+        mock.hello(1, 1)
+        mock.bye(2, 2)
+        mock.bye(3, 3)
+
+        assert_that(mock, verify())
+
+    def test_with_kargs(self):
+        mock = Mock()
+        with mock:
+            mock.hello(1, name=1)
+            mock.bye(2, value=2)
+            mock.bye(3, value=3)
+
+        mock.hello(1, name=1)
+        mock.bye(2, value=2)
+        mock.bye(3, value=3)
+
+        assert_that(mock, verify())
+
+    def test_from_instance(self):
+        mock = Mock(Collaborator())
+        with mock:
+            mock.hello()
+
+        mock.hello()
+
+        assert_that(mock, verify())
+
+
 class MockOrderTests(TestCase):
     def setUp(self):
         self.mock = Mock()
@@ -456,20 +506,6 @@ class MockOrderTests(TestCase):
         self.failUnlessRaises(
             AssertionError,
             assert_that, self.mock, verify())
-
-    def test_several_args(self):
-        with self.mock:
-            self.mock.foo(1, 1)
-            self.mock.bar(1)
-            self.mock.foo(2, 2)
-            self.mock.bar(2)
-
-        self.mock.foo(1, 1)
-        self.mock.bar(1)
-        self.mock.foo(2, 2)
-        self.mock.bar(2)
-
-        assert_that(self.mock, verify())
 
     def test_method_name_order_does_not_matter_with_any_order(self):
         with self.mock:
@@ -528,17 +564,6 @@ class MockOrderTests(TestCase):
         self.mock.bar(2)
 
         assert_that(self.mock, any_order_verify())
-
-
-class MockTests(TestCase):
-    def test_from_instance(self):
-        mock = Mock(Collaborator())
-        with mock:
-            mock.hello()
-
-        mock.hello()
-
-        assert_that(mock, verify())
 
 
 class DisplayResultsTests(TestCase):

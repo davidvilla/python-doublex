@@ -92,7 +92,7 @@ p.small {
 	    </pan>
 	  </section>
 	  <section>
-	    <p><b>why should I use doubles?</b></p>
+	    <p><b>why should we use doubles?</b></p>
 	    <p class="fragment"> Unit tests must isolate the <a href="http://en.wikipedia.org/wiki/System_under_test">SUT</a>.</p>
 	    <p class="fragment"> So all collaborators should be replaced.</p>
 	    <p class="fragment"> They require (and promote) your classes meets <a href="http://en.wikipedia.org/wiki/Dependency_inversion_principle">DIP</a> and <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">LSP</a>.</p>
@@ -124,6 +124,41 @@ p.small {
 	</section>
 
 	<section>
+	  <h2>which is the right double?</h2>
+	  <ul>
+	    <li> <b>Dummy</b>: a placeholder object, never invoked </li>
+	    <li> <b>Fake</b>: Q&amp;D replacement, not suitable for production </li>
+	    <li> <b>Stub</b>: returns hardcoded responses: <em>It say you want to hear</em> </li>
+	    <li> <b>Spy</b>:  <em>Stub</em> that records received invocations </li>
+	    <li> <b>Mock</b>: holds and check programmed expectations </li>
+	  </ul>
+	  <p class="small">
+	    [ according to <a href="http://xunitpatterns.com/Test%20Double.html">xunitpatterns.com/Test Double.html</a> ]
+	  </p>
+	</section>
+
+	<section>
+	  <section data-state="example nested">
+	    <h2>EXAMPLE<br/>account service</h2>
+
+	    <pre><code class="python" contenteditable>  class AccountService:
+      def __init__(self, store, password_service):
+	  [...]
+
+      def create_user(self, login):
+          [...]
+          - raise InvalidPassword()
+          - raise AlreadyExists()
+
+      def create_group(self, group_name, user_names):
+          [...]
+	    </code></pre>
+
+	  <p class="small">[ slides related to that example<br/>have gray background ]</p>
+	    </code></pre>
+	  </section>
+
+<!--
 	  <section data-state="example nested">
 	    <h2>EXAMPLE<br/>account service (I)</h2>
 
@@ -143,7 +178,7 @@ p.small {
           self.store.save(login, password)
 	    </code></pre>
 
-	  <p class="small">[ slides related to that example<br/>have gray background color ]</p>
+	  <p class="small">[ slides related to that example<br/>have gray background ]</p>
 	  </section>
 	  <section data-state="example nested">
 	    <h2>account service (II)</h2>
@@ -154,7 +189,7 @@ p.small {
       [...]
 
       def create_group(self, group_name, user_names):
-          group = UserGroup(group_name)
+          group = Group(group_name)
           for name in user_names:
               try:
                   self.create_user(name)
@@ -164,38 +199,25 @@ p.small {
 	    </code></pre>
 
 	  </section>
-	  <section  data-state="example">
+-->
+
+	  <section data-state="example">
 	    <h2>account service</h2>
 	    <p>collaborators</p>
 
 	    <pre><code class="python" contenteditable>
   class AccountStore:
+      def save(self, login, password):
+          [...]
 
-      def save(self, login, password)
-
-      def has_user(self, login)
+      def has_user(self, login):
+          [...]
 
   class PasswordService:
-
-      def generate(self)
+      def generate(self):
+          [...]
 	    </code></pre>
 	  </section>
-	</section>
-
-	</section>
-
-	<section>
-	  <h2>what is the right double?</h2>
-	  <ul>
-	    <li> <b>Dummy</b>: a placeholder object, never invoked </li>
-	    <li> <b>Fake</b>: Q&amp;D replacement, not suitable for production </li>
-	    <li> <b>Stub</b>: returns hardcoded responses: <em>It say you want to hear</em> </li>
-	    <li> <b>Spy</b>:  <em>Stub</em> that records received invocations </li>
-	    <li> <b>Mock</b>: holds and check programmed expectations </li>
-	  </ul>
-	  <p class="small">
-	    [ according to <a href="http://xunitpatterns.com/Test%20Double.html">Gerard Meszaros</a> ]
-	  </p>
 	</section>
 
 
@@ -226,7 +248,7 @@ p.small {
   class AccountTests(TestCase):
       def test_account_creation(self):
           with Stub() as password_service:
-              password_service.generate().returns('some')
+              password_service.generate().returns('secret')
 
           service = AccountService(store=Stub(), password_service)
 
@@ -280,7 +302,7 @@ p.small {
 
 	    <pre><code class="python" contenteditable>
  with Stub(PasswordService) as password_service:
-     password_service.generate().returns('some')
+     password_service.generate().returns('secret')
 
  stub.generate()
  stub.generate(9)
@@ -300,7 +322,7 @@ AttributeError: 'PasswordService' object has no attribute 'wrong'
   class AccountTests(TestCase):
       def test_account_creation(self):
           with Stub(PasswordService) as password_service:
-              password_service.generate().returns('some')
+              password_service.generate().returns('secret')
 
           service = AccountService(store=Stub(), password_service)
 
@@ -357,7 +379,7 @@ AttributeError: 'PasswordService' object has no attribute 'wrong'
 
  service.create_user('John')
 
- assert_that(store.save, called().with_args('John', 'some'))
+ assert_that(store.save, called().with_args('John', 'secret'))
  assert_that(store.save, called().with_args('John', ANY_ARG))
  assert_that(store.save,
              called().with_args(contains_string('oh'), ANY_ARG))
@@ -396,9 +418,9 @@ Expected: these calls:
           AccountStore.save('Peter')
      but: calls that actually ocurred were:
           AccountStore.has_user('John')
-          AccountStore.save('John', 'some')
+          AccountStore.save('John', 'secret')
           AccountStore.has_user('Alice')
-          AccountStore.save('Alice', 'some')
+          AccountStore.save('Alice', 'secret')
     </code></pre>
   </section>
 
@@ -417,7 +439,7 @@ Expected: these calls:
     </code></pre>
 
     <p class="fragment">
-      <b>CAUTION</b>: this invokes the actual <tt>AccountStore</tt> instance!
+      <b>CAUTION</b>: ProxySpy is not a true double,<br/>this invokes the actual <tt>AccountStore</tt> instance!
     </p>
   </section>
 </section>
@@ -510,7 +532,7 @@ SomeException:
   </section>
   <section data-state="example">
     <h2>stub delegates</h2>
-    <p>delegating to iterables</p>
+    <p>delegating to iterables/generators</p>
 
     <pre><code class="python" contentditable>
  with Stub(PasswordService) as password_service:
@@ -643,7 +665,7 @@ SomeException:
       overview: true,
       rollingLinks: false,
 
-      width: 1200,
+      width: 1280,
       height: 800,
       margin: 0.1,
 

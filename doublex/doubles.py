@@ -81,7 +81,7 @@ class Stub(object):
         return None
 
     def __getattr__(self, key):
-        self._add_attr_from_collaborator(key)
+        AttributeFactory.create(self, key)
         return object.__getattribute__(self, key)
 
     def __setattr__hook(self, key, value):
@@ -90,20 +90,13 @@ class Stub(object):
             return
 
         try:
-            self._add_attr_from_collaborator(key)
+            AttributeFactory.create(self, key)
         except AttributeError:
             #  collaborator has not attribute 'key', creaing it ad-hoc
             pass
 
         # descriptor protocol compliant
         object.__setattr__(self, key, value)
-
-    def _add_attr_from_collaborator(self, key):
-        attr = AttributeFactory.create(self, key)
-        if isinstance(attr, property):
-            setattr(self.__class__, key, attr)
-        else:
-            object.__setattr__(self, key, attr)
 
     def _classname(self):
         name = self._proxy.collaborator_classname()
@@ -180,13 +173,13 @@ def Mimic(double, collab):
 
 def method_returning(value):
     with Stub() as stub:
-        method = Method(stub, 'unnamed')
+        method = Method(stub, 'orphan')
         method(ANY_ARG).returns(value)
         return method
 
 
 def method_raising(exception):
     with Stub() as stub:
-        method = Method(stub, 'unnamed')
+        method = Method(stub, 'orphan')
         method(ANY_ARG).raises(exception)
         return method
