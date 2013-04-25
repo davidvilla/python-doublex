@@ -10,7 +10,7 @@ import multiprocessing, logging
 
 config = dict(
     name             = 'doublex',
-    version          = '1.6.4',
+    version          = '1.6.5',
     description      = 'Test doubles for Python',
     keywords         = ['unit test', 'double', 'stub', 'spy', 'mock'],
     author           = 'David Villa Alises',
