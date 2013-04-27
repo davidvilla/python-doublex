@@ -17,6 +17,14 @@ ArgsDontMatch = AssertionError
 ApiMismatch = TypeError
 
 
+def empty_stub():
+    return doublex.Stub()
+
+
+def stub(collaborator=None):
+    return doublex.Stub(collaborator)
+
+
 def empty_spy():
     return doublex.Spy()
 

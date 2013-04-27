@@ -814,6 +814,22 @@ class MatchersTests(unittest.TestCase):
             pass
 
 
+class StubTests(unittest.TestCase):
+    def test_free_stub(self):
+        my_stub = empty_stub()
+        self.assertTrue(my_stub.hello() is None)
+
+    def test_restricted_stub(self):
+        my_stub = stub(Collaborator())
+        when(my_stub.something).then_return(10)
+
+        self.assertEquals(10, my_stub.something())
+
+    def test_restricted_stub_method_not_stubbed(self):
+        my_stub = stub(Collaborator())
+        self.assertEquals(None, my_stub.hello())
+
+
 # Create hamcrest matchers instead
 #class CustomMatchersTest(unittest.TestCase):
 #

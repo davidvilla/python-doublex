@@ -1,3 +1,9 @@
+0.20130427
+==========
+
+- Release 1.6.6
+- [FIXED] stub/empty_stub were missing in pyDoubles wrapper
+
 0.20130215
 ==========
 
