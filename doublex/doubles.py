@@ -66,7 +66,7 @@ class Stub(object):
         stubbed_retval = None
         if invocation in self._stubs:
             stubbed = self._stubs.lookup(invocation)
-            stubbed_retval = stubbed.perform(invocation)
+            stubbed_retval = stubbed._apply_stub(invocation)
 
         actual_retval = self._perform_invocation(invocation)
 
@@ -130,7 +130,7 @@ class ProxySpy(Spy):
             raise TypeError("ProxySpy takes an instance (got %s instead)" % thing)
 
     def _perform_invocation(self, invocation):
-        return invocation.apply_on_collaborator()
+        return invocation._apply_on_collaborator()
 
 
 class Mock(Spy, MockBase):

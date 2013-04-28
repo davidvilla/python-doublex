@@ -105,6 +105,20 @@ class FreeStubTests(TestCase):
         except KeyError:
             pass
 
+    def test_returns_input(self):
+        with Stub() as stub:
+            stub.foo(1).returns_input()
+
+        assert_that(stub.foo(1), is_(1))
+
+
+    def test_raises(self):
+        with Stub() as stub:
+            stub.foo(2).raises(SomeException)
+
+        with self.assertRaises(SomeException):
+            stub.foo(2)
+
 
 class StubTests(TestCase):
     def setUp(self):
@@ -575,11 +589,11 @@ class DisplayResultsTests(TestCase):
             self.spy.method_one(ANY_ARG).returns(2)
 
     def test_empty_spy_stub_method(self):
-        assert_that(self.empty_spy.foo.show_history(),
+        assert_that(self.empty_spy.foo._show_history(),
                     "method 'Spy.foo' never invoked")
 
     def test_spy_stub_method(self):
-        assert_that(self.spy.method_one.show_history(),
+        assert_that(self.spy.method_one._show_history(),
                     "method 'Collaborator.method_one' never invoked")
 
     def test_empty_spy_stub_method_invoked(self):
@@ -587,7 +601,7 @@ class DisplayResultsTests(TestCase):
         expected = [
             "method 'Spy.foo' was invoked",
             "foo()"]
-        assert_that(self.empty_spy.foo.show_history(),
+        assert_that(self.empty_spy.foo._show_history(),
                     string_contains_in_order(*expected))
 
     def test_spy_stub_method_invoked(self):
@@ -595,7 +609,7 @@ class DisplayResultsTests(TestCase):
         expected = [
             "method 'Collaborator.method_one' was invoked",
             'method_one(1)']
-        assert_that(self.spy.method_one.show_history(),
+        assert_that(self.spy.method_one._show_history(),
                     string_contains_in_order(*expected))
 
     def test_empty_spy_non_stubbed_method_invoked(self):
@@ -603,7 +617,7 @@ class DisplayResultsTests(TestCase):
         expected = [
             "method 'Spy.bar' was invoked",
             "bar(1, 3.0, 'text', key1='text', key2=[1, 2])"]
-        assert_that(self.empty_spy.bar.show_history(),
+        assert_that(self.empty_spy.bar._show_history(),
                     string_contains_in_order(*expected))
 
     def test_spy_several_invoked_same_method(self):
@@ -611,7 +625,7 @@ class DisplayResultsTests(TestCase):
         self.spy.mixed_method(8, False)
 
         expected = "method 'Collaborator.mixed_method' was invoked"
-        assert_that(self.spy.mixed_method.show_history(),
+        assert_that(self.spy.mixed_method._show_history(),
                     contains_string(expected))
 
 
@@ -1137,6 +1151,10 @@ class AsyncTests(TestCase):
 
         # then
         assert_that(spy.write, called().async(timeout=1))
+
+
+class SomeException(Exception):
+    pass
 
 
 class Observer(object):

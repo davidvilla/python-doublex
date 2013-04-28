@@ -122,13 +122,13 @@ class Method(Observable):
     def describe_to(self, description):
         pass
 
-    def show(self, indent=0):
+    def _show(self, indent=0):
         return add_indent(self, indent)
 
     def __repr__(self):
         return "%s.%s" % (self.double._classname(), self.name)
 
-    def show_history(self):
+    def _show_history(self):
         method = "method '%s.%s'" % (self.double._classname(), self.name)
         invocations = self.double._get_invocations_to(self.name)
         if not invocations:
@@ -206,12 +206,11 @@ class Invocation(object):
         for i in range(1, n):
             self.double._manage_invocation(self)
 
-    # FIXME: rename to apply_stub?
-    def perform(self, actual_invocation):
+    def _apply_stub(self, actual_invocation):
         context = actual_invocation.context
         return self.delegate(*context.args, **context.kargs)
 
-    def apply_on_collaborator(self):
+    def _apply_on_collaborator(self):
         return self.double._proxy.perform_invocation(self)
 
     def __eq__(self, other):
@@ -225,7 +224,7 @@ class Invocation(object):
     def __repr__(self):
         return "%s.%s%s" % (self.double._classname(), self.name, self.context)
 
-    def show(self, indent=0):
+    def _show(self, indent=0):
         return add_indent(self, indent)
 
 
@@ -327,7 +326,7 @@ class PropertyGet(PropertyInvocation):
     def __init__(self, double, name):
         super(PropertyGet, self).__init__(double, name)
 
-    def apply_on_collaborator(self):
+    def _apply_on_collaborator(self):
         return getattr(self.double._proxy.collaborator, self.name)
 
     def __repr__(self):
@@ -340,7 +339,7 @@ class PropertySet(PropertyInvocation):
         param = InvocationContext(value)
         super(PropertySet, self).__init__(double, name, param)
 
-    def apply_on_collaborator(self):
+    def _apply_on_collaborator(self):
         return setattr(self.double._proxy.collaborator, self.name, self.value)
 
     def __repr__(self):

@@ -69,7 +69,7 @@ class MethodCalled(OperationMatcher):
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
-        description.append_text(self.method.show(indent=10))
+        description.append_text(self.method._show(indent=10))
         description.append_text(str(self.context))
         if self._times != any_time:
             description.append_text(' -- times: %s' % self._times)
@@ -127,7 +127,7 @@ class MockIsExpectedInvocation(BaseMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text("this call was not expected:\n")
-        description.append_text(self.invocation.show(indent=10))
+        description.append_text(self.invocation._show(indent=10))
 
 
 class verify(BaseMatcher):
@@ -172,7 +172,7 @@ class property_got(OperationMatcher):
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
-        description.append_text(self.operation.show(indent=10))
+        description.append_text(self.operation._show(indent=10))
         if self._times != any_time:
             description.append_text(' -- times: %s' % self._times)
 
@@ -202,7 +202,7 @@ class property_set(OperationMatcher):
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
-        description.append_text(self.operation.show(indent=10))
+        description.append_text(self.operation._show(indent=10))
         if self._times != any_time:
             description.append_text(' -- times: %s' % self._times)
 
