@@ -264,6 +264,8 @@ class InvocationContext(object):
 
     @classmethod
     def _assert_values_match(cls, a, b):
+        a, b = [hamcrest.anything() if x is ANY_ARG else x for x in [a, b]]
+
         if isinstance(a, BaseMatcher):
             a, b = b, a
 
