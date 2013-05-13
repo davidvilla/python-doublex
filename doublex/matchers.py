@@ -44,10 +44,12 @@ any_time = hamcrest.greater_than(0)
 class HamcrestMatcherRequiredError(Exception):
     pass
 
+
 def assert_that(actual, matcher=None, reason=''):
     if matcher and not isinstance(matcher, Matcher):
         raise HamcrestMatcherRequiredError("%s should be a hamcrest Matcher" % str(matcher))
     return hamcrest.assert_that(actual, matcher, reason)
+
 
 class OperationMatcher(BaseMatcher):
     pass
@@ -89,6 +91,11 @@ class MethodCalled(OperationMatcher):
 
     def with_args(self, *args, **kargs):
         self.context.update_args(args, kargs)
+        return self
+
+    def with_some_args(self, **kargs):
+        self.context.update_args(tuple(), kargs)
+        self.context.check_some_args = True
         return self
 
     def async(self, timeout):

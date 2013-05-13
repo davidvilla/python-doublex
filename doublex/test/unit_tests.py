@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012 David Villa Alises
+# Copyright © 2012,2013 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -96,29 +96,21 @@ class FreeStubTests(TestCase):
 
         assert_that(self.stub.bar(), is_(None))
 
-    def test_raises(self):
-        with self.stub:
-            self.stub.foo().raises(KeyError)
-
-        try:
-            self.stub.foo()
-            self.fail("It should raise KeyError")
-        except KeyError:
-            pass
-
     def test_returns_input(self):
         with Stub() as stub:
             stub.foo(1).returns_input()
 
         assert_that(stub.foo(1), is_(1))
 
-
     def test_raises(self):
-        with Stub() as stub:
-            stub.foo(2).raises(SomeException)
+        with self.stub:
+            self.stub.foo(2).raises(SomeException)
 
-        with self.assertRaises(SomeException):
-            stub.foo(2)
+        try:
+            self.stub.foo(2)
+            self.fail("It should raise SomeException")
+        except SomeException:
+            pass
 
 
 class StubTests(TestCase):
@@ -159,13 +151,27 @@ class StubTests(TestCase):
             assert_that(str(e), contains_string(expected))
 
     # bitbucket issue #6
-    def test_keyworked_or_positional(self):
+    def test_keyword_or_positional(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
-            self.stub.kwarg_method(key_param=2).returns(2000)
+            self.stub.kwarg_method(2).returns(2000)
+            self.stub.kwarg_method(key_param=6).returns(6000)
 
         assert_that(self.stub.kwarg_method(1), is_(1000))
-        assert_that(self.stub.kwarg_method(key_param=2), is_(2000))
+        assert_that(self.stub.kwarg_method(2), is_(2000))
+        assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
+        assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
+
+    # FIXME: new on tip
+    def test_keyworked_or_positional_are_equivalent(self):
+        with self.stub:
+            self.stub.kwarg_method(1).returns(1000)
+            self.stub.kwarg_method(key_param=6).returns(6000)
+
+        assert_that(self.stub.kwarg_method(1), is_(1000))
+        assert_that(self.stub.kwarg_method(key_param=1), is_(1000))
+        assert_that(self.stub.kwarg_method(6), is_(6000))
+        assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
     def test_returning_tuple(self):
         with self.stub:
@@ -317,7 +323,7 @@ class FreeSpyTests(TestCase):
 #        assert_that(spy.mixed_method, called().with_args(key_param=True))
 
 
-class SpyCallsTests(TestCase):
+class Spy_calls_tests(TestCase):
     def test_list_recorded_calls(self):
         class Collaborator:
             def method(self, *args, **kargs):
@@ -358,7 +364,7 @@ class SpyCallsTests(TestCase):
 
 class SpyTests(TestCase):
     def setUp(self):
-        self.spy = Spy(Collaborator())
+        self.spy = Spy(Collaborator)
 
     def test_from_instance(self):
         spy = Spy(Collaborator())
@@ -387,6 +393,11 @@ class SpyTests(TestCase):
 
     def test_create_from_newstyle_class(self):
         Spy(ObjCollaborator)
+
+    def test_wrong_call_args(self):
+        self.spy.hello()
+        with self.assertRaises(TypeError):
+            assert_that(self.spy.hello, called().with_args('some'))
 
 
 class BuiltinSpyTests(TestCase):
@@ -702,6 +713,11 @@ class ANY_ARG_StubTests(TestCase):
         assert_that(self.stub.foo(1, 2, 3), is_(True))
         assert_that(self.stub.foo(1, key1='a'), is_(True))
 
+    def test_ANY_ARG_must_be_last_positional_argument(self):
+        with self.assertRaises(WrongApiUsage):
+            with self.stub:
+                self.stub.method(1, ANY_ARG, 3).returns(True)
+
 
 class ANY_ARG_SpyTests(TestCase):
     def setUp(self):
@@ -710,10 +726,13 @@ class ANY_ARG_SpyTests(TestCase):
     def test_no_args(self):
         self.spy.foo()
         assert_that(self.spy.foo, called().with_args(ANY_ARG))
+        assert_that(self.spy.foo, never(called().with_args(anything())))
 
     def test_one_arg(self):
         self.spy.foo(1)
+        assert_that(self.spy.foo, called())
         assert_that(self.spy.foo, called().with_args(ANY_ARG))
+        assert_that(self.spy.foo, called().with_args(anything()))
 
     def test_one_karg(self):
         self.spy.foo(key='val')
@@ -737,6 +756,43 @@ class ANY_ARG_SpyTests(TestCase):
 
         assert_that(self.spy.foo, called().times(4))
         assert_that(self.spy.foo, called().with_args(ANY_ARG).times(4))
+
+    # issue 9
+    def test_ANY_ARG_forbbiden_as_keyword_value(self):
+        person = Spy()
+        person.set_info(name="John", surname="Doe")
+
+        assert_that(person.set_info,
+                    called().with_args(name=anything(), surname="Doe"))
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(person.set_info,
+                        called().with_args(name=ANY_ARG, surname="Doe"))
+
+    def test_ANY_ARG_must_be_last_positional_argument(self):
+        self.spy.method(1, 2, 3)
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(self.spy.method,
+                        called().with_args(1, ANY_ARG, 3))
+
+    def test_ANY_ARG_must_be_last_positional_argument_with_xarg(self):
+        self.spy.method(1, 2, 3, name='Bob')
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(self.spy.method,
+                        called().with_args(1, ANY_ARG, name='Bob'))
+
+    def test_ANY_ARG_must_be_last_positional_argument__restricted_spy(self):
+        spy = Spy(Collaborator)
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.two_args_method,
+                        called().with_args(ANY_ARG, 2))
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.three_args_method,
+                        called().with_args(1, ANY_ARG, 3))
 
 
 class MatcherTests(TestCase):
@@ -790,7 +846,7 @@ class MatcherTests(TestCase):
         assert_that(self.spy.foo, is_not(called().with_args(5)))                 # = 0 times
         assert_that(self.spy.foo, called().with_args().times(1))                 # = 1
         assert_that(self.spy.foo, called().with_args(anything()))                # > 0
-        assert_that(self.spy.foo, called().with_args(anything()).times(4))       # = 4
+        assert_that(self.spy.foo, called().with_args(ANY_ARG).times(4))          # = 4
         assert_that(self.spy.foo, called().with_args(1).times(2))                # = 2
         assert_that(self.spy.foo, called().with_args(1).times(greater_than(1)))  # > 1
         assert_that(self.spy.foo, called().with_args(1).times(less_than(5)))     # < 5
@@ -1155,6 +1211,30 @@ class AsyncTests(TestCase):
         # then
         assert_that(spy.write, called().async(timeout=1))
 
+# FIXME: new on tip
+class with_some_args_matcher_tests(TestCase):
+    def test_one_arg(self):
+        spy = Spy(Collaborator)
+        spy.mixed_method(5)
+        assert_that(spy.mixed_method, called().with_args(5))
+        assert_that(spy.mixed_method, called().with_args(arg1=5))
+
+    def test_two_arg(self):
+        spy = Spy(Collaborator)
+        spy.two_args_method(5, 10)
+        assert_that(spy.two_args_method, called().with_args(5, 10))
+        assert_that(spy.two_args_method, called().with_args(arg1=5, arg2=10))
+        assert_that(spy.two_args_method, called().with_some_args(arg1=5))
+        assert_that(spy.two_args_method, called().with_some_args(arg2=10))
+        assert_that(spy.two_args_method, called().with_some_args())
+
+    def test_free_spy(self):
+        spy = Spy()
+        spy.foo(1, 3)
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.foo, called().with_some_args())
+
 
 class SomeException(Exception):
     pass
@@ -1208,6 +1288,9 @@ class Collaborator:
 
     def two_args_method(self, arg1, arg2):
         return arg1 + arg2
+
+    def three_args_method(self, arg1, arg2, arg3):
+        return arg1 + arg2 + arg3
 
     def kwarg_method(self, key_param=False):
         return key_param

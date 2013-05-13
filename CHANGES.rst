@@ -1,3 +1,11 @@
+Release 1.6.7
+
+0.20130513
+==========
+
+- ANY_ARG is not allowed as keyword value
+- ANY_ARG must be the last positional argument value
+
 0.20130427
 ==========
 

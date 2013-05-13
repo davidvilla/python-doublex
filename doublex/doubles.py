@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012 David Villa Alises
+# Copyright © 2012, 2013 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ class Stub(object):
         actual_retval = self._perform_invocation(invocation)
 
         retval = stubbed_retval if stubbed_retval is not None else actual_retval
-        invocation.context.retval = retval
+        invocation._context.retval = retval
         return retval
 
     def _prepare_invocation(self, invocation):
@@ -117,7 +117,7 @@ class Spy(Stub, SpyBase):
 
     def _get_invocations_to(self, name):
         return [i for i in self._recorded
-                if self._proxy.same_method(name, i.name)]
+                if self._proxy.same_method(name, i._name)]
 
 
 class ProxySpy(Spy):

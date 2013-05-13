@@ -1,6 +1,5 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
-
 from unittest import TestCase
 
 from hamcrest import is_not, all_of, contains_string, has_length
@@ -94,7 +93,8 @@ class pyDoubles__ProxySpyTests(TestCase):
         self.spy.hello()
         args_checker = called().with_args("something")
 
-        assert_that(not args_checker.matches(self.spy.hello))
+        with self.assertRaises(TypeError):
+            assert_that(not args_checker.matches(self.spy.hello))
 
     def test_was_called_with_several_parameters(self):
         self.spy.two_args_method(1, 2)
