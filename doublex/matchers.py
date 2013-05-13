@@ -91,6 +91,11 @@ class MethodCalled(OperationMatcher):
         self.context.update_args(args, kargs)
         return self
 
+    def with_some_args(self, **kargs):
+        self.context.update_args(tuple(), kargs)
+        self.context.check_some_args = True
+        return self
+
     def async(self, timeout):
         self._async_timeout = timeout
         return self

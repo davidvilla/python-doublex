@@ -133,7 +133,7 @@ class ProxySpyTests(unittest.TestCase):
         self.spy.hello()
         args_checker = assert_that_was_called(self.spy.hello)
 
-        self.failUnlessRaises(ArgsDontMatch,
+        self.failUnlessRaises(TypeError,
             args_checker.with_args, "something")
 
     def test_was_called_with_several_parameters(self):
@@ -268,13 +268,6 @@ class ProxySpyTests(unittest.TestCase):
 
         self.assertEquals(1000, self.spy.two_args_method(1, 2))
         self.assertEquals(1000, self.spy.two_args_method(1, 5))
-
-## TODO: implement this:
-## pyDoubles did not support this
-##    def test_any_arg_matcher_with_kwargs(self):
-##        when(self.spy.kwarg_method).with_args(key_param=ANY_ARG).then_return(1000)
-##
-##        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
 
     def test_any_arg_matcher_was_called(self):
         when(self.spy.two_args_method).with_args(1, 2).then_return(1000)

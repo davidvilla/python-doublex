@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012 David Villa Alises
+# Copyright © 2012,2013 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,21 +33,45 @@ def create_proxy(collaborator):
     if collaborator is None:
         return DummyProxy()
 
-    return Proxy(collaborator)
+    return CollaboratorProxy(collaborator)
 
 
-class DummyProxy(object):
-    def get_attr_typename(self, key):
-        return 'instancemethod'
-
+class Proxy(object):
     def assure_signature_matches(self, invocation):
         pass
+
+    def collaborator_classname(self):
+        return None
+
+    def get_signature(self, method_name):
+        if self.is_property(method_name):
+            return PropertySignature(self, method_name)
+
+        if not self.is_method_or_func(method_name):
+            return BuiltinSignature(self, method_name)
+
+        return MethodSignature(self, method_name)
+
+    def is_property(self, attr_name):
+        attr = getattr(self.collaborator_class, attr_name)
+        return isinstance(attr, property)
+
+    def is_method_or_func(self, method_name):
+        func = getattr(self.collaborator, method_name)
+        if inspect.ismethod(func):
+            func = func.im_func
+        return inspect.isfunction(func)
+
+
+class DummyProxy(Proxy):
+    def get_attr_typename(self, key):
+        return 'instancemethod'
 
     def same_method(self, name1, name2):
         return name1 == name2
 
-    def collaborator_classname(self):
-        return None
+    def get_signature(self, method_name):
+        return DummySignature()
 
 
 def get_class(something):
@@ -57,7 +81,7 @@ def get_class(something):
         return something.__class__
 
 
-class Proxy(object):
+class CollaboratorProxy(Proxy):
     '''Represent the collaborator object'''
     def __init__(self, collaborator):
         self.collaborator = collaborator
@@ -76,9 +100,8 @@ class Proxy(object):
         return self.collaborator_class.__name__
 
     def assure_signature_matches(self, invocation):
-        signature = create_signature(self, invocation.name)
-        signature.assure_match(invocation.context.args,
-                               invocation.context.kargs)
+        signature = self.get_signature(invocation._name)
+        signature.assure_matches(invocation._context)
 
     def get_attr_typename(self, key):
         def raise_no_attribute():
@@ -104,41 +127,39 @@ class Proxy(object):
             getattr(self.collaborator, name2)
 
     def perform_invocation(self, invocation):
-        method = getattr(self.collaborator, invocation.name)
-        return method(*invocation.context.args,
-                      **invocation.context.kargs)
+        method = getattr(self.collaborator, invocation._name)
+        return invocation._context.apply_on(method)
 
 
-def create_signature(proxy, method_name):
-    if is_property(proxy, method_name):
-        return PropertySignature(proxy, method_name)
-
-    if not is_method_or_func(proxy, method_name):
-        return BuiltinSignature(proxy, method_name)
-
-    return Signature(proxy, method_name)
-
-
-def is_property(proxy, attr_name):
-    attr = getattr(proxy.collaborator_class, attr_name)
-    return isinstance(attr, property)
-
-
-def is_method_or_func(proxy, method_name):
-    func = getattr(proxy.collaborator, method_name)
-    if inspect.ismethod(func):
-        func = func.im_func
-    return inspect.isfunction(func)
-
-
-class BuiltinSignature(object):
-    "builtin collaborator method signature"
+class Signature(object):
     def __init__(self, proxy, name):
         self.proxy = proxy
         self.name = name
         self.method = getattr(proxy.collaborator, name)
 
-    def assure_match(self, args, kargs):
+    def get_arg_spec(self):
+        pass
+
+    def get_call_args(self, context):
+        retval = context.kargs.copy()
+        for n, i in enumerate(context.args):
+            retval['_positional_%s' % n] = i
+
+        return retval
+
+    def __eq__(self, other):
+        return (self.proxy, self.name, self.method) == \
+            (other.proxy, other.name, other.method)
+
+
+class DummySignature(Signature):
+    def __init__(self):
+        pass
+
+
+class BuiltinSignature(Signature):
+    "builtin collaborator method signature"
+    def assure_matches(self, context):
         doc = self.method.__doc__
         if not ')' in doc:
             return
@@ -147,39 +168,52 @@ class BuiltinSignature(object):
         params = doc[:rpar]
         nkargs = params.count('=')
         nargs = params.count(',') + 1 - nkargs
-        if len(args) != nargs:
+        if len(context.args) != nargs:
             raise TypeError('%s.%s() takes exactly %s argument (%s given)' % (
-                    self.proxy.collaborator_classname(), self.name, nargs, len(args)))
+                self.proxy.collaborator_classname(), self.name,
+                nargs, len(context.args)))
 
 
-class Signature(object):
+class MethodSignature(Signature):
     "colaborator method signature"
     def __init__(self, proxy, name):
-        self.proxy = proxy
-        self.name = name
-        self.method = getattr(proxy.collaborator, name)
+        super(MethodSignature, self).__init__(proxy, name)
         self.argspec = inspect.getargspec(self.method)
 
-    def assure_match(self, args, kargs):
-        if ANY_ARG in args:
-            return
+    def get_arg_spec(self):
+        retval = inspect.getargspec(self.method)
+        del retval.args[0]
+        return retval
+
+    def get_call_args(self, context):
+        args = context.args
+#        print self.name, args
 
         if self.proxy.isclass():
             args = (None,) + args  # self
 
+        retval = getcallargs(self.method, *args, **context.kargs)
+        del retval['self']
+        return retval
+
+    def assure_matches(self, context):
+        if ANY_ARG in context.args:
+            return
+
         try:
-            getcallargs(self.method, *args, **kargs)
+            self.get_call_args(context)
         except TypeError as e:
             raise TypeError("%s.%s" % (self.proxy.collaborator_classname(), e))
 
     def __repr__(self):
-        return "%s.%s%s" % (self._proxy.collaborator_classname(),
+        return "%s.%s%s" % (self.proxy.collaborator_classname(),
                             self.name,
                             inspect.formatargspec(*self.argspec))
 
-class PropertySignature(object):
+
+class PropertySignature(Signature):
     def __init__(self, proxy, name):
         pass
 
-    def assure_match(self, args, kargs):
+    def assure_matches(self, context):
         pass
