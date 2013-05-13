@@ -750,8 +750,14 @@ class ANY_ARG_SpyTests(TestCase):
             assert_that(person.set_info,
                         called().with_args(name=ANY_ARG, surname="Doe"))
 
-    def test_nothing_allowed_after_ANY_ARG(self):
-        self.fail()
+    def test_nothing_allowed_after_ANY_ARG__free_spy(self):
+        spy = Spy()
+
+        spy.method(1, 2, 3)
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.method,
+                        called().with_args(1, ANY_ARG, 3))
 
 
 class MatcherTests(TestCase):
