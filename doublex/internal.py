@@ -19,7 +19,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import itertools
 import threading
 import collections
 
@@ -228,6 +227,11 @@ class Invocation(object):
         return add_indent(self, indent)
 
 
+ANY_ARG_MUST_BE_LAST = "ANY_ARG must be the last positional argument. "
+ANY_ARG_WITHOUT_KARGS = "Keyword arguments are not allowed if ANY_ARG is given. "
+ANY_ARG_CAN_BE_KARG = "ANY_ARG is not allowed as keyword value. "
+ANY_ARG_DOC = "See http://goo.gl/R6mOt"
+
 @total_ordering
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
@@ -237,8 +241,23 @@ class InvocationContext(object):
         self.check_some_args = False
 
     def update_args(self, args, kargs):
+        self._check_ANY_ARG_sanity(args, kargs)
         self.args = args
         self.kargs = kargs
+
+    def _check_ANY_ARG_sanity(self, args, kargs):
+        try:
+            if args.index(ANY_ARG) != len(args)-1:
+                raise WrongApiUsage(ANY_ARG_MUST_BE_LAST + ANY_ARG_DOC)
+
+            if kargs:
+                raise WrongApiUsage(ANY_ARG_WITHOUT_KARGS + ANY_ARG_DOC)
+        except ValueError:
+            pass
+
+        if ANY_ARG in kargs.values():
+            raise WrongApiUsage(ANY_ARG_CAN_BE_KARG + ANY_ARG_DOC)
+
 
     def apply_on(self, method):
         return method(*self.args, **self.kargs)
@@ -263,26 +282,15 @@ class InvocationContext(object):
 
     def replace_ANY_ARG(self, actual):
         try:
-            first = self.args.index(ANY_ARG)
+            index = self.args.index(ANY_ARG)
         except ValueError:
             return self
 
         retval = self.copy()
-        args = list(self.args[0:first])
-        args.extend([hamcrest.anything()] * (len(actual.args) - first))
+        args = list(self.args[0:index])
+        args.extend([hamcrest.anything()] * (len(actual.args) - index))
         retval.args = tuple(args)
         retval.kargs = actual.kargs.copy()
-        return retval
-
-    def add_unspecifed_args(self, context):
-        arg_spec = context.signature.get_arg_spec()
-        if arg_spec is None:
-            raise WrongApiUsage(
-                'free spies does not support the with_some_args() matcher')
-
-        keys = arg_spec.args
-        retval = dict((k,hamcrest.anything()) for k in keys)
-        retval.update(context.kargs)
         return retval
 
     def matches(self, other):
@@ -304,6 +312,17 @@ class InvocationContext(object):
             return True
         except AssertionError:
             return False
+
+    def add_unspecifed_args(self, context):
+        arg_spec = context.signature.get_arg_spec()
+        if arg_spec is None:
+            raise WrongApiUsage(
+                'free spies does not support the with_some_args() matcher')
+
+        keys = arg_spec.args
+        retval = dict((k, hamcrest.anything()) for k in keys)
+        retval.update(context.kargs)
+        return retval
 
     def __lt__(self, other):
         if ANY_ARG in other.args or self.args < other.args:

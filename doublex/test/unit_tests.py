@@ -713,6 +713,11 @@ class ANY_ARG_StubTests(TestCase):
         assert_that(self.stub.foo(1, 2, 3), is_(True))
         assert_that(self.stub.foo(1, key1='a'), is_(True))
 
+    def test_ANY_ARG_must_be_last_positional_argument(self):
+        with self.assertRaises(WrongApiUsage):
+            with self.stub:
+                self.stub.method(1, ANY_ARG, 3).returns(True)
+
 
 class ANY_ARG_SpyTests(TestCase):
     def setUp(self):
@@ -721,10 +726,13 @@ class ANY_ARG_SpyTests(TestCase):
     def test_no_args(self):
         self.spy.foo()
         assert_that(self.spy.foo, called().with_args(ANY_ARG))
+        assert_that(self.spy.foo, never(called().with_args(anything())))
 
     def test_one_arg(self):
         self.spy.foo(1)
+        assert_that(self.spy.foo, called())
         assert_that(self.spy.foo, called().with_args(ANY_ARG))
+        assert_that(self.spy.foo, called().with_args(anything()))
 
     def test_one_karg(self):
         self.spy.foo(key='val')
@@ -748,6 +756,43 @@ class ANY_ARG_SpyTests(TestCase):
 
         assert_that(self.spy.foo, called().times(4))
         assert_that(self.spy.foo, called().with_args(ANY_ARG).times(4))
+
+    # issue 9
+    def test_ANY_ARG_forbbiden_as_keyword_value(self):
+        person = Spy()
+        person.set_info(name="John", surname="Doe")
+
+        assert_that(person.set_info,
+                    called().with_args(name=anything(), surname="Doe"))
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(person.set_info,
+                        called().with_args(name=ANY_ARG, surname="Doe"))
+
+    def test_ANY_ARG_must_be_last_positional_argument(self):
+        self.spy.method(1, 2, 3)
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(self.spy.method,
+                        called().with_args(1, ANY_ARG, 3))
+
+    def test_ANY_ARG_must_be_last_positional_argument_with_xarg(self):
+        self.spy.method(1, 2, 3, name='Bob')
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(self.spy.method,
+                        called().with_args(1, ANY_ARG, name='Bob'))
+
+    def test_ANY_ARG_must_be_last_positional_argument__restricted_spy(self):
+        spy = Spy(Collaborator)
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.two_args_method,
+                        called().with_args(ANY_ARG, 2))
+
+        with self.assertRaises(WrongApiUsage):
+            assert_that(spy.three_args_method,
+                        called().with_args(1, ANY_ARG, 3))
 
 
 class MatcherTests(TestCase):
@@ -1240,6 +1285,9 @@ class Collaborator:
 
     def two_args_method(self, arg1, arg2):
         return arg1 + arg2
+
+    def three_args_method(self, arg1, arg2, arg3):
+        return arg1 + arg2 + arg3
 
     def kwarg_method(self, key_param=False):
         return key_param
