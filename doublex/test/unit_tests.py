@@ -739,15 +739,19 @@ class ANY_ARG_SpyTests(TestCase):
         assert_that(self.spy.foo, called().with_args(ANY_ARG).times(4))
 
     # issue 9
-    def test_ANY_ARG_as_keyword_matcher(self):
+    def test_ANY_ARG_forbbiden_as_keyword_value(self):
         person = Spy()
         person.set_info(name="John", surname="Doe")
 
         assert_that(person.set_info,
                     called().with_args(name=anything(), surname="Doe"))
 
-        assert_that(person.set_info,
-                    called().with_args(name=ANY_ARG, surname="Doe"))
+        with self.assertRaises(WrongApiUsage):
+            assert_that(person.set_info,
+                        called().with_args(name=ANY_ARG, surname="Doe"))
+
+    def test_nothing_allowed_after_ANY_ARG(self):
+        self.fail()
 
 
 class MatcherTests(TestCase):

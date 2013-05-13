@@ -239,6 +239,10 @@ class InvocationContext(object):
         self.kargs = kargs
 
     def matches(self, other):
+        if ANY_ARG in self.kargs.values() + other.kargs.values():
+            raise WrongApiUsage(
+                "ANY_ARG is not allowed as keyword value: See http://goo.gl/R6mOt")
+
         try:
             if self._assert_args_match(self.args, other.args) is ANY_ARG:
                 return True
@@ -264,8 +268,6 @@ class InvocationContext(object):
 
     @classmethod
     def _assert_values_match(cls, a, b):
-        a, b = [hamcrest.anything() if x is ANY_ARG else x for x in [a, b]]
-
         if isinstance(a, BaseMatcher):
             a, b = b, a
 
