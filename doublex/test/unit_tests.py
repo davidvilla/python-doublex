@@ -94,7 +94,7 @@ class FreeStubTests(TestCase):
         with self.stub:
             self.stub.foo().returns(True)
 
-        assert_that(self.stub.bar(), is_(None))
+        assert_that(self.stub.unknown(), is_(None))
 
     def test_returns_input(self):
         with Stub() as stub:
@@ -1211,6 +1211,7 @@ class AsyncTests(TestCase):
         # then
         assert_that(spy.write, called().async(timeout=1))
 
+
 # FIXME: new on tip
 class with_some_args_matcher_tests(TestCase):
     def test_one_arg(self):
@@ -1234,6 +1235,36 @@ class with_some_args_matcher_tests(TestCase):
 
         with self.assertRaises(WrongApiUsage):
             assert_that(spy.foo, called().with_some_args())
+
+
+class default_behavior_tests(TestCase):
+    def test_set_return_globally(self):
+        StubClone = Stub._clone_class()
+        set_default_behavior(StubClone, method_returning(20))
+        stub = StubClone()
+
+        assert_that(stub.unknown(), is_(20))
+
+    def test_set_exception_globally(self):
+        StubClone = Stub._clone_class()
+        set_default_behavior(StubClone, method_raising(SomeException))
+        stub = StubClone()
+
+        with self.assertRaises(SomeException):
+            stub.unknown()
+
+    def test_set_return_by_instance(self):
+        stub = Stub()
+        set_default_behavior(stub, method_returning(20))
+
+        assert_that(stub.unknown(), is_(20))
+
+    def test_set_exception_by_instance(self):
+        stub = Stub()
+        set_default_behavior(stub, method_raising(SomeException))
+
+        with self.assertRaises(SomeException):
+            stub.unknown()
 
 
 class SomeException(Exception):
