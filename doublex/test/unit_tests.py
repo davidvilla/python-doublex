@@ -1237,7 +1237,8 @@ class with_some_args_matcher_tests(TestCase):
             assert_that(spy.foo, called().with_some_args())
 
 
-class default_behavior_tests(TestCase):
+# FIXME: new on tip
+class Stub_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         StubClone = Stub._clone_class()
         set_default_behavior(StubClone, method_returning(20))
@@ -1265,6 +1266,44 @@ class default_behavior_tests(TestCase):
 
         with self.assertRaises(SomeException):
             stub.unknown()
+
+    def test_restricted_stub(self):
+        stub = Stub(Collaborator)
+        set_default_behavior(stub, method_returning(30))
+        with stub:
+            stub.hello().returns(1000)
+
+        assert_that(stub.something(), is_(30))
+        assert_that(stub.hello(), is_(1000))
+
+
+class Spy_default_behavior_tests(TestCase):
+    def test_set_return_globally(self):
+        SpyClone = Spy._clone_class()
+        set_default_behavior(SpyClone, method_returning(20))
+        spy = SpyClone()
+
+        assert_that(spy.unknown(7), is_(20))
+
+        assert_that(spy.unknown, called().with_args(7))
+        assert_that(spy.unknown, never(called().with_args(9)))
+
+    def test_set_return_by_instance(self):
+        spy = Spy()
+        set_default_behavior(spy, method_returning(20))
+
+        assert_that(spy.unknown(7), is_(20))
+
+        assert_that(spy.unknown, called().with_args(7))
+
+
+class ProxySpy_default_behavior_tests(TestCase):
+    def test_this_change_proxyspy_default_behavior(self):
+        spy = ProxySpy(Collaborator())
+        assert_that(spy.hello(), is_("hello"))
+
+        set_default_behavior(spy, method_returning(40))
+        assert_that(spy.hello(), is_(40))
 
 
 class SomeException(Exception):
