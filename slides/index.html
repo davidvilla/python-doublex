@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+
+    <title>doublex</title>
+
+    <meta name="description" content="doublex: Python test doubles framework"/>
+    <meta name="author" content="@david_vi11a"/>
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="stylesheet" href="css/reveal.min.css" />
+    <link rel="stylesheet" href="css/theme/default.css" id="theme" />
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css" />
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+        document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+
+     <style type="text/css">
+body .reveal {
+  font-size: 30pt;
+}
+
+.reveal h2 {
+  font-size: larger;
+  color: #e7ad52;
+}
+
+.reveal .question {
+  text-weight: bold;
+}
+
+.reveal b {
+  color: #e7ad52;
+}
+
+.reveal code {
+  font-size: 18pt;
+}
+
+
+html.example .state-background {
+  background-color:  #555;
+}
+
+html.attrezo .state-background {
+  background-image: url('http://4.bp.blogspot.com/-klE9QIb-T8c/T-IDIPIXTSI/AAAAAAAAAls/0cwR0Wcwf4E/s1600/Truman+Show.jpg');
+  background-repeat:no-repeat;
+  background-position: center;
+  background-color: white;
+}
+
+html.nested {
+  border-top: 10px double #555;
+}
+
+p.small {
+ margin-top: 20px;
+ font-size: 20pt;
+}
+     </style>
+  </head>
+
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+	<section>
+	  <h1><a href="https://bitbucket.org/DavidVilla/python-doublex">doublex</a></h1>
+	  <h4>Python test doubles framework</h4>
+	  <p>
+	    <small><a href="http://twitter.com/david_vi11a">@david_vi11a</a></small>
+	  </p>
+	</section>
+
+	<section >
+	  <section  data-state="nested attrezo">
+	    <p><b style="color:black;font-size:40pt">what are <em>doubles</em>?</b></p>
+	    <pan style="color:black;font-size:40pt" class="fragment">
+	      Test doubles are <em>atrezzo</em> objects.
+	    </pan>
+	  </section>
+	  <section>
+	    <p><b>why should we use doubles?</b></p>
+	    <p class="fragment"> Unit tests must isolate the <a href="http://en.wikipedia.org/wiki/System_under_test">SUT</a>.</p>
+	    <p class="fragment"> So all collaborators should be replaced.</p>
+	    <p class="fragment"> They require (and promote) your classes meets <a href="http://en.wikipedia.org/wiki/Dependency_inversion_principle">DIP</a> and <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">LSP</a>.</p>
+	  </section>
+	</section>
+
+	<section>
+	  <section data-state="nested">
+	    <b>then, instead of production class instances...</b>
+	    <pre><code class="python" contenteditable>
+ collaborator = Collaborator()
+
+ sut = SUT(collaborator)
+
+ sut.exercise()
+	    </code></pre>
+	  </section>
+
+	  <section>
+	    <b>...give it doubles</b>
+	    <pre><code class="python" contenteditable>
+ double = Double(Collaborator)
+
+ sut = SUT(double)
+
+ sut.exercise()
+	    </code></pre>
+	  </section>
+	</section>
+
+	<section>
+	  <h2>which is the right double?</h2>
+	  <ul>
+	    <li> <b>Dummy</b>: a placeholder object, never invoked </li>
+	    <li> <b>Fake</b>: Q&amp;D replacement, not suitable for production </li>
+	    <li> <b>Stub</b>: returns hardcoded responses: <em>It say you want to hear</em> </li>
+	    <li> <b>Spy</b>:  <em>Stub</em> that records received invocations </li>
+	    <li> <b>Mock</b>: holds and check programmed expectations </li>
+	  </ul>
+	  <p class="small">
+	    [ according to <a href="http://xunitpatterns.com/Test%20Double.html">xunitpatterns.com/Test Double.html</a> ]
+	  </p>
+	</section>
+
+	<section>
+	  <section data-state="example nested">
+	    <h2>EXAMPLE<br/>account service</h2>
+
+	    <pre><code class="python" contenteditable>  class AccountService:
+      def __init__(self, store, password_service):
+	  [...]
+
+      def create_user(self, login):
+          [...]
+          - raise InvalidPassword()
+          - raise AlreadyExists()
+
+      def create_group(self, group_name, user_names):
+          [...]
+	    </code></pre>
+
+	  <p class="small">[ slides related to that example<br/>have gray background ]</p>
+	    </code></pre>
+	  </section>
+
+<!--
+	  <section data-state="example nested">
+	    <h2>EXAMPLE<br/>account service (I)</h2>
+
+	    <pre><code class="python" contenteditable>  class AccountService:
+      def __init__(self, store, password_service):
+          self.store = store
+          self.password_service = password_service
+
+      def create_user(self, login):
+          if self.store.has_user(login):
+              raise AlreadyExists()
+
+          password = self.password_service.generate()
+          if not password:
+              raise InvalidPassword()
+
+          self.store.save(login, password)
+	    </code></pre>
+
+	  <p class="small">[ slides related to that example<br/>have gray background ]</p>
+	  </section>
+	  <section data-state="example nested">
+	    <h2>account service (II)</h2>
+
+	    <pre><code class="python" contenteditable>
+ class AccountService:
+
+      [...]
+
+      def create_group(self, group_name, user_names):
+          group = Group(group_name)
+          for name in user_names:
+              try:
+                  self.create_user(name)
+              except AlreadyExists:
+                  pass
+              group.add(name)
+	    </code></pre>
+
+	  </section>
+-->
+
+	  <section data-state="example">
+	    <h2>account service</h2>
+	    <p>collaborators</p>
+
+	    <pre><code class="python" contenteditable>
+  class AccountStore:
+      def save(self, login, password):
+          [...]
+
+      def has_user(self, login):
+          [...]
+
+  class PasswordService:
+      def generate(self):
+          [...]
+	    </code></pre>
+	  </section>
+	</section>
+
+
+<!--
+	    <li> ah hoc stub methods </li>
+	    <li> stub delegates </li>
+	    <li> stub observers </li>
+	    <li> properties </li>
+	    <li> <a href="http://code.google.com/p/hamcrest/">hamcrest matchers</a> for <b>all</b> assertions </li>
+	    <li> wrapper for the legacy pyDoubles API </li>
+	    <li> doublex never instantiates your classes! </li>
+
+	    <p>that works, but, is something actually called?</p>
+-->
+
+<!-- Stubs -->
+
+
+	<section>
+	  <section data-state="example nested">
+	    <h2>Stub</h2>
+
+	    <p>
+	      In a <em>free stub</em>, any method may be invoked:<br/>
+	    </p>
+
+	    <pre><code class="python" contenteditable>
+  class AccountTests(TestCase):
+      def test_account_creation(self):
+          with Stub() as password_service:
+              password_service.generate().returns('secret')
+
+          service = AccountService(store=Stub(), password_service)
+
+          service.create_user('John')
+	    </code></pre>
+
+	  </section>
+
+	  <section>
+	    <h2>Stub</h2>
+	    <p>... you can set return value depending on arguments</p>
+	    <pre><code class="python" contenteditable>
+ with Stub() as stub:
+     stub.foo(2, 2).returns(100)
+     stub.foo(3, ANY_ARG).returns(200)
+
+ assert_that(stub.foo(1, 1), is_(None))
+ assert_that(stub.foo(2, 2), is_(100))
+ assert_that(stub.foo(3, 0), is_(200))
+	    </code></pre>
+	    </section>
+
+	  <section>
+	    <h2>Stub</h2>
+	    <p>... or by hamcrest matcher</p>
+	    <pre><code class="python" contenteditable>
+ with Stub() as stub:
+     stub.foo(2, greater_than(4)).returns(100)
+
+ assert_that(stub.foo(2, 1), is_(None))
+ assert_that(stub.foo(2, 5), is_(100))
+	    </code></pre>
+	  </section>
+
+	  <section>
+	    <h2>Stub</h2>
+	    <p>... or by composite hamcrest matcher</p>
+	    <pre><code class="python" contenteditable>
+ with Stub() as stub:
+     stub.foo(2, has_length(all_of(
+         greater_than(4), less_than(8)))).returns(1000)
+
+ assert_that(stub.foo(2, "bad"), is_(None))
+ assert_that(stub.foo(2, "enough"), is_(1000))
+	    </code></pre>
+	  </section>
+
+	  <section  data-state="example">
+	    <h2>Stub</h2>
+	    <p>interface may be restricted to a given class:</p>
+
+	    <pre><code class="python" contenteditable>
+ with Stub(PasswordService) as password_service:
+     password_service.generate().returns('secret')
+
+ stub.generate()
+ stub.generate(9)
+TypeError: PasswordService.generate() takes exactly 1 argument (2 given)
+
+ stub.wrong()
+AttributeError: 'PasswordService' object has no attribute 'wrong'
+	    </code></pre>
+	  </section>
+	</section>
+
+<!-- Spies -->
+<section>
+  <section data-state="example nested">
+    <h2>in our AccountService test:</h2>
+    <pre><code class="python" contenteditable>
+  class AccountTests(TestCase):
+      def test_account_creation(self):
+          with Stub(PasswordService) as password_service:
+              password_service.generate().returns('secret')
+
+          service = AccountService(store=Stub(), password_service)
+
+          service.create_user('John')
+    </code></pre>
+
+    <p>... is 'store' really called??</p>
+    <p class="fragment"> we need a <b>spy</b></p>
+
+  </section>
+  <section data-state="example">
+    <h2>Spy</h2>
+    <p>checking double invocations: called()</p>
+
+    <pre><code class="python" contenteditable>
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create_group('team', ['John', 'Peter', 'Alice'])
+
+ assert_that(store.save, called())
+    </code></pre>
+
+    <p class="fragment"> but... is really called three times?</p>
+  </section>
+
+  <section data-state="example">
+    <h2>Spy</h2>
+    <p>checking called times: times()</p>
+    <p style="font-size: 18pt" > (also with matchers)</p>
+
+    <pre><code class="python" contentditable>
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create_group('team', ['John', 'Peter', 'Alice'])
+
+ assert_that(store.save, called().times(3))
+ assert_that(store.save, called().times(greater_than(2)))
+    </code></pre>
+
+    <p class="fragment"> but... is really called with the right arguments?</p>
+
+  </section>
+
+  <section data-state="example">
+    <h2>Spy</h2>
+    <p>check argument values: with_args()</p>
+    <p style="font-size: 18pt" > (also with matchers)</p>
+
+    <pre><code class="python" contentditable>
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create_user('John')
+
+ assert_that(store.save, called().with_args('John', 'secret'))
+ assert_that(store.save, called().with_args('John', ANY_ARG))
+ assert_that(store.save,
+             called().with_args(contains_string('oh'), ANY_ARG))
+ assert_that(store.save,
+             never(called().with_args('Alice', anything())))
+    </code></pre>
+  </section>
+
+  <section>
+    <h2>Spy</h2>
+    <p>check keyword argument</p>
+    <p style="font-size: 18pt" > (also with matcher)</p>
+
+    <pre><code class="python" contentditable>
+ spy = Spy()
+ spy.foo(name="Mary")
+
+ assert_that(spy.foo,
+             called().with_args(name="Mary"))
+
+ assert_that(spy.foo,
+             called().with_args(name=contains_string("ar")))
+    </code></pre>
+  </section>
+
+  <section  data-state="example">
+    <h2>Spy</h2>
+    <p>meaning-full report messages!</p>
+
+    <pre><code class="python" contentditable>
+ service.create_group('team', ['John', 'Alice'])
+
+ assert_that(store.save, called().with_args('Peter'))
+AssertionError:
+Expected: these calls:
+          AccountStore.save('Peter')
+     but: calls that actually ocurred were:
+          AccountStore.has_user('John')
+          AccountStore.save('John', 'secret')
+          AccountStore.has_user('Alice')
+          AccountStore.save('Alice', 'secret')
+    </code></pre>
+  </section>
+
+  <section data-state="example">
+    <h2>ProxySpy</h2>
+    <p>propagates invocations to the collaborator</p>
+
+    <pre><code class="python" contentditable>
+ with ProxySpy(AccountStore()) as store:
+     store.has_user('John').returns(True)
+
+ service = AccountService(store, password_service)
+
+ with self.assertRaises(AlreadyExists):
+     service.create_user('John')
+    </code></pre>
+
+    <p class="fragment">
+      <b>CAUTION</b>: ProxySpy is not a true double,<br/>this invokes the actual <tt>AccountStore</tt> instance!
+    </p>
+  </section>
+</section>
+
+
+<!-- mocks -->
+
+<section>
+  <section data-state="example nested">
+    <h2>Mock</h2>
+    <p>programming expectations</p>
+    <pre><code class="python" contentditable>
+        with Mock(AccountStore) as store:
+            store.has_user('John')
+            store.save('John', anything())
+            store.has_user('Peter')
+            store.save('Peter', anything())
+
+        service = AccountService(store, password_service)
+
+	service.create_group('team', ['John', 'Peter'])
+
+        assert_that(store, verify())
+    </code></pre>
+
+    <p class="fragment">
+      Mock assures these invocations (and only these) are ocurred.
+    </p>
+
+  </section>
+</section>
+
+<section>
+  <h2>ah hoc stub methods</h2>
+
+  <pre><code class="python" contentditable>
+ collaborator = Collaborator()
+ collaborator.foo = method_returning('bye')
+ assert_that(self.collaborator.foo(), is_('bye'))
+
+ collaborator.foo = method_raising(SomeException)
+ collaborator.foo()
+SomeException:
+  </code></pre>
+</section>
+
+<section>
+  <h2>stub observers</h2>
+  <p>attach additional behavior</p>
+
+  <pre><code class="python" contentditable>
+ class Observer(object):
+     def __init__(self):
+         self.state = None
+
+     def update(self, *args, **kargs):
+         self.state = args[0]
+
+ observer = Observer()
+ stub = Stub()
+ stub.foo.attach(observer.update)
+ stub.foo(2)
+
+ assert_that(observer.state, is_(2))
+  </code></pre>
+</section>
+
+<!-- delegates -->
+
+<section>
+  <section data-state="example nested">
+    <h2>stub delegates</h2>
+    <p>delegating to callables</p>
+
+    <pre><code class="python" contentditable>
+ def get_pass():
+     return "12345"
+
+ with Stub(PasswordService) as password_service:
+     password_service.generate().delegates(get_pass)
+
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create_user('John')
+
+ assert_that(store.save, called().with_args('John', '12345'))
+    </code></pre>
+
+  </section>
+  <section data-state="example">
+    <h2>stub delegates</h2>
+    <p>delegating to iterables/generators</p>
+
+    <pre><code class="python" contentditable>
+ with Stub(PasswordService) as password_service:
+     password_service.generate().delegates(["12345", "mypass", "nope"])
+
+ store = Spy(AccountStore)
+ service = AccountService(store, password_service)
+
+ service.create_group('team', ['John', 'Peter', 'Alice'])
+
+ assert_that(store.save, called().with_args('John', '12345'))
+ assert_that(store.save, called().with_args('Peter', 'mypass'))
+ assert_that(store.save, called().with_args('Alice', 'nope'))
+    </code></pre>
+  </section>
+</section>
+
+<!-- properties -->
+
+<section>
+  <section data-state="nested">
+    <h2>stubbing properties</h2>
+
+    <pre><code class="python" contentditable>
+ class Collaborator(object):
+     @property
+     def prop(self):
+         return 1
+
+     @prop.setter
+     def prop(self, value):
+         pass
+
+ with Spy(Collaborator) as spy:
+     spy.prop = 2
+
+ assert_that(spy.prop, is_(2))  # double property getter invoked
+    </code></pre>
+
+  </section>
+  <section>
+    <h2>spying properties</h2>
+    <p style="font-size: 18pt" > (also with matcher)</p>
+
+    <pre><code class="python" contentditable>
+ assert_that(spy, property_got('prop'))
+
+ spy.prop = 4  # double property setter invoked
+ spy.prop = 5  # --
+ spy.prop = 5  # --
+
+ assert_that(spy, property_set('prop'))  # set to any value
+ assert_that(spy, property_set('prop').to(4))
+ assert_that(spy, property_set('prop').to(5).times(2))
+ assert_that(spy,
+             never(property_set('prop').to(greater_than(6))))
+    </code></pre>
+  </section>
+</section>
+
+<!-- mimics -->
+<!--
+<section>
+  <section>
+    <h2>normal doubles support only duck-typing</h2>
+
+    <pre><code class="python" contentditable>
+ class A(object):
+     pass
+
+ class B(A):
+     pass
+
+ >>> spy = Spy(B())
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, B)
+ False
+    </code></pre>
+  </section>
+  <section>
+    <h2>Mimics support full LSP</h2>
+
+    <pre><code class="python" contentditable>
+ >>> spy = Mimic(Spy, B)
+ >>> isinstance(spy, B)
+ True
+ >>> isinstance(spy, A)
+ True
+ >>> isinstance(spy, Spy)
+ True
+ >>> isinstance(spy, Stub)
+ True
+ >>> isinstance(spy, object)
+ True
+    </code></pre>
+  </section>
+</section>
+-->
+<section>
+  <h2 style="font-size: 80pt">Questions?</h2>
+</section>
+
+<section>
+  <h2>References</h2>
+
+  <ul>
+    <li><a href="https://bitbucket.org/DavidVilla/python-doublex">python-doublex</a></li>
+    <li><a href="http://www.pydoubles.org">pydoubles.org</a></li>
+  </ul>
+</section>
+
+
+      </div>
+
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+      controls: true,
+      progress: true,
+      history: true,
+      center: true,
+      overview: true,
+      rollingLinks: false,
+
+      width: 1280,
+      height: 800,
+      margin: 0.1,
+
+      // theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+      theme: 'night',
+      transition: Reveal.getQueryHash().transition || 'cube', // default/cube/page/concave/zoom/linear/none
+
+      // Optional libraries used to extend on reveal.js
+      dependencies: [
+      { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+      // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+      ]
+      });
+
+    </script>
+  </body>
+</html>
+
+
+<!-- Local Variables: -->
+<!--  coding: utf-8 -->
+<!--  mode: flyspell -->
+<!--  ispell-local-dictionary: "american" -->
+<!-- End: -->
