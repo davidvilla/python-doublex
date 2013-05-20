@@ -7,7 +7,7 @@ doublex
 * `PyPI project         <http://pypi.python.org/pypi/doublex>`_
 * `pydoubles.org        <http://www.pydoubles.org/doublex-documentation/>`_
 * `jenkins job          <https://fowler.esi.uclm.es/job/python-doublex/>`_
-* `other mock libraries <http://garybernhardt.github.io/python-mock-comparison/>`_
+* `other Python doubles libraries <http://garybernhardt.github.io/python-mock-comparison/>`_
 
 
 debian
