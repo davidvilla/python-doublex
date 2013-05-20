@@ -184,7 +184,8 @@ class property_got(OperationMatcher):
             self.operation, 1, cmp_pred=Invocation.__eq__)
 
     def times(self, n):
-        return property_got(self.property_name, n)
+        self._times = n
+        return self
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
@@ -211,10 +212,12 @@ class property_set(OperationMatcher):
             self.operation, self._times, cmp_pred=Invocation.__eq__)
 
     def to(self, value):
-        return property_set(self.property_name, value)
+        self.value = value
+        return self
 
     def times(self, n):
-        return property_set(self.property_name, self.value, n)
+        self._times = n
+        return self
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
