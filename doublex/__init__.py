@@ -7,3 +7,7 @@ from .internal import WrongApiUsage
 
 def set_default_behavior(double, func):
     double._default_behavior = func
+
+
+def disable_context_setup(double):
+    double._doublex_disable_context_setup = True

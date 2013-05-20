@@ -26,13 +26,15 @@ from hamcrest import is_, instance_of
 
 from .internal import (
     Method, InvocationContext, ANY_ARG, MockBase, SpyBase,
-    PropertyGet, PropertySet, WrongApiUsage, Invocation)
+    PropertyGet, PropertySet, WrongApiUsage, Invocation,
+    ContextEnter)
 
-__all__ = ['called',
+__all__ = ['assert_that', 'is_', 'instance_of',
+           'called',
            'never',
            'verify', 'any_order_verify',
            'property_got', 'property_set',
-           'assert_that', 'is_', 'instance_of']
+           'entered_context']
 
 
 # just hamcrest aliases
@@ -211,9 +213,11 @@ class property_set(OperationMatcher):
             self.operation, self._times, cmp_pred=Invocation.__eq__)
 
     def to(self, value):
+        # FIXME: modify attributes instead of create a new matcher
         return property_set(self.property_name, value)
 
     def times(self, n):
+        # FIXME: modify attributes instead of create a new matcher
         return property_set(self.property_name, self.value, n)
 
     def describe_to(self, description):
@@ -225,3 +229,21 @@ class property_set(OperationMatcher):
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
         description.append_text(self.double._recorded.show(indent=10))
+
+
+class entered_context(OperationMatcher):
+    def __init__(self, times=any_time):
+        super(entered_context, self).__init__()
+        self._times = times
+
+    def _matches(self, double):
+        self.double = double
+        self.operation = ContextEnter(self.double)
+        return self.double._received_invocation(self.operation, self._times)
+
+    def times(self, n):
+        self._times = n
+        return self
+
+    def describe_to(self, description):
+        pass  # FIXME

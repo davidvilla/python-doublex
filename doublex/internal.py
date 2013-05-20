@@ -198,6 +198,7 @@ class Invocation(object):
 
     def raises(self, e):
         self.delegates(func_raising(e))
+        return self
 
     def times(self, n):
         if n < 1:
@@ -205,6 +206,8 @@ class Invocation(object):
 
         for i in range(1, n):
             self._double._manage_invocation(self)
+
+        return self
 
     def _apply_stub(self, actual_invocation):
         return actual_invocation._context.apply_on(self.__delegate)
@@ -417,6 +420,11 @@ def property_factory(double, key):
             invocation.returns(value)
 
     return property(get_property, set_property)
+
+
+class ContextEnter(Invocation):
+    def __init__(self, double):
+        super(ContextEnter, self).__init__(double, '__enter__')
 
 
 class AttributeFactory(object):

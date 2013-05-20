@@ -505,6 +505,15 @@ class MockTests(TestCase):
 
         assert_that(mock, verify())
 
+    def test_times(self):
+        with Mock() as mock:
+            mock.hello().times(2).returns(20)
+
+        assert_that(mock.hello(), is_(20))
+        assert_that(mock.hello(), is_(20))
+
+        assert_that(mock, verify())
+
 
 class MockOrderTests(TestCase):
     def setUp(self):
@@ -1089,6 +1098,18 @@ class PropertyTests(TestCase):
         assert_that(spy, property_set('prop').to(2))
         assert_that(spy, never(property_set('prop').to(5)))
 
+    def test_spy_set_property_to_times(self):
+        spy = Spy(ObjCollaborator)
+
+        spy.prop = 4
+        spy.prop = 5
+        spy.prop = 5
+
+        assert_that(spy, property_set('prop'))  # was set to any value
+        assert_that(spy, property_set('prop').to(4))
+        assert_that(spy, property_set('prop').to(5).times(2))
+        assert_that(spy, never(property_set('prop').to(greater_than(5))))
+
     def test_spy_set_property_times(self):
         spy = Spy(ObjCollaborator)
         spy.prop = 2
@@ -1096,12 +1117,6 @@ class PropertyTests(TestCase):
         assert_that(spy, property_set('prop').to(2))
         assert_that(spy, property_set('prop').to(3))
         assert_that(spy, property_set('prop').times(2))
-
-    def test_spy_set_property_to_times(self):
-        spy = Spy(ObjCollaborator)
-        spy.prop = 3
-        spy.prop = 3
-        assert_that(spy, property_set('prop').to(3).times(2))
 
     def test_properties_are_NOT_shared_among_doubles(self):
         stub1 = Stub(ObjCollaborator)
@@ -1306,6 +1321,46 @@ class ProxySpy_default_behavior_tests(TestCase):
 
         set_default_behavior(spy, method_returning(40))
         assert_that(spy.hello(), is_(40))
+
+
+# FIXME: new on tip
+class ContextManagerTests(TestCase):
+    def test_spy(self):
+        spy = Spy()
+        disable_context_setup(spy)
+
+        with spy:
+            pass
+
+        assert_that(spy, entered_context())
+
+    def test_spy_twice(self):
+        spy = Spy()
+        disable_context_setup(spy)
+
+        with spy:
+            pass
+
+        with spy:
+            pass
+
+        assert_that(spy, entered_context().times(2))
+
+
+# FIXME: new on tip
+class ChainedStubbing(TestCase):
+    def test_stub(self):
+        stub1 = Stub()
+        stub2 = Stub()
+        spy = Spy()
+
+        with stub1, stub2, spy:
+            spy.method3(1, 2).returns('some value')
+            stub2.method2().returns(spy)
+            stub1.method1().returns(stub2)
+
+        assert_that(stub1.method1().method2().method3(1, 2), is_('some value'))
+        assert_that(spy.method3, called().with_args(1, 2))
 
 
 class SomeException(Exception):

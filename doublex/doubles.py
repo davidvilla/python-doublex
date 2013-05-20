@@ -24,7 +24,7 @@ import inspect
 import hamcrest
 
 from .internal import (ANY_ARG, OperationList, Method, MockBase, SpyBase,
-                       AttributeFactory)
+                       AttributeFactory, ContextEnter)
 from .proxy import create_proxy, get_class
 from .matchers import MockIsExpectedInvocation
 
@@ -52,8 +52,13 @@ class Stub(object):
         self._stubs = OperationList()
         self._setting_up = False
         self.__class__.__setattr__ = self.__setattr__hook
+        self._doublex_disable_context_setup = False
 
     def __enter__(self):
+        if self._doublex_disable_context_setup:
+            self._manage_invocation(ContextEnter(self))
+            return
+
         self._setting_up = True
         return self
 
