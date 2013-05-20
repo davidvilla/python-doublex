@@ -7,10 +7,11 @@ doublex
 * `PyPI project        <http://pypi.python.org/pypi/doublex>`_
 * `pydoubles.org       <http://www.pydoubles.org/doublex-documentation/>`_
 * `jenkins job         <https://fowler.esi.uclm.es/job/python-doublex/>`_
-* other mock libraries
+* other mock libraries <http://garybernhardt.github.io/python-mock-comparison/>`_
 
 
 debian
+------
 
 * package: http://packages.debian.org/source/sid/doublex
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
