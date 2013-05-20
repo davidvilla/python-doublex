@@ -1277,6 +1277,7 @@ class Stub_default_behavior_tests(TestCase):
         assert_that(stub.hello(), is_(1000))
 
 
+# FIXME: new on tip
 class Spy_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         SpyClone = Spy._clone_class()
@@ -1297,6 +1298,7 @@ class Spy_default_behavior_tests(TestCase):
         assert_that(spy.unknown, called().with_args(7))
 
 
+# FIXME: new on tip
 class ProxySpy_default_behavior_tests(TestCase):
     def test_this_change_proxyspy_default_behavior(self):
         spy = ProxySpy(Collaborator())
