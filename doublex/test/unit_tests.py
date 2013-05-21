@@ -1211,6 +1211,7 @@ class AsyncTests(TestCase):
         # then
         assert_that(spy.write, called().async(timeout=1))
 
+
 # FIXME: new on tip
 class with_some_args_matcher_tests(TestCase):
     def test_one_arg(self):
@@ -1234,6 +1235,52 @@ class with_some_args_matcher_tests(TestCase):
 
         with self.assertRaises(WrongApiUsage):
             assert_that(spy.foo, called().with_some_args())
+
+
+# FIXME: new on tip
+class orphan_methods_tests(TestCase):
+    def setUp(self):
+        self.obj = Collaborator()
+
+    def test_stub_method(self):
+        with Stub() as stub:
+            stub.method(1).returns(100)
+            stub.method(2).returns(200)
+
+        self.obj.foo = stub.method
+
+        assert_that(self.obj.foo(0), is_(None))
+        assert_that(self.obj.foo(1), is_(100))
+        assert_that(self.obj.foo(2), is_(200))
+
+    def test_spy_method(self):
+        with Spy() as spy:
+            spy.method(1).returns(100)
+            spy.method(2).returns(200)
+            spy.method(3).raises(SomeException)
+
+        self.obj.foo = spy.method
+
+        assert_that(self.obj.foo(0), is_(None))
+        assert_that(self.obj.foo(1), is_(100))
+        assert_that(self.obj.foo(2), is_(200))
+        with self.assertRaises(SomeException):
+            self.obj.foo(3)
+
+        assert_that(self.obj.foo, called().times(4))
+        assert_that(spy.method, called().times(4))
+
+#    def test_spy_method__brief_method(self):
+#        with method() as self.obj.foo:
+#            self.obj.foo().returns(100)
+#            self.obj.foo(2).returns(200)
+#
+#        assert_that(self.obj.foo(), is_(100))
+#        assert_that(self.obj.foo(2), is_(200))
+#        assert_that(self.obj.foo(3), is_(None))
+#
+#        assert_that(self.obj.foo, called().times(3))
+#        assert_that(spy.method, called().times(3))
 
 
 class SomeException(Exception):
