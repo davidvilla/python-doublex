@@ -76,7 +76,7 @@ class MethodCalled(OperationMatcher):
 
     def _assure_is_spied_method(self, method):
         if not isinstance(method, Method) or not isinstance(method.double, SpyBase):
-            raise WrongApiUsage("takes a spy method (got %s instead)" % method)
+            raise WrongApiUsage("called() expects a spy method (got %s instead)" % method)
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
@@ -155,6 +155,9 @@ class verify(BaseMatcher):
         return self._expectations_match()
 
     def _expectations_match(self):
+        for m in self.mock._children:
+            assert_that(m, verify())
+
         return self.mock._stubs == self.mock._recorded
 
     def describe_to(self, description):

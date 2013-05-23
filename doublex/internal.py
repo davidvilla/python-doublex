@@ -25,6 +25,7 @@ import collections
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 
+
 try:
     from functools import total_ordering
 except ImportError:
@@ -206,6 +207,12 @@ class Invocation(object):
         for i in range(1, n):
             self._double._manage_invocation(self)
 
+    def chains(self):
+        chained = self._double._clone()
+        self.returns(chained)
+        self._double._add_child(chained)
+        return chained.__enter__()
+
     def _apply_stub(self, actual_invocation):
         return actual_invocation._context.apply_on(self.__delegate)
 
@@ -232,6 +239,7 @@ ANY_ARG_WITHOUT_KARGS = "Keyword arguments are not allowed if ANY_ARG is given. 
 ANY_ARG_CAN_BE_KARG = "ANY_ARG is not allowed as keyword value. "
 ANY_ARG_DOC = "See http://goo.gl/R6mOt"
 
+
 @total_ordering
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
@@ -247,7 +255,7 @@ class InvocationContext(object):
 
     def _check_ANY_ARG_sanity(self, args, kargs):
         try:
-            if args.index(ANY_ARG) != len(args)-1:
+            if args.index(ANY_ARG) != len(args) - 1:
                 raise WrongApiUsage(ANY_ARG_MUST_BE_LAST + ANY_ARG_DOC)
 
             if kargs:
@@ -257,7 +265,6 @@ class InvocationContext(object):
 
         if ANY_ARG in kargs.values():
             raise WrongApiUsage(ANY_ARG_CAN_BE_KARG + ANY_ARG_DOC)
-
 
     def apply_on(self, method):
         return method(*self.args, **self.kargs)

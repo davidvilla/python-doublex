@@ -38,13 +38,22 @@ class Stub(object):
     def __new__(cls, collaborator=None):
         '''Creates a fresh class clone per instance. This is required due to
         ad-hoc stub properties are class attributes'''
-        klass = type(cls.__name__, (cls,), dict(cls.__dict__))
+        klass = cls._clone_class()
         return object.__new__(klass)
+
+    @classmethod
+    def _clone_class(cls):
+        return type(cls.__name__, (cls,), dict(cls.__dict__))
+
+    @classmethod
+    def _clone(cls):
+        return Stub()
 
     def __init__(self, collaborator=None):
         self._proxy = create_proxy(collaborator)
         self._stubs = OperationList()
         self._setting_up = False
+        self._children = []
         self.__class__.__setattr__ = self.__setattr__hook
 
     def __enter__(self):
@@ -53,6 +62,11 @@ class Stub(object):
 
     def __exit__(self, *args):
         self._setting_up = False
+        for double in self._children:
+            double.__exit__(*args)
+
+    def _add_child(self, child):
+        self._children.append(child)
 
     def _manage_invocation(self, invocation):
         self._proxy.assure_signature_matches(invocation)
@@ -108,6 +122,10 @@ class Spy(Stub, SpyBase):
         self._recorded = OperationList()
         super(Spy, self).__init__(collaborator)
 
+    @classmethod
+    def _clone(cls):
+        return Spy()
+
     def _prepare_invocation(self, invocation):
         self._recorded.append(invocation)
 
@@ -134,6 +152,10 @@ class ProxySpy(Spy):
 
 
 class Mock(Spy, MockBase):
+    @classmethod
+    def _clone(cls):
+        return Mock()
+
     def _prepare_invocation(self, invocation):
         hamcrest.assert_that(self, MockIsExpectedInvocation(invocation))
         super(Mock, self)._prepare_invocation(invocation)

@@ -162,7 +162,7 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
-    # FIXME: new on tip
+    # FIXME: new in 1.7
     def test_keyworked_or_positional_are_equivalent(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
@@ -647,7 +647,7 @@ class FrameworApiTest(TestCase):
             assert_that(stub.method, called())
             self.fail('exception should be raised')
         except WrongApiUsage as e:
-            assert_that(str(e), contains_string('takes a spy method (got'))
+            assert_that(str(e), contains_string('called() expects a spy method (got'))
 
 
 class ApiMismatchTest(TestCase):
@@ -1212,7 +1212,7 @@ class AsyncTests(TestCase):
         assert_that(spy.write, called().async(timeout=1))
 
 
-# FIXME: new on tip
+# FIXME: new in 1.7
 class with_some_args_matcher_tests(TestCase):
     def test_one_arg(self):
         spy = Spy(Collaborator)
@@ -1237,7 +1237,7 @@ class with_some_args_matcher_tests(TestCase):
             assert_that(spy.foo, called().with_some_args())
 
 
-# FIXME: new on tip
+# FIXME: new in 1.7
 class orphan_methods_tests(TestCase):
     def setUp(self):
         self.obj = Collaborator()
@@ -1281,6 +1281,36 @@ class orphan_methods_tests(TestCase):
 #
 #        assert_that(self.obj.foo, called().times(3))
 #        assert_that(spy.method, called().times(3))
+
+
+# FIXME: new in 1.7
+class ChainsTests(TestCase):
+    def test_chains_spy(self):
+        with Spy() as spy:
+            spy.m1().chains().m2().returns(100)
+
+        assert_that(spy.m1().m2(), is_(100))
+        assert_that(spy.m1, called())
+
+        spy2 = spy.m1()
+        assert_that(spy2.m2, called())
+
+    def test_chains_mock(self):
+        with Mock() as mock:
+            mock.m1().chains().m2().returns(100)
+
+        assert_that(mock.m1().m2(), is_(100))
+
+        assert_that(mock, verify())
+
+    def test_chains_mock_fail(self):
+        with Mock() as mock:
+            mock.m1().chains().m2().returns(100)
+
+        mock.m1()
+
+        with self.assertRaises(AssertionError):
+            assert_that(mock, verify())
 
 
 class SomeException(Exception):
