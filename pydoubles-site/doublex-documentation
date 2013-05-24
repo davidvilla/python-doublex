@@ -1,0 +1,27 @@
+For the time being you can find the doublex API documentation at:
+
+<a href="https://bitbucket.org/DavidVilla/python-doublex/wiki">https://bitbucket.org/DavidVilla/python-doublex/wiki</a>
+<h3>What provides doublex respect to pyDoubles?</h3>
+Respect to pyDoubles, <strong>doublex</strong>...:
+<ul>
+	<li>Use just hamcrest matchers (for all features).</li>
+	<li>Only ProxySpy requires an instance. Other doubles accept a class too, and they never instantiate it.</li>
+	<li>Stub observers: Notify arbitrary hooks when methods are invoked. Useful to add "side effects".</li>
+	<li>Stub delegates: Use callables, iterables or generators to create stub return values.</li>
+	<li>Mimic doubles: doubles that inherit the same collaborator subclasses. This provides full <a href="http://wikipedia.org/wiki/Liskov_substitution_principle">LSP</a> for code that make strict type checking.</li>
+</ul>
+<strong>doublex</strong> support all the issues notified in the pyDoubles issue tracker:
+<ul>
+	<li><a href="https://bitbucket.org/carlosble/pydoubles/issue/4/check-kwargs-keys-on-expect_calls">assert keyword argument values </a></li>
+	<li><a href="https://bitbucket.org/carlosble/pydoubles/issue/2/check-if-method-was-called-only-once">assert a method is called exactly  one</a></li>
+	<li><a href="https://bitbucket.org/carlosble/pydoubles/issue/3/strictordermock">mocks that impose invocation order</a></li>
+	<li><a href="https://bitbucket.org/carlosble/pydoubles/issue/5/protection-agains-incorrect-usage">doubles have framework public API</a></li>
+	<li><a href="https://bitbucket.org/carlosble/pydoubles/issue/6/keyworded-positional-arguments-on-stubs">stubs support keyword positional arguments</a></li>
+</ul>
+And other features requested in the user group:
+<ul>
+	<li><a href="https://groups.google.com/d/topic/pydoubles/Mbca-oPhz90/discussion">doubles for properties</a></li>
+	<li><a href="https://groups.google.com/d/topic/pydoubles/rQSLluR-MgA/discussion">creating doubles without instantiating real class</a></li>
+	<li><a href="https://groups.google.com/d/topic/pydoubles/J3CmxkE6D6E/discussion">using hamcrest with kwargs</a></li>
+</ul>
+&nbsp;
