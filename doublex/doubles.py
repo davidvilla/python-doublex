@@ -35,11 +35,17 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
 
 
 class Stub(object):
+    _default_behavior = lambda x: None
+
     def __new__(cls, collaborator=None):
         '''Creates a fresh class clone per instance. This is required due to
         ad-hoc stub properties are class attributes'''
-        klass = type(cls.__name__, (cls,), dict(cls.__dict__))
+        klass = cls._clone_class()
         return object.__new__(klass)
+
+    @classmethod
+    def _clone_class(cls):
+        return type(cls.__name__, (cls,), dict(cls.__dict__))
 
     def __init__(self, collaborator=None):
         self._proxy = create_proxy(collaborator)
@@ -63,7 +69,7 @@ class Stub(object):
 
         self._prepare_invocation(invocation)
 
-        stubbed_retval = None
+        stubbed_retval = self._default_behavior()
         if invocation in self._stubs:
             stubbed = self._stubs.lookup(invocation)
             stubbed_retval = stubbed._apply_stub(invocation)
