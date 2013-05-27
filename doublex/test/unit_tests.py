@@ -32,7 +32,7 @@ from hamcrest.library.object.hasproperty import *
 from hamcrest.library.number.ordering_comparison import *
 
 from doublex import *
-from doublex.matchers import HamcrestMatcherRequiredError
+from doublex.matchers import MatcherRequiredError
 from doublex.internal import InvocationContext
 
 
@@ -874,8 +874,9 @@ class MatcherTests(TestCase):
         assert_that(self.spy.m3, called().with_args(greater_than(1)))
         assert_that(self.spy.m6, called().with_args(name=contains_string("doe")))
 
+    # new on 1.6.8
     def test_assert_that_requires_a_matcher(self):
-        self.assertRaises(HamcrestMatcherRequiredError, assert_that, self.spy.m1, True)
+        self.assertRaises(MatcherRequiredError, assert_that, self.spy.m1, True)
 
 
 class StubObserverTests(TestCase):
@@ -1237,7 +1238,7 @@ class with_some_args_matcher_tests(TestCase):
             assert_that(spy.foo, called().with_some_args())
 
 
-# FIXME: new on tip
+# FIXME: new on 1.6.8
 class Stub_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         StubClone = Stub._clone_class()
@@ -1277,7 +1278,7 @@ class Stub_default_behavior_tests(TestCase):
         assert_that(stub.hello(), is_(1000))
 
 
-# FIXME: new on tip
+# FIXME: new on 1.6.8
 class Spy_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         SpyClone = Spy._clone_class()
@@ -1298,7 +1299,7 @@ class Spy_default_behavior_tests(TestCase):
         assert_that(spy.unknown, called().with_args(7))
 
 
-# FIXME: new on tip
+# FIXME: new on 1.6.8
 class ProxySpy_default_behavior_tests(TestCase):
     def test_this_change_proxyspy_default_behavior(self):
         spy = ProxySpy(Collaborator())

@@ -41,13 +41,13 @@ at_most = hamcrest.less_than_or_equal_to
 any_time = hamcrest.greater_than(0)
 
 
-class HamcrestMatcherRequiredError(Exception):
+class MatcherRequiredError(Exception):
     pass
 
 
 def assert_that(actual, matcher=None, reason=''):
     if matcher and not isinstance(matcher, Matcher):
-        raise HamcrestMatcherRequiredError("%s should be a hamcrest Matcher" % str(matcher))
+        raise MatcherRequiredError("%s should be a hamcrest Matcher" % str(matcher))
     return hamcrest.assert_that(actual, matcher, reason)
 
 
