@@ -103,6 +103,9 @@ class Method(Observable):
             self._event.set()
             self.notify(*args, **kargs)
 
+        if self.double._one_shot:
+            self.double._setting_up = self.double._one_shot = False
+
         return retval
 
     def _create_invocation(self, args, kargs):

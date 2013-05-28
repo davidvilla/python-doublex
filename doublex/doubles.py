@@ -51,6 +51,7 @@ class Stub(object):
         self._proxy = create_proxy(collaborator)
         self._stubs = OperationList()
         self._setting_up = False
+        self._one_shot = False
         self.__class__.__setattr__ = self.__setattr__hook
 
     def __enter__(self):

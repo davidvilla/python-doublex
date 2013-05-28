@@ -1356,6 +1356,29 @@ class orphan_methods_tests(TestCase):
 #        assert_that(spy.method, called().times(3))
 
 
+class when_tests(TestCase):
+    def test_when(self):
+        stub = Stub()
+        when(stub).add(2, 2).returns(5)
+        when(stub).add(2, 4).returns(8)
+
+        assert_that(stub.add(2, 2), is_(5))
+        assert_that(stub.add(2, 4), is_(8))
+        assert_that(stub.add(), is_(None))
+
+
+class expect_call_tests(TestCase):
+    def test_expect_call(self):
+        mock = Mock()
+        expect_call(mock).add(2, 2).returns(5)
+        expect_call(mock).add(2, 4)
+
+        assert_that(mock.add(2, 2), is_(5))
+        mock.add(2, 4)
+
+        assert_that(mock, verify())
+
+
 class SomeException(Exception):
     pass
 
