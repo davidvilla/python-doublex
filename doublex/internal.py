@@ -97,9 +97,9 @@ class Method(Observable):
 
     def __call__(self, *args, **kargs):
         invocation = self._create_invocation(args, kargs)
-        retval = self.double._manage_invocation(invocation)
+        retval = self.double._mgr.manage_invocation(invocation)
 
-        if not self.double._setting_up:
+        if not self.double._mgr.setting_up:
             self._event.set()
             self.notify(*args, **kargs)
 
@@ -112,11 +112,11 @@ class Method(Observable):
     def calls(self):
         if not isinstance(self.double, SpyBase):
             raise WrongApiUsage("Only Spy derivates store invocations")
-        return [x._context for x in self.double._get_invocations_to(self.name)]
+        return [x._context for x in self.double._mgr.get_invocations_to(self.name)]
 
     def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
-        return self.double._received_invocation(invocation, times)
+        return self.double._mgr.received_invocation(invocation, times)
 
     def describe_to(self, description):
         pass
@@ -125,11 +125,11 @@ class Method(Observable):
         return add_indent(self, indent)
 
     def __repr__(self):
-        return "%s.%s" % (self.double._classname(), self.name)
+        return "%s.%s" % (self.double._mgr.classname(), self.name)
 
     def _show_history(self):
-        method = "method '%s.%s'" % (self.double._classname(), self.name)
-        invocations = self.double._get_invocations_to(self.name)
+        method = "method '%s.%s'" % (self.double._mgr.classname(), self.name)
+        invocations = self.double._mgr.get_invocations_to(self.name)
         if not invocations:
             return method + " never invoked"
 
@@ -166,7 +166,7 @@ class Invocation(object):
         self._double = double
         self._name = name
         self._context = context or InvocationContext()
-        self._context.signature = double._proxy.get_signature(name)
+        self._context.signature = double._mgr.proxy.get_signature(name)
         self.__delegate = func_returning(None)
 
     @classmethod
@@ -204,16 +204,16 @@ class Invocation(object):
             raise WrongApiUsage("times must be >= 1. Use is_not(called()) for 0 times")
 
         for i in range(1, n):
-            self._double._manage_invocation(self)
+            self._double._mgr.manage_invocation(self)
 
     def _apply_stub(self, actual_invocation):
         return actual_invocation._context.apply_on(self.__delegate)
 
     def _apply_on_collaborator(self):
-        return self._double._proxy.perform_invocation(self)
+        return self._double._mgr.proxy.perform_invocation(self)
 
     def __eq__(self, other):
-        return self._double._proxy.same_method(self._name, other._name) and \
+        return self._double._mgr.proxy.same_method(self._name, other._name) and \
             self._context.matches(other._context)
 
     def __lt__(self, other):
@@ -221,7 +221,7 @@ class Invocation(object):
                     self._context < other._context])
 
     def __repr__(self):
-        return "%s.%s%s" % (self._double._classname(), self._name, self._context)
+        return "%s.%s%s" % (self._double._mgr.classname(), self._name, self._context)
 
     def _show(self, indent=0):
         return add_indent(self, indent)
@@ -379,10 +379,10 @@ class PropertyGet(PropertyInvocation):
         super(PropertyGet, self).__init__(double, name)
 
     def _apply_on_collaborator(self):
-        return getattr(self._double._proxy.collaborator, self._name)
+        return getattr(self._double._mgr.proxy.collaborator, self._name)
 
     def __repr__(self):
-        return "get %s.%s" % (self._double._classname(), self._name)
+        return "get %s.%s" % (self._double._mgr.classname(), self._name)
 
 
 class PropertySet(PropertyInvocation):
@@ -392,28 +392,28 @@ class PropertySet(PropertyInvocation):
         super(PropertySet, self).__init__(double, name, param)
 
     def _apply_on_collaborator(self):
-        return setattr(self._double._proxy.collaborator, self._name, self.value)
+        return setattr(self._double._mgr.proxy.collaborator, self._name, self.value)
 
     def __repr__(self):
-        return "set %s.%s to %s" % (self._double._classname(),
+        return "set %s.%s to %s" % (self._double._mgr.classname(),
                                     self._name, self.value)
 
 
 def property_factory(double, key):
     def manage(invocation):
-        return double._manage_invocation(invocation)
+        return double._mgr.manage_invocation(invocation)
 
     def get_property(obj):
         return manage(PropertyGet(double, key))
 
     def set_property(obj, value):
-        prop = double._proxy.get_class_attr(key)
+        prop = double._mgr.proxy.get_class_attr(key)
         if prop.fset is None:
             raise AttributeError("can't set attribute %s" % key)
 
         invocation = manage(PropertySet(double, key, value))
 
-        if double._setting_up:
+        if double._mgr.setting_up:
             invocation.returns(value)
 
     return property(get_property, set_property)
@@ -433,8 +433,8 @@ class AttributeFactory(object):
 
     @classmethod
     def create(cls, double, key):
-        get_actual_attr = lambda double, key: double._proxy.get_attr(key)
-        typename = double._proxy.get_attr_typename(key)
+        get_actual_attr = lambda double, key: double._mgr.proxy.get_attr(key)
+        typename = double._mgr.proxy.get_attr_typename(key)
         factory = cls.typemap.get(typename, get_actual_attr)
         attr = factory(double, key)
 

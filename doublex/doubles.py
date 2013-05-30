@@ -34,6 +34,46 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
            'ANY_ARG']
 
 
+class StubManager(object):
+    '''StubManager extract framework API from Stubs'''
+
+    def __init__(self, double, collaborator):
+        self.double = double
+        self.proxy = create_proxy(collaborator)
+        self.stubs = OperationList()
+        self.setting_up = False
+
+    def manage_invocation(self, invocation):
+        self.proxy.assure_signature_matches(invocation)
+
+        if self.setting_up:
+            self.stubs.append(invocation)
+            return invocation
+
+        self.prepare_invocation(invocation)
+
+        stubbed_retval = self.double._default_behavior()
+        if invocation in self.stubs:
+            stubbed = self.stubs.lookup(invocation)
+            stubbed_retval = stubbed._apply_stub(invocation)
+
+        actual_retval = self.perform_invocation(invocation)
+
+        retval = stubbed_retval if stubbed_retval is not None else actual_retval
+        invocation._context.retval = retval
+        return retval
+
+    def prepare_invocation(self, invocation):
+        pass
+
+    def perform_invocation(self, invocation):
+        return None
+
+    def classname(self):
+        name = self.proxy.collaborator_classname()
+        return name or self.double.__class__.__name__
+
+
 class Stub(object):
     _default_behavior = lambda x: None
 
@@ -48,43 +88,15 @@ class Stub(object):
         return type(cls.__name__, (cls,), dict(cls.__dict__))
 
     def __init__(self, collaborator=None):
-        self._proxy = create_proxy(collaborator)
-        self._stubs = OperationList()
-        self._setting_up = False
+        self._mgr = StubManager(self, collaborator)
         self.__class__.__setattr__ = self.__setattr__hook
 
     def __enter__(self):
-        self._setting_up = True
+        self._mgr.setting_up = True
         return self
 
     def __exit__(self, *args):
-        self._setting_up = False
-
-    def _manage_invocation(self, invocation):
-        self._proxy.assure_signature_matches(invocation)
-
-        if self._setting_up:
-            self._stubs.append(invocation)
-            return invocation
-
-        self._prepare_invocation(invocation)
-
-        stubbed_retval = self._default_behavior()
-        if invocation in self._stubs:
-            stubbed = self._stubs.lookup(invocation)
-            stubbed_retval = stubbed._apply_stub(invocation)
-
-        actual_retval = self._perform_invocation(invocation)
-
-        retval = stubbed_retval if stubbed_retval is not None else actual_retval
-        invocation._context.retval = retval
-        return retval
-
-    def _prepare_invocation(self, invocation):
-        pass
-
-    def _perform_invocation(self, invocation):
-        return None
+        self._mgr.setting_up = False
 
     def __getattr__(self, key):
         AttributeFactory.create(self, key)
@@ -104,39 +116,44 @@ class Stub(object):
         # descriptor protocol compliant
         object.__setattr__(self, key, value)
 
-    def _classname(self):
-        name = self._proxy.collaborator_classname()
-        return name or self.__class__.__name__
+
+class SpyManager(StubManager):
+    def __init__(self, spy, collaborator=None):
+        self.recorded = OperationList()
+        super(SpyManager, self).__init__(spy, collaborator)
+
+    def prepare_invocation(self, invocation):
+        self.recorded.append(invocation)
+
+    def received_invocation(self, invocation, times, cmp_pred=None):
+        return hamcrest.is_(times).matches(
+            self.recorded.count(invocation, cmp_pred))
+
+    def get_invocations_to(self, name):
+        return [i for i in self.recorded
+                if self.proxy.same_method(name, i._name)]
 
 
 class Spy(Stub, SpyBase):
     def __init__(self, collaborator=None):
-        self._recorded = OperationList()
         super(Spy, self).__init__(collaborator)
+        self._mgr = SpyManager(self, collaborator)
 
-    def _prepare_invocation(self, invocation):
-        self._recorded.append(invocation)
 
-    def _received_invocation(self, invocation, times, cmp_pred=None):
-        return hamcrest.is_(times).matches(
-            self._recorded.count(invocation, cmp_pred))
+class ProxySpyManager(SpyManager):
+    def assure_is_instance(self, thing):
+        if thing is None or inspect.isclass(thing):
+            raise TypeError("ProxySpy takes an instance (got %s instead)" % thing)
 
-    def _get_invocations_to(self, name):
-        return [i for i in self._recorded
-                if self._proxy.same_method(name, i._name)]
+    def perform_invocation(self, invocation):
+        return invocation._apply_on_collaborator()
 
 
 class ProxySpy(Spy):
     def __init__(self, collaborator):
-        self._assure_is_instance(collaborator)
+        self._mgr = ProxySpyManager(self)
+        self._mgr.assure_is_instance(collaborator)
         super(ProxySpy, self).__init__(collaborator)
-
-    def _assure_is_instance(self, thing):
-        if thing is None or inspect.isclass(thing):
-            raise TypeError("ProxySpy takes an instance (got %s instead)" % thing)
-
-    def _perform_invocation(self, invocation):
-        return invocation._apply_on_collaborator()
 
 
 class Mock(Spy, MockBase):
@@ -157,7 +174,7 @@ def Mimic(double, collab):
 
     def _get_method(self, key):
         if key not in list(self._methods.keys()):
-            typename = self._proxy.get_attr_typename(key)
+            typename = self._mgr.proxy.get_attr_typename(key)
             assert typename in ['instancemethod', 'function', 'method'], typename
             method = Method(self, key)
             self._methods[key] = method
