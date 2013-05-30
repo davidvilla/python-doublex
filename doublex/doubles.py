@@ -150,16 +150,22 @@ class ProxySpyManager(SpyManager):
 
 
 class ProxySpy(Spy):
-    def __init__(self, collaborator):
-        self._mgr = ProxySpyManager(self)
-        self._mgr.assure_is_instance(collaborator)
+    def __init__(self, collaborator=None):
         super(ProxySpy, self).__init__(collaborator)
+        self._mgr = ProxySpyManager(self, collaborator)
+        self._mgr.assure_is_instance(collaborator)
+
+
+class MockManager(SpyManager):
+    def prepare_invocation(self, invocation):
+        hamcrest.assert_that(self.double, MockIsExpectedInvocation(invocation))
+        super(MockManager, self).prepare_invocation(invocation)
 
 
 class Mock(Spy, MockBase):
-    def _prepare_invocation(self, invocation):
-        hamcrest.assert_that(self, MockIsExpectedInvocation(invocation))
-        super(Mock, self)._prepare_invocation(invocation)
+    def __init__(self, collaborator=None):
+        super(Mock, self).__init__(collaborator)
+        self._mgr = MockManager(self, collaborator)
 
 
 def Mimic(double, collab):
