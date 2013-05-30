@@ -88,8 +88,7 @@ class Stub(object):
         return type(cls.__name__, (cls,), dict(cls.__dict__))
 
     def __init__(self, collaborator=None):
-        self._mgr = StubManager(self, collaborator)
-        self.__class__.__setattr__ = self.__setattr__hook
+        object.__setattr__(self, '_mgr', StubManager(self, collaborator))
 
     def __enter__(self):
         self._mgr.setting_up = True
@@ -102,7 +101,7 @@ class Stub(object):
         AttributeFactory.create(self, key)
         return object.__getattribute__(self, key)
 
-    def __setattr__hook(self, key, value):
+    def __setattr__(self, key, value):
         if key in self.__dict__:
             object.__setattr__(self, key, value)
             return
@@ -136,8 +135,7 @@ class SpyManager(StubManager):
 
 class Spy(Stub, SpyBase):
     def __init__(self, collaborator=None):
-        super(Spy, self).__init__(collaborator)
-        self._mgr = SpyManager(self, collaborator)
+        object.__setattr__(self, '_mgr', SpyManager(self, collaborator))
 
 
 class ProxySpyManager(SpyManager):
@@ -151,8 +149,7 @@ class ProxySpyManager(SpyManager):
 
 class ProxySpy(Spy):
     def __init__(self, collaborator=None):
-        super(ProxySpy, self).__init__(collaborator)
-        self._mgr = ProxySpyManager(self, collaborator)
+        object.__setattr__(self, '_mgr', ProxySpyManager(self, collaborator))
         self._mgr.assure_is_instance(collaborator)
 
 
@@ -164,8 +161,7 @@ class MockManager(SpyManager):
 
 class Mock(Spy, MockBase):
     def __init__(self, collaborator=None):
-        super(Mock, self).__init__(collaborator)
-        self._mgr = MockManager(self, collaborator)
+        object.__setattr__(self, '_mgr', MockManager(self, collaborator))
 
 
 def Mimic(double, collab):
