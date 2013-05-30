@@ -10,8 +10,10 @@ def set_default_behavior(double, func):
 
 
 def when(double):
-    double._setting_up = True
-    double._one_shot = True
+    if not isinstance(double, Stub):
+        raise WrongApiUsage("when() takes a double, '%s' given" % double)
+
+    double._activate_next()
     return double
 
 
@@ -19,6 +21,5 @@ def expect_call(mock):
     if not isinstance(mock, Mock):
         raise WrongApiUsage("expect_call() takes a mock, '%s' given" % mock)
 
-    mock._setting_up = True
-    mock._one_shot = True
+    mock._activate_next()
     return mock

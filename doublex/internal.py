@@ -103,8 +103,8 @@ class Method(Observable):
             self._event.set()
             self.notify(*args, **kargs)
 
-        if self.double._one_shot:
-            self.double._setting_up = self.double._one_shot = False
+        if self.double._deactivate:
+            self.double._setting_up = self.double._deactivate = False
 
         return retval
 
