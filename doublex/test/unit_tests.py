@@ -162,7 +162,7 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
-    # FIXME: new on tip
+    # FIXME: new on 1.6.8
     def test_keyworked_or_positional_are_equivalent(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
@@ -178,6 +178,7 @@ class StubTests(TestCase):
             self.stub.hello().returns((3, 4))
 
         assert_that(self.stub.hello(), is_((3, 4)))
+
 
 class AccessingActualAttributes(TestCase):
     def test_read_class_attribute_providing_class(self):
@@ -1213,7 +1214,7 @@ class AsyncTests(TestCase):
         assert_that(spy.write, called().async(timeout=1))
 
 
-# FIXME: new on tip
+# FIXME: new on 1.6.8
 class with_some_args_matcher_tests(TestCase):
     def test_one_arg(self):
         spy = Spy(Collaborator)
@@ -1307,7 +1308,6 @@ class ProxySpy_default_behavior_tests(TestCase):
 
         set_default_behavior(spy, method_returning(40))
         assert_that(spy.hello(), is_(40))
-
 
 
 # FIXME: new on tip
