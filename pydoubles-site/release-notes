@@ -1,0 +1,38 @@
+<h3><a name="release-1.5"></a></h3>
+<h3><a href="https://pypi.python.org/pypi/doublex/1.6.6">doublex 1.6.6</a></h3>
+<ul>
+	<li>bug fix update: Fixes <a href="https://bitbucket.org/DavidVilla/python-doublex/issue/11/there-are-no-stub-empy_stub-in-the">issue 11</a>.</li>
+</ul>
+<h3>doublex 1.6.5</h3>
+<ul>
+	<li>bug fix update: Fixes <a href="https://bitbucket.org/DavidVilla/python-doublex/issue/10/any_order_verify-fails-when-method-are">issue 10</a>.</li>
+</ul>
+<div>
+<h3>doublex 1.6.4</h3>
+<ul>
+	<li>Asynchronous spy assertion race condition bug fixed.</li>
+	<li>Reading double attributes returns collaborator.class attribute values by default.</li>
+</ul>
+</div>
+<h3>doublex 1.6.2</h3>
+<ul>
+	<li>Invocation stubbed return value is now stored.</li>
+	<li>New low level spy API: double method  "calls" property provides access to invocations and their argument values. Each 'call' has an "args" sequence and "kargs dictionary". This provides support to perform individual assertions and direct access to invocation argument values. (see <a title="test" href="https://bitbucket.org/DavidVilla/python-doublex/src/ce8cdff71b8e3528380c305bf7d9ca75a64f6460/doublex/test/unit_tests.py?at=v1.6.2#cl-271">test</a> and <a href="https://bitbucket.org/DavidVilla/python-doublex/wiki/reference#!calls-low-level-access-to-invocation-records">doc</a>).</li>
+</ul>
+<h3>doublex 1.6</h3>
+<ul>
+	<li>First release supporting Python-3 (up to Python-3.2) [fixes <a title="issue 7" href="https://bitbucket.org/DavidVilla/python-doublex/issue/7">issue 7</a>].</li>
+	<li>Ad-hoc stub attributes (see <a title="test" href="https://bitbucket.org/DavidVilla/python-doublex/src/cb8ba0df2e024d602fed236bb5ed5a7ceee91b20/doublex/test/unit_tests.py?at=v1.6#cl-146">test</a>).</li>
+	<li>Partial support for non native Python functions.</li>
+	<li>ProxySpy propagated stubbed invocations too (see <a title="test" href="https://bitbucket.org/DavidVilla/python-doublex/src/cb8ba0df2e024d602fed236bb5ed5a7ceee91b20/doublex/test/unit_tests.py?at=v1.6#cl-340">test</a>).</li>
+</ul>
+<h3>doublex 1.5.1</h3>
+This release includes support for asynchronous spy assertions. See <a href="http://crysol.org/es/node/1688">this blog post</a> for the time being, soon in the official documentation.
+<h3>doublex/pyDoubles 1.5</h3>
+Since this release the pyDoubles API is provided as a wrapper to <a href="https://bitbucket.org/DavidVilla/python-doublex">doublex</a>. However, there are small differences. pyDoubles matchers are not supported anymore, although you may get the same feature using standard hamcrest matchers. Anyway, legacy pyDoubles matchers are provided as hamcrest aliases.
+
+In most cases the only required change in your code is the module name, that change from:
+<pre>from pyDoubles.framework.*</pre>
+to:
+<pre>from doublex.pyDoubles import *</pre>
+If you have problems migrating to the new 1.5 release or migrating from pyDoubles to doublex, please ask for help in the <a href="https://groups.google.com/forum/?fromgroups#!forum/pydoubles">discussion forum</a> or in the <a href="https://bitbucket.org/DavidVilla/python-doublex/issues">issue tracker</a>.
