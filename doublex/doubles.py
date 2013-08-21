@@ -88,14 +88,14 @@ class Stub(object):
         return type(cls.__name__, (cls,), dict(cls.__dict__))
 
     def __init__(self, collaborator=None):
-        object.__setattr__(self, '_mgr', StubManager(self, collaborator))
+        object.__setattr__(self, '_doublex', StubManager(self, collaborator))
 
     def __enter__(self):
-        self._mgr.setting_up = True
+        self._doublex.setting_up = True
         return self
 
     def __exit__(self, *args):
-        self._mgr.setting_up = False
+        self._doublex.setting_up = False
 
     def __getattr__(self, key):
         AttributeFactory.create(self, key)
@@ -135,7 +135,7 @@ class SpyManager(StubManager):
 
 class Spy(Stub, SpyBase):
     def __init__(self, collaborator=None):
-        object.__setattr__(self, '_mgr', SpyManager(self, collaborator))
+        object.__setattr__(self, '_doublex', SpyManager(self, collaborator))
 
 
 class ProxySpyManager(SpyManager):
@@ -149,8 +149,8 @@ class ProxySpyManager(SpyManager):
 
 class ProxySpy(Spy):
     def __init__(self, collaborator=None):
-        object.__setattr__(self, '_mgr', ProxySpyManager(self, collaborator))
-        self._mgr.assure_is_instance(collaborator)
+        object.__setattr__(self, '_doublex', ProxySpyManager(self, collaborator))
+        self._doublex.assure_is_instance(collaborator)
 
 
 class MockManager(SpyManager):
@@ -161,7 +161,7 @@ class MockManager(SpyManager):
 
 class Mock(Spy, MockBase):
     def __init__(self, collaborator=None):
-        object.__setattr__(self, '_mgr', MockManager(self, collaborator))
+        object.__setattr__(self, '_doublex', MockManager(self, collaborator))
 
 
 def Mimic(double, collab):
@@ -176,7 +176,7 @@ def Mimic(double, collab):
 
     def _get_method(self, key):
         if key not in list(self._methods.keys()):
-            typename = self._mgr.proxy.get_attr_typename(key)
+            typename = self._doublex.proxy.get_attr_typename(key)
             assert typename in ['instancemethod', 'function', 'method'], typename
             method = Method(self, key)
             self._methods[key] = method

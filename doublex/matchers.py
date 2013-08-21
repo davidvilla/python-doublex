@@ -87,7 +87,7 @@ class MethodCalled(OperationMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text("calls that actually ocurred were:\n")
-        description.append_text(self.method.double._mgr.recorded.show(indent=10))
+        description.append_text(self.method.double._doublex.recorded.show(indent=10))
 
     def with_args(self, *args, **kargs):
         self.context.update_args(args, kargs)
@@ -135,11 +135,11 @@ class MockIsExpectedInvocation(BaseMatcher):
 
     def _matches(self, mock):
         self.mock = mock
-        return self.invocation in mock._mgr.stubs
+        return self.invocation in mock._doublex.stubs
 
     def describe_to(self, description):
         description.append_text("these calls:\n")
-        description.append_text(self.mock._mgr.stubs.show(indent=10))
+        description.append_text(self.mock._doublex.stubs.show(indent=10))
 
     def describe_mismatch(self, actual, description):
         description.append_text("this call was not expected:\n")
@@ -155,20 +155,20 @@ class verify(BaseMatcher):
         return self._expectations_match()
 
     def _expectations_match(self):
-        return self.mock._mgr.stubs == self.mock._mgr.recorded
+        return self.mock._doublex.stubs == self.mock._doublex.recorded
 
     def describe_to(self, description):
         description.append_text("these calls:\n")
-        description.append_text(self.mock._mgr.stubs.show(indent=10))
+        description.append_text(self.mock._doublex.stubs.show(indent=10))
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
-        description.append_text(self.mock._mgr.recorded.show(indent=10))
+        description.append_text(self.mock._doublex.recorded.show(indent=10))
 
 
 class any_order_verify(verify):
     def _expectations_match(self):
-        return sorted(self.mock._mgr.stubs) == sorted(self.mock._mgr.recorded)
+        return sorted(self.mock._doublex.stubs) == sorted(self.mock._doublex.recorded)
 
 
 class property_got(OperationMatcher):
@@ -180,7 +180,7 @@ class property_got(OperationMatcher):
     def _matches(self, double):
         self.double = double
         self.operation = PropertyGet(self.double, self.propname)
-        return double._mgr.received_invocation(
+        return double._doublex.received_invocation(
             self.operation, 1, cmp_pred=Invocation.__eq__)
 
     def times(self, n):
@@ -195,7 +195,7 @@ class property_got(OperationMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
-        description.append_text(self.double._mgr.recorded.show(indent=10))
+        description.append_text(self.double._doublex.recorded.show(indent=10))
 
 
 class property_set(OperationMatcher):
@@ -208,7 +208,7 @@ class property_set(OperationMatcher):
     def _matches(self, double):
         self.double = double
         self.operation = PropertySet(self.double, self.property_name, self.value)
-        return self.double._mgr.received_invocation(
+        return self.double._doublex.received_invocation(
             self.operation, self._times, cmp_pred=Invocation.__eq__)
 
     def to(self, value):
@@ -227,4 +227,4 @@ class property_set(OperationMatcher):
 
     def describe_mismatch(self, actual, description):
         description.append_text('calls that actually ocurred were:\n')
-        description.append_text(self.double._mgr.recorded.show(indent=10))
+        description.append_text(self.double._doublex.recorded.show(indent=10))

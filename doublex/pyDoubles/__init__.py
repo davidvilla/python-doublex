@@ -101,13 +101,13 @@ class expect_call(object):
 
         with self.method.double:
             for i in range(n - 1):
-                self.method.double._mgr.manage_invocation(self.invocation)
+                self.method.double._doublex.manage_invocation(self.invocation)
 
     def _remove_previous(self):
         if self.invocation is None:
             return
 
-        self.method.double._mgr.stubs.remove(self.invocation)
+        self.method.double._doublex.stubs.remove(self.invocation)
 
 
 class when(object):
