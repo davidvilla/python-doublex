@@ -162,7 +162,7 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
-    # FIXME: new on tip
+    # FIXME: new on 1.7
     def test_keyworked_or_positional_are_equivalent(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
@@ -178,6 +178,7 @@ class StubTests(TestCase):
             self.stub.hello().returns((3, 4))
 
         assert_that(self.stub.hello(), is_((3, 4)))
+
 
 class AccessingActualAttributes(TestCase):
     def test_read_class_attribute_providing_class(self):
@@ -874,7 +875,7 @@ class MatcherTests(TestCase):
         assert_that(self.spy.m3, called().with_args(greater_than(1)))
         assert_that(self.spy.m6, called().with_args(name=contains_string("doe")))
 
-    # new on 1.6.8
+    # new on 1.7
     def test_assert_that_requires_a_matcher(self):
         self.assertRaises(MatcherRequiredError, assert_that, self.spy.m1, True)
 
@@ -1213,7 +1214,7 @@ class AsyncTests(TestCase):
         assert_that(spy.write, called().async(timeout=1))
 
 
-# FIXME: new on tip
+# FIXME: new on 1.7
 class with_some_args_matcher_tests(TestCase):
     def test_one_arg(self):
         spy = Spy(Collaborator)
@@ -1238,7 +1239,7 @@ class with_some_args_matcher_tests(TestCase):
             assert_that(spy.foo, called().with_some_args())
 
 
-# FIXME: new on 1.6.8
+# FIXME: new on 1.7
 class Stub_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         StubClone = Stub._clone_class()
@@ -1278,7 +1279,7 @@ class Stub_default_behavior_tests(TestCase):
         assert_that(stub.hello(), is_(1000))
 
 
-# FIXME: new on 1.6.8
+# FIXME: new on 1.7
 class Spy_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         SpyClone = Spy._clone_class()
@@ -1299,7 +1300,7 @@ class Spy_default_behavior_tests(TestCase):
         assert_that(spy.unknown, called().with_args(7))
 
 
-# FIXME: new on 1.6.8
+# FIXME: new on 1.7
 class ProxySpy_default_behavior_tests(TestCase):
     def test_this_change_proxyspy_default_behavior(self):
         spy = ProxySpy(Collaborator())
@@ -1307,7 +1308,6 @@ class ProxySpy_default_behavior_tests(TestCase):
 
         set_default_behavior(spy, method_returning(40))
         assert_that(spy.hello(), is_(40))
-
 
 
 # FIXME: new on tip
