@@ -73,7 +73,7 @@ class OperationList(list):
         if predicate is None:
             return list.count(self, invocation)
 
-        return sum(1 for i in self if predicate(invocation, i))
+        return [predicate(invocation, i) for i in self].count(True)
 
 
 class Observable(object):
