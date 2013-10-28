@@ -69,11 +69,11 @@ class OperationList(list):
         lines = [add_indent(i, indent) for i in self]
         return str.join('\n', lines)
 
-    def count(self, invocation, pred=None):
-        if pred is None:
+    def count(self, invocation, predicate=None):
+        if predicate is None:
             return list.count(self, invocation)
 
-        return sum(1 for i in self if pred(invocation, i))
+        return sum(1 for i in self if predicate(invocation, i))
 
 
 class Observable(object):
@@ -247,7 +247,7 @@ class InvocationContext(object):
 
     def _check_ANY_ARG_sanity(self, args, kargs):
         try:
-            if args.index(ANY_ARG) != len(args)-1:
+            if args.index(ANY_ARG) != len(args) - 1:
                 raise WrongApiUsage(ANY_ARG_MUST_BE_LAST + ANY_ARG_DOC)
 
             if kargs:
@@ -257,7 +257,6 @@ class InvocationContext(object):
 
         if ANY_ARG in kargs.values():
             raise WrongApiUsage(ANY_ARG_CAN_BE_KARG + ANY_ARG_DOC)
-
 
     def apply_on(self, method):
         return method(*self.args, **self.kargs)
@@ -270,6 +269,11 @@ class InvocationContext(object):
 
     @classmethod
     def _assert_values_match(cls, a, b):
+        if isinstance(a, tuple) and isinstance(b, tuple):
+            for i, j in zip(a, b):
+                cls._assert_values_match(i, j)
+            return
+
         if isinstance(a, BaseMatcher):
             a, b = b, a
 
