@@ -15,6 +15,9 @@ debian:
 	rmdir trunk
 	svn up debian
 
+wiki:
+	hg clone ssh://hg@bitbucket.org/DavidVilla/python-doublex/wiki
+
 clean:
 	find . -name *.pyc -delete
 	find . -name *.pyo -delete
