@@ -1,3 +1,4 @@
+# Thanks to Guillermo Pascual (@pasku1)
 
 # When you spy a method that has a decorator and you want to check the
 # arguments with a hamcrest matcher, it seems like matchers are
