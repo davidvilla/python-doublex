@@ -24,7 +24,7 @@ import inspect
 import hamcrest
 
 from .internal import (ANY_ARG, OperationList, Method, MockBase, SpyBase,
-                       AttributeFactory)
+                       AttributeFactory, WrongApiUsage)
 from .proxy import create_proxy, get_class
 from .matchers import MockIsExpectedInvocation
 
@@ -158,7 +158,10 @@ def Mimic(double, collab):
     def _get_method(self, key):
         if key not in list(self._methods.keys()):
             typename = self._proxy.get_attr_typename(key)
-            assert typename in ['instancemethod', 'function', 'method'], typename
+            if typename not in ['instancemethod', 'function', 'method']:
+                raise WrongApiUsage(
+                    "Mimic does not support attribute '%s' (type '%s')" % (key, typename))
+
             method = Method(self, key)
             self._methods[key] = method
 

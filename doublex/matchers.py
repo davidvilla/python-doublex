@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-
+import time
 import hamcrest
 from hamcrest.core.matcher import Matcher
 from hamcrest.core.base_matcher import BaseMatcher
@@ -49,6 +49,33 @@ def assert_that(actual, matcher=None, reason=''):
     if matcher and not isinstance(matcher, Matcher):
         raise MatcherRequiredError("%s should be a hamcrest Matcher" % str(matcher))
     return hamcrest.assert_that(actual, matcher, reason)
+
+
+def wait_that(actual, matcher, reason='', delta=1, timeout=5):
+    '''
+    Poll the given matcher each 'delta' seconds until 'matcher'
+    matches 'actual' or 'timeout' is reached.
+    '''
+    exc = None
+    init = time.time()
+    timeout_reached = False
+    while 1:
+        try:
+            if time.time() - init > timeout:
+                timeout_reached = True
+                break
+
+            assert_that(actual, matcher, reason)
+            break
+
+        except AssertionError as e:
+            time.sleep(delta)
+            exc = e
+
+    if timeout_reached:
+        msg = exc.args[0] + ' after {0} seconds'.format(timeout)
+        exc.args = msg,
+        raise exc
 
 
 class OperationMatcher(BaseMatcher):
