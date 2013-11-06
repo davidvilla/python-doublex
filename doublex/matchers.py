@@ -32,7 +32,8 @@ __all__ = ['called',
            'never',
            'verify', 'any_order_verify',
            'property_got', 'property_set',
-           'assert_that', 'is_', 'instance_of']
+           'assert_that', 'wait_that',
+           'is_', 'instance_of']
 
 
 # just hamcrest aliases
