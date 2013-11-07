@@ -36,6 +36,7 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
 
 class Stub(object):
     _default_behavior = lambda x: None
+    _new_attr_hooks = []
 
     def __new__(cls, collaborator=None):
         '''Creates a fresh class clone per instance. This is required due to
@@ -51,6 +52,7 @@ class Stub(object):
         self._proxy = create_proxy(collaborator)
         self._stubs = OperationList()
         self._setting_up = False
+        self._new_attr_hooks = self._new_attr_hooks[:]
         self.__class__.__setattr__ = self.__setattr__hook
 
     def __enter__(self):

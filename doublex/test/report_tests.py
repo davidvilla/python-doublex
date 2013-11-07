@@ -338,7 +338,7 @@ Expected: these calls:
         self.assert_expectation_error(expected_message)
 
 
-class PropertReportTests(TestCase, MessageMixin):
+class PropertyReportTests(TestCase, MessageMixin):
     def test_expected_get(self):
         spy = doublex.Spy(ObjCollaborator)
 

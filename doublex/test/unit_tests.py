@@ -24,7 +24,8 @@ from unittest import TestCase
 import itertools
 import thread
 import threading
-
+import io
+import copy
 
 from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
@@ -1356,6 +1357,118 @@ class orphan_methods_tests(TestCase):
 #        assert_that(spy.method, called().times(3))
 
 
+# FIXME: new on 1.7.2
+class VarArgsTest(TestCase):
+    def test_stub_args(self):
+        stub = Stub(Collaborator)
+        with stub:
+            stub.varargs(1).returns(10)
+            stub.varargs(1, 2).returns(200)
+            stub.varargs(1, 3, ANY_ARG).returns(300)
+            stub.varargs(2, anything()).returns(400)
+
+        assert_that(stub.varargs(42), is_(None))
+        assert_that(stub.varargs(1), is_(10))
+
+        assert_that(stub.varargs(1, 2), is_(200))
+        assert_that(stub.varargs(1, 2, 7), is_(None))
+
+        assert_that(stub.varargs(1, 3), is_(300))
+        assert_that(stub.varargs(1, 3, 7), is_(300))
+
+        assert_that(stub.varargs(1, 5), is_(None))
+
+        assert_that(stub.varargs(2), is_(None))
+        assert_that(stub.varargs(2, 3), is_(400))
+        assert_that(stub.varargs(2, 3, 4), is_(None))
+
+    def test_spy_args(self):
+        spy = Spy(Collaborator)
+        spy.varargs(1, 2, 3)
+
+        assert_that(spy.varargs, called())
+        assert_that(spy.varargs, called().with_args(1, 2, 3))
+        assert_that(spy.varargs, called().with_args(1, ANY_ARG))
+
+    def test_spy_kargs(self):
+        spy = Spy(Collaborator)
+        spy.varargs(one=1, two=2)
+
+        assert_that(spy.varargs, called())
+        assert_that(spy.varargs, called().with_args(one=1, two=2))
+        assert_that(spy.varargs, called().with_args(one=1, two=anything()))
+
+    def test_with_some_args_is_not_applicable(self):
+        spy = Spy(Collaborator)
+        spy.varargs(one=1, two=2)
+
+        try:
+            assert_that(spy.varargs, called().with_some_args(one=1))
+            self.fail('exception should be raised')
+        except WrongApiUsage as e:
+            assert_that(str(e),
+                        contains_string('with_some_args() can not be applied to method Collaborator.varargs(self, *args, **kargs)'))
+
+
+# FIXME: new on 1.7.2
+class TracerTests(TestCase):
+    def setUp(self):
+        self.out = io.BytesIO()
+        self.tracer = Tracer(self.out.write)
+
+    def test_trace_single_method(self):
+        with Stub() as stub:
+            stub.foo(ANY_ARG).returns(1)
+
+        self.tracer.trace(stub.foo)
+
+        stub.foo(1, two=2)
+
+        assert_that(self.out.getvalue(), is_("Stub.foo(1, two=2)"))
+
+    def test_trace_single_non_stubbed_method(self):
+        stub = Stub()
+        self.tracer.trace(stub.non)
+
+        stub.non(1, "two")
+
+        assert_that(self.out.getvalue(), is_("Stub.non(1, 'two')"))
+
+    def test_trace_all_double_INSTANCE_methods(self):
+        stub = Stub()
+        self.tracer.trace(stub)
+
+        stub.bar(2, "three")
+
+        assert_that(self.out.getvalue(), is_("Stub.bar(2, 'three')"))
+
+    def test_trace_all_double_CLASS_methods(self):
+        self.tracer.trace(Stub)
+        stub = Stub()
+
+        stub.fuzz(3, "four")
+
+        assert_that(self.out.getvalue(), is_("Stub.fuzz(3, 'four')"))
+
+    def test_trace_get_property(self):
+        stub = Stub(ObjCollaborator)
+        self.tracer.trace(stub)
+
+        stub.prop
+
+        assert_that(self.out.getvalue(),
+                    is_("ObjCollaborator.prop gotten"))
+
+    def test_trace_set_property(self):
+        stub = Stub(ObjCollaborator)
+        self.tracer.trace(stub)
+
+        stub.prop = 2
+
+        assert_that(self.out.getvalue(),
+                    is_("ObjCollaborator.prop set to 2"))
+
+
 class SomeException(Exception):
     pass
 
@@ -1423,5 +1536,8 @@ class Collaborator:
 
     def method_one(self, arg1):
         return 1
+
+    def varargs(self, *args, **kargs):
+        return len(args)
 
     alias_method = one_arg_method

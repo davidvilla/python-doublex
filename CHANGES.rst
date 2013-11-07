@@ -1,3 +1,10 @@
+20131107
+========
+
+- Release 1.7.2
+- [NEW] support for varargs (*args, **kargs) methods
+- [NEW] tracer for doubles, methods and properties
+
 20130712
 ========
 

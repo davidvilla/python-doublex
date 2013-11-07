@@ -232,6 +232,7 @@ ANY_ARG_WITHOUT_KARGS = "Keyword arguments are not allowed if ANY_ARG is given. 
 ANY_ARG_CAN_BE_KARG = "ANY_ARG is not allowed as keyword value. "
 ANY_ARG_DOC = "See http://goo.gl/R6mOt"
 
+
 @total_ordering
 class InvocationContext(object):
     def __init__(self, *args, **kargs):
@@ -269,15 +270,35 @@ class InvocationContext(object):
 
     @classmethod
     def _assert_values_match(cls, a, b):
-        if isinstance(a, tuple) and isinstance(b, tuple):
-            for i, j in zip(a, b):
-                cls._assert_values_match(i, j)
-            return
+        if all(isinstance(x, tuple) for x in (a, b)):
+            return cls._assert_tuple_args_match(a, b)
+
+        if all(isinstance(x, dict) for x in (a, b)):
+            return cls._assert_kargs_match(a, b)
 
         if isinstance(a, BaseMatcher):
             a, b = b, a
 
         hamcrest.assert_that(a, hamcrest.is_(b))
+
+    @classmethod
+    def _assert_tuple_args_match(cls, a, b):
+        if len(a) != len(b):
+            a, b = cls._adapt_tuples(a, b)
+
+        for i, j in zip(a, b):
+            cls._assert_values_match(i, j)
+
+    @classmethod
+    def _adapt_tuples(cls, a, b):
+        if len(a) > len(b):
+            return cls._adapt_tuples(b, a)
+
+        if a[:-1] != ANY_ARG:
+            raise AssertionError("Incompatible argument list: %s, %s" % (a, b))
+
+        a = a[:-1] + (hamcrest.anything(),) * (len(b) - len(a))
+        return a, b
 
     def copy(self):
         retval = InvocationContext(*self.args, **self.kargs)
@@ -319,9 +340,14 @@ class InvocationContext(object):
 
     def add_unspecifed_args(self, context):
         arg_spec = context.signature.get_arg_spec()
+
         if arg_spec is None:
             raise WrongApiUsage(
                 'free spies does not support the with_some_args() matcher')
+
+        if arg_spec.keywords is not None:
+            raise WrongApiUsage(
+                'with_some_args() can not be applied to method %s' % self.signature)
 
         keys = arg_spec.args
         retval = dict((k, hamcrest.anything()) for k in keys)
@@ -403,24 +429,33 @@ class PropertySet(PropertyInvocation):
                                     self._name, self.value)
 
 
-def property_factory(double, key):
-    def manage(invocation):
-        return double._manage_invocation(invocation)
+class Property(property, Observable):
+    def __init__(self, double, key):
+        self.double = double
+        self.key = key
+        property.__init__(self, self.get_value, self.set_value)
+        Observable.__init__(self)
 
-    def get_property(obj):
-        return manage(PropertyGet(double, key))
+    def manage(self, invocation):
+        return self.double._manage_invocation(invocation)
 
-    def set_property(obj, value):
-        prop = double._proxy.get_class_attr(key)
+    def get_value(self, obj):
+        if not self.double._setting_up:
+            self.notify()
+
+        return self.manage(PropertyGet(self.double, self.key))
+
+    def set_value(self, obj, value):
+        prop = self.double._proxy.get_class_attr(self.key)
         if prop.fset is None:
-            raise AttributeError("can't set attribute %s" % key)
+            raise AttributeError("can't set attribute %s" % self.key)
 
-        invocation = manage(PropertySet(double, key, value))
+        invocation = self.manage(PropertySet(self.double, self.key, value))
 
-        if double._setting_up:
+        if self.double._setting_up:
             invocation.returns(value)
-
-    return property(get_property, set_property)
+        else:
+            self.notify(value)
 
 
 class AttributeFactory(object):
@@ -429,7 +464,7 @@ class AttributeFactory(object):
     typemap = dict(
         instancemethod    = Method,
         method_descriptor = Method,
-        property          = property_factory,
+        property          = Property,
         # -- python3 --
         method            = Method,
         function          = Method,
@@ -446,6 +481,9 @@ class AttributeFactory(object):
             setattr(double.__class__, key, attr)
         else:
             object.__setattr__(double, key, attr)
+
+        for hook in double._new_attr_hooks:
+            hook(attr)
 
 
 class SpyBase(object):
