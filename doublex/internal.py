@@ -58,9 +58,7 @@ class OperationList(list):
     def lookup(self, invocation):
         if not invocation in self:
             raise LookupError
-
-        compatible = [i for i in self if i == invocation]
-        return sorted(compatible)[0]
+        return filter(lambda i: i == invocation, self)[-1]
 
     def show(self, indent=0):
         if not self:
