@@ -1,3 +1,11 @@
+.. image:: https://pypip.in/v/doublex/badge.png
+    :target: https://crate.io/packages/doublex/
+    :alt: Latest PyPI version
+
+.. image:: https://pypip.in/d/doublex/badge.png
+    :target: https://crate.io/packages/doublex/
+    :alt: Number of PyPI downloads
+
 doublex
 =======
 
