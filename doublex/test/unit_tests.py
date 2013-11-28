@@ -174,14 +174,21 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(6), is_(6000))
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
-    def test_uses_the_last_configuration_of_a_method_that_has_been_previously_stubbed(self):
+    def test_last_stubbed_method_prevails(self):
         with self.stub:
             self.stub.hello().returns("hi!")
 
         with self.stub:
-            self.stub.hello().returns("Hello!")
+            self.stub.hello().returns("bye!")
 
-        assert_that(self.stub.hello(), is_("Hello!"))
+        assert_that(self.stub.hello(), is_("bye!"))
+
+    def test_last_stubbed_method_prevails_same_with(self):
+        with self.stub:
+            self.stub.hello().returns("hi!")
+            self.stub.hello().returns("bye!")
+
+        assert_that(self.stub.hello(), is_("bye!"))
 
     def test_returning_tuple(self):
         with self.stub:
