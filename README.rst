@@ -6,8 +6,23 @@
     :target: https://crate.io/packages/doublex/
     :alt: Number of PyPI downloads
 
+=======
 doublex
 =======
+
+A powerful test doubles framework for Python.
+
+**Design principles**
+
+* doubles should not have public API framework methods. It avoid silent misspelling.
+* doubles do not require collaborator instances, just classes, and never instantiate them.
+* ``assert_that()`` is used for ALL assertions.
+* mock invocation order is required by default.
+* compatible with old and new style classes.
+
+
+Important links
+---------------
 
 * `documentation        <https://bitbucket.org/DavidVilla/python-doublex/wiki>`_
 * `release notes        <https://bitbucket.org/DavidVilla/python-doublex/wiki/Home#rst-header-release-notes>`_
@@ -19,10 +34,10 @@ doublex
 * `other Python doubles libraries <http://garybernhardt.github.io/python-mock-comparison/>`_
 
 
-debian
+Debian
 ------
 
 * package: http://packages.debian.org/source/sid/doublex
-* debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
 * amateur debian package at: ``deb http://babel.esi.uclm.es/arco/ sid main``
 * official ubuntu package: https://launchpad.net/ubuntu/+source/doublex
+* debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
