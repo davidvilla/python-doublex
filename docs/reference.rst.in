@@ -1069,6 +1069,7 @@ behavior in a clearer way. The next is functionally equivalent to the listing ju
 
 .. Local Variables:
 ..  coding: utf-8
+..  mode: rst
 ..  mode: flyspell
 ..  ispell-local-dictionary: "american"
 ..  fill-columnd: 90

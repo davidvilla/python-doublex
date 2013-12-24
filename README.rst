@@ -7,7 +7,7 @@
     :alt: Number of PyPI downloads
 
 
-A powerful test doubles framework for Python.
+Powerful test doubles framework for Python.
 
 **Design principles**
 
@@ -38,3 +38,12 @@ Debian
 * amateur debian package at: ``deb http://babel.esi.uclm.es/arco/ sid main``
 * official ubuntu package: https://launchpad.net/ubuntu/+source/doublex
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
+
+
+.. Local Variables:
+..  coding: utf-8
+..  mode: rst
+..  mode: flyspell
+..  ispell-local-dictionary: "american"
+..  fill-columnd: 90
+.. End:
