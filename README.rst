@@ -36,6 +36,7 @@ A trivial use example
            # then
            assert_that(spy.some_method, called())
 
+See about `doublex doubles <http://doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
 
 
 Important links
