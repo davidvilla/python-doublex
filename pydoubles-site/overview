@@ -1,27 +1,43 @@
 <h3>What is pyDoubles?</h3>
+
 pyDoubles is a test doubles framework for the Python platform. Test doubles frameworks are also called mocking frameworks. pyDoubles can be used as a <strong>testing </strong>tool <strong>or</strong> as a <strong>Test Driven Development</strong> tool.
+
 It generates <strong>stubs, spies, and mock objects</strong> using a fluent interface that will make your <strong>unit tests more readable</strong>. Moreover, it's been designed to make your tests <strong>less fragile </strong>when possible.
 
 The development of pyDoubles has been completely test-driven from scratch. The project is under continuous evolution, but you can extend the framework with your own requirements. The code is simple and well documented with unit tests.
+
 <h3>What is doublex?</h3>
+
 doublex is a new doubles framework that optionally provides the pyDoubles legacy API. It supports all the pyDoubles features and some more that can not be easely backported. If you are a pyDoubles user you can run your tests using doublex.pyDoubles module. However, we recommed the <a href="http://www.pydoubles.org/doublex-documentation/">native doublex API</a> for your new developments.
+
 <h3>Supported test doubles</h3>
+
 Find out what test doubles are according to <a href="http://xunitpatterns.com/Test%20Double.html">Gerard Meszaros</a>. pyDoubles offers mainly three kind of doubles:
+
 <h4>Stub</h4>
+
 Replaces the implementation of one or more methods in the object instance which plays the role of collaborator or dependency, returning the value that we explicitly write down in the test. A stub is actually a method but it is also common to use the noun stub for a class with stubbed methods. The stub does not have any kind or memory.
 
 Stubs are used mainly for <strong>state validation</strong> or along with spies or mocks.
+
 <h4>Spy</h4>
+
 Replaces the implementation as a stub does, but it is also able to register and remember what methods are called during the test execution and how they are invoked.
 
 They are used for <strong>interaction/behavior verification</strong>.
+
 <h4>Mock</h4>
+
 Contains the same features than the Stub and therefore the Spy, but it is very strict in the behavior specification it should expect from the System Under Tests. Before calling any method in the mock object, the framework should be told (in the test) which methods we expect to be called in order for them to succeed. Otherwise, the test will fail with an "UnexpectedBehavior" exception.
 
 Mock objects are used when we have to be very <strong>precise in the behavior specification</strong>. They usually make the tests more fragile than a spy but still are necessary in many cases. It is common to use mock objects together with stubs in tests.
+
 <h3>New to test doubles?</h3>
+
 A unit test is comprised of three parts: Arrange/Act/Assert or Given/When/Then or whatever you want to call them. The scenario has to be created, exercised, and eventually we verify that the expected behavior happened. The test doubles framework is used to create the scenario (create the objects), and verify behavior after the execution but <strong>it does not make sense to invoke test doubles' methods in the test code. </strong>If you call the doubles' methods in the test code, you are testing the framework itself, which has been already tested (better than that, we crafted it using TDD). Make sure the calls to the doubles' methods happen in your production code.
+
 <h3>Why another framework?</h3>
+
 pyDoubles is inspired in <a href="http://mockito.org">mockito</a> and <a href="http://jmock.org">jMock</a> for Java, and also inspired in <a href="http://ayende.com/Wiki/Rhino+Mocks.ashx">Rhino.Mocks</a> for .Net. There are other frameworks for Python that work really well, but after some time using them, we were not really happy with the syntax and the readability of the tests. Fragile tests were also a problem. Some well-known frameworks available for Python are: <a href="http://labix.org/mocker">mocker</a>, <a href="http://code.google.com/p/mockito-python/">mockito-python</a>, <a href="http://code.google.com/p/mock/">mock</a>, <a href="http://code.google.com/p/pymox/wiki/MoxDocumentation">pymox</a>.
 
 pyDoubles is open source and free software, released under the Apache License Version 2.0
