@@ -9,7 +9,8 @@
 
 Powerful test doubles framework for Python.
 
-**Design principles**
+Design principles
+-----------------
 
 * doubles should not have public API framework methods. It avoid silent misspelling.
 * doubles do not require collaborator instances, just classes, and never instantiate them.
@@ -18,7 +19,8 @@ Powerful test doubles framework for Python.
 * compatible with old and new style classes.
 
 
-A trivial use example:
+A trivial use example
+---------------------
 
 .. sourcecode:: python
 
