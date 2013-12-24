@@ -21,14 +21,14 @@ Powerful test doubles framework for Python.
 Important links
 ---------------
 
-* `documentation        <https://bitbucket.org/DavidVilla/python-doublex/wiki>`_
-* `release notes        <https://bitbucket.org/DavidVilla/python-doublex/wiki/Home#rst-header-release-notes>`_
-* `slides               <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
-* `sources              <https://bitbucket.org/DavidVilla/python-doublex>`_
-* `PyPI project         <http://pypi.python.org/pypi/doublex>`_
-* `Crate page           <https://crate.io/packages/doublex/>`_
-* `buildbot job         <https://fowler.esi.uclm.es:8010/builders/doublex>`_
-* `other Python doubles libraries <http://garybernhardt.github.io/python-mock-comparison/>`_
+* `documentation    <http://doublex.readthedocs.org/>`_
+* `release notes    <http://doublex.readthedocs.org/en/latest/release-notes.html>`_
+* `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
+* `sources          <https://bitbucket.org/DavidVilla/python-doublex>`_
+* `PyPI project     <http://pypi.python.org/pypi/doublex>`_
+* `Crate page       <https://crate.io/packages/doublex/>`_
+* `buildbot job     <https://fowler.esi.uclm.es:8010/builders/doublex>`_
+* `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
 
 
 Debian
