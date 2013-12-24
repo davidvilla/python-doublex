@@ -9,7 +9,7 @@
 
 Powerful test doubles framework for Python.
 
-Design principles
+design principles
 -----------------
 
 * doubles should not have public API framework methods. It avoid silent misspelling.
@@ -19,8 +19,8 @@ Design principles
 * compatible with old and new style classes.
 
 
-A trivial use example
----------------------
+a trivial example
+-----------------
 
 .. sourcecode:: python
 
@@ -36,11 +36,11 @@ A trivial use example
            # then
            assert_that(spy.some_method, called())
 
-See about `doublex doubles <http://doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
+See more about `doublex doubles <http://doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
 
 
-Important links
----------------
+relevant links
+--------------
 
 * `documentation    <http://doublex.readthedocs.org/>`_
 * `release notes    <http://doublex.readthedocs.org/en/latest/release-notes.html>`_
