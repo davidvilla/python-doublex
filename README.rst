@@ -18,6 +18,24 @@ Powerful test doubles framework for Python.
 * compatible with old and new style classes.
 
 
+A trivial use example:
+
+.. sourcecode:: python
+
+   class SpyUseExample(unittest.TestCase):
+       def test_spy_example(self):
+           # given
+           spy = Spy(SomeCollaboratorClass)
+           cut = YourClassUnderTest(spy)
+
+           # when
+           cut.a_method_that_call_the_collaborator()
+
+           # then
+           assert_that(spy.some_method, called())
+
+
+
 Important links
 ---------------
 

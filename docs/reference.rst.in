@@ -1055,7 +1055,7 @@ behavior in a clearer way. The next is functionally equivalent to the listing ju
 
    # THE DOUBLEX WAY
    class AsyncTests(unittest.TestCase):
-       def test_test_an_async_invocation_with_doublex_async(self):
+       def test_an_async_invocation_with_doublex_async(self):
            # given
            spy = Spy(Collaborator)
            sut = SUT(spy)
