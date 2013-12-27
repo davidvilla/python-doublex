@@ -100,8 +100,8 @@ class CollaboratorProxy(Proxy):
         return self.collaborator_class.__name__
 
     def assure_signature_matches(self, invocation):
-        signature = self.get_signature(invocation._name)
-        signature.assure_matches(invocation._context)
+        signature = self.get_signature(invocation.name)
+        signature.assure_matches(invocation.context)
 
     def get_attr_typename(self, key):
         def raise_no_attribute():
@@ -127,8 +127,8 @@ class CollaboratorProxy(Proxy):
             getattr(self.collaborator, name2)
 
     def perform_invocation(self, invocation):
-        method = getattr(self.collaborator, invocation._name)
-        return invocation._context.apply_on(method)
+        method = getattr(self.collaborator, invocation.name)
+        return invocation.context.apply_on(method)
 
 
 class Signature(object):

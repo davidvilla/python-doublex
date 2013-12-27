@@ -163,7 +163,7 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
-    # FIXME: new on 1.7
+    # new on 1.7
     def test_keyworked_or_positional_are_equivalent(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
@@ -206,7 +206,7 @@ class AccessingActualAttributes(TestCase):
         stub = Stub(Collaborator())
         assert_that(stub.class_attr, is_("OK"))
 
-    # New in version 1.6.5
+    # New in 1.6.5
     def test_proxyspy_read_instance_attribute(self):
         stub = Stub(Collaborator())
         assert_that(stub.instance_attr, is_(300))
@@ -847,7 +847,7 @@ class MatcherTests(TestCase):
 
         assert_that(stub.method("awesome"), is_(1000))
 
-    # doc
+    # doc FIXME: assure this is tested with doctests and remove
     def test_times_arg_may_be_matcher(self):
         self.spy.foo()
         self.spy.foo(1)
@@ -869,7 +869,7 @@ class MatcherTests(TestCase):
         assert_that(self.spy.foo, called().with_args(1).times(greater_than(1)))  # > 1
         assert_that(self.spy.foo, called().with_args(1).times(less_than(5)))     # < 5
 
-    # doc
+    # doc FIXME: assure this is tested with doctests and remove
     def test_called_args(self):
         self.spy.m1()
         self.spy.m2(None)
@@ -1151,23 +1151,99 @@ class PropertyTests(TestCase):
                     property_set('prop').to(greater_than(1)).
                     times(less_than(3)))
 
-    def test_proxy_spy_get_actual_property(self):
+    def test_proxyspy_get_actual_property(self):
         collaborator = ObjCollaborator()
         sut = ProxySpy(collaborator)
         assert_that(sut.prop, is_(1))
 
-    def test_proxy_spy_get_stubbed_property(self):
+    def test_proxyspy_get_stubbed_property(self):
         collaborator = ObjCollaborator()
         with ProxySpy(collaborator) as sut:
             sut.prop = 2
         assert_that(sut.prop, is_(2))
 
-    def test_proxy_spy_set_property(self):
+    def test_proxyspy_set_property(self):
         collaborator = ObjCollaborator()
         sut = ProxySpy(collaborator)
         sut.prop = 20
         assert_that(sut.prop, is_(20))
         assert_that(collaborator.prop, is_(20))
+
+
+# FIXME: new on tip
+class PropertyMockTests(TestCase):
+    def test_mock_get(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop
+
+        mock.prop
+
+        assert_that(mock, verify())
+
+    def test_mock_get_never_got(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop
+
+        with self.assertRaises(AssertionError):
+            assert_that(mock, verify())
+
+    def test_mock_get_too_many_times(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop
+
+        mock.prop
+        mock.prop
+
+        with self.assertRaises(AssertionError):
+            assert_that(mock, verify())
+
+    def test_mock_set(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop = 5
+
+        mock.prop = 5
+
+        assert_that(mock, verify())
+
+    def test_mock_set_never_set(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop = 5
+
+        with self.assertRaises(AssertionError):
+            assert_that(mock, verify())
+
+    def test_mock_set_too_many_times(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop = 5
+
+        mock.prop = 5
+        mock.prop = 5
+
+        with self.assertRaises(AssertionError):
+            assert_that(mock, verify())
+
+    def test_mock_set_wrong_value(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop = 5
+
+        with self.assertRaises(AssertionError):
+            mock.prop = 8
+
+    def test_mock_set_anything(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop = anything()
+
+        mock.prop = 5
+
+        assert_that(mock, verify())
+
+    def test_mock_set_matcher(self):
+        with Mock(ObjCollaborator) as mock:
+            mock.prop = all_of(greater_than(8), less_than(12))
+
+        mock.prop = 10
+
+        assert_that(mock, verify())
 
 
 class AsyncTests(TestCase):
@@ -1231,7 +1307,7 @@ class AsyncTests(TestCase):
         assert_that(spy.write, called().async(timeout=1))
 
 
-# FIXME: new on 1.7
+# new on 1.7
 class with_some_args_matcher_tests(TestCase):
     def test_one_arg(self):
         spy = Spy(Collaborator)
@@ -1256,7 +1332,7 @@ class with_some_args_matcher_tests(TestCase):
             assert_that(spy.foo, called().with_some_args())
 
 
-# FIXME: new on 1.7
+# new on 1.7
 class Stub_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         StubClone = Stub._clone_class()
@@ -1296,7 +1372,7 @@ class Stub_default_behavior_tests(TestCase):
         assert_that(stub.hello(), is_(1000))
 
 
-# FIXME: new on 1.7
+# new on 1.7
 class Spy_default_behavior_tests(TestCase):
     def test_set_return_globally(self):
         SpyClone = Spy._clone_class()
@@ -1317,7 +1393,7 @@ class Spy_default_behavior_tests(TestCase):
         assert_that(spy.unknown, called().with_args(7))
 
 
-# FIXME: new on 1.7
+# new on 1.7
 class ProxySpy_default_behavior_tests(TestCase):
     def test_this_change_proxyspy_default_behavior(self):
         spy = ProxySpy(Collaborator())
@@ -1373,7 +1449,7 @@ class orphan_methods_tests(TestCase):
 #        assert_that(spy.method, called().times(3))
 
 
-# FIXME: new on 1.7.2
+# new on 1.7.2
 class VarArgsTest(TestCase):
     def test_stub_args(self):
         stub = Stub(Collaborator)
@@ -1426,7 +1502,7 @@ class VarArgsTest(TestCase):
                         contains_string('with_some_args() can not be applied to method Collaborator.varargs(self, *args, **kargs)'))
 
 
-# FIXME: new on 1.7.2
+# new on 1.7.2
 class TracerTests(TestCase):
     def setUp(self):
         self.out = io.BytesIO()

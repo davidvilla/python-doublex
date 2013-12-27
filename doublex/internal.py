@@ -59,7 +59,7 @@ class OperationList(list):
         if not invocation in self:
             raise LookupError
 
-        return [i for i in self if i == invocation][-1]
+        return [i for i in self if invocation == i][-1]
 
     def show(self, indent=0):
         if not self:
@@ -111,7 +111,7 @@ class Method(Observable):
     def calls(self):
         if not isinstance(self.double, SpyBase):
             raise WrongApiUsage("Only Spy derivates store invocations")
-        return [x._context for x in self.double._get_invocations_to(self.name)]
+        return [x.context for x in self.double._get_invocations_to(self.name)]
 
     def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
@@ -162,10 +162,10 @@ def func_raising(e):
 @total_ordering
 class Invocation(object):
     def __init__(self, double, name, context=None):
-        self._double = double
-        self._name = name
-        self._context = context or InvocationContext()
-        self._context.signature = double._proxy.get_signature(name)
+        self.double = double
+        self.name = name
+        self.context = context or InvocationContext()
+        self.context.signature = double._proxy.get_signature(name)
         self.__delegate = func_returning(None)
 
     @classmethod
@@ -184,12 +184,12 @@ class Invocation(object):
             raise WrongApiUsage(reason)
 
     def returns(self, value):
-        self._context.retval = value
+        self.context.retval = value
         self.delegates(func_returning(value))
         return self
 
     def returns_input(self):
-        if not self._context.args:
+        if not self.context.args:
             raise TypeError("%s has no input args" % self)
 
         self.delegates(func_returning_input(self))
@@ -203,24 +203,24 @@ class Invocation(object):
             raise WrongApiUsage("times must be >= 1. Use is_not(called()) for 0 times")
 
         for i in range(1, n):
-            self._double._manage_invocation(self)
+            self.double._manage_invocation(self)
 
     def _apply_stub(self, actual_invocation):
-        return actual_invocation._context.apply_on(self.__delegate)
+        return actual_invocation.context.apply_on(self.__delegate)
 
     def _apply_on_collaborator(self):
-        return self._double._proxy.perform_invocation(self)
+        return self.double._proxy.perform_invocation(self)
 
     def __eq__(self, other):
-        return self._double._proxy.same_method(self._name, other._name) and \
-            self._context.matches(other._context)
+        return self.double._proxy.same_method(self.name, other.name) and \
+            self.context.matches(other.context)
 
     def __lt__(self, other):
-        return any([self._name < other._name,
-                    self._context < other._context])
+        return any([self.name < other.name,
+                    self.context < other.context])
 
     def __repr__(self):
-        return "%s.%s%s" % (self._double._classname(), self._name, self._context)
+        return "%s.%s%s" % (self.double._classname(), self.name, self.context)
 
     def _show(self, indent=0):
         return add_indent(self, indent)
@@ -400,7 +400,7 @@ class InvocationFormatter(object):
 
 class PropertyInvocation(Invocation):
     def __eq__(self, other):
-        return self._name == other._name
+        return self.name == other.name
 
 
 class PropertyGet(PropertyInvocation):
@@ -408,10 +408,10 @@ class PropertyGet(PropertyInvocation):
         super(PropertyGet, self).__init__(double, name)
 
     def _apply_on_collaborator(self):
-        return getattr(self._double._proxy.collaborator, self._name)
+        return getattr(self.double._proxy.collaborator, self.name)
 
     def __repr__(self):
-        return "get %s.%s" % (self._double._classname(), self._name)
+        return "get %s.%s" % (self.double._classname(), self.name)
 
 
 class PropertySet(PropertyInvocation):
@@ -421,11 +421,15 @@ class PropertySet(PropertyInvocation):
         super(PropertySet, self).__init__(double, name, param)
 
     def _apply_on_collaborator(self):
-        return setattr(self._double._proxy.collaborator, self._name, self.value)
+        return setattr(self.double._proxy.collaborator, self.name, self.value)
+
+    def __eq__(self, other):
+        return PropertyInvocation.__eq__(self, other) \
+            and self.context.matches(other.context)
 
     def __repr__(self):
-        return "set %s.%s to %s" % (self._double._classname(),
-                                    self._name, self.value)
+        return "set %s.%s to %s" % (self.double._classname(),
+                                    self.name, self.value)
 
 
 class Property(property, Observable):
