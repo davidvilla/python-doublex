@@ -16,7 +16,7 @@ from hamcrest.library.object.haslength import has_length
 from hamcrest.library.text.isequal_ignoring_case import equal_to_ignoring_case
 from hamcrest.library.text.stringstartswith import starts_with
 from doublex.pyDoubles import *
-from unit_tests import Collaborator
+from .unit_tests import Collaborator
 
 
 class HamcrestIntegrationTest(unittest.TestCase):
@@ -26,7 +26,7 @@ class HamcrestIntegrationTest(unittest.TestCase):
     def test_use_in_stub_method(self):
         when(self.spy.one_arg_method).with_args(
                     starts_with('tt')).then_return(1000)
-        self.assertEquals(1000, self.spy.one_arg_method('ttxe'))
+        self.assertEqual(1000, self.spy.one_arg_method('ttxe'))
 
     def test_use_in_spy_call(self):
         self.spy.one_arg_method('ttxe')
@@ -39,30 +39,30 @@ class HamcrestIntegrationTest(unittest.TestCase):
         customer = Customer()
         when(self.spy.one_arg_method).with_args(
             is_(customer)).then_return(1000)
-        self.assertEquals(1000, self.spy.one_arg_method(customer))
+        self.assertEqual(1000, self.spy.one_arg_method(customer))
 
     def test_instance_of_matcher(self):
         when(self.spy.one_arg_method).with_args(
             instance_of(int)).then_return(1000)
-        self.assertEquals(1000, self.spy.one_arg_method(5))
+        self.assertEqual(1000, self.spy.one_arg_method(5))
 
     def test_all_of_matcher(self):
         text = 'hello'
         when(self.spy.one_arg_method).with_args(
             all_of(starts_with('h'), equal_to(text))).then_return(1000)
-        self.assertEquals(1000, self.spy.one_arg_method(text))
+        self.assertEqual(1000, self.spy.one_arg_method(text))
 
     def test_has_length_matcher(self):
         list = [10, 20, 30]
         when(self.spy.one_arg_method).with_args(
             has_length(3)).then_return(1000)
-        self.assertEquals(1000, self.spy.one_arg_method(list))
+        self.assertEqual(1000, self.spy.one_arg_method(list))
 
     def test_has_entry_matcher(self):
         list = {'one': 1, 'two': 2}
         when(self.spy.one_arg_method).with_args(
             has_entry(equal_to('two'), 2)).then_return(1000)
-        self.assertEquals(1000, self.spy.one_arg_method(list))
+        self.assertEqual(1000, self.spy.one_arg_method(list))
 
     def test_equal_to_ignoring_case_matcher(self):
         self.spy.one_arg_method('hello')
@@ -74,10 +74,10 @@ class HamcrestIntegrationTest(unittest.TestCase):
         try:
             assert_that_method(self.spy.one_arg_method).was_called().with_args(
                 starts_with('tt'))
-        except ArgsDontMatch, e:
+        except ArgsDontMatch as e:
             self.assertTrue("tt" in str(e.args))
             self.assertTrue("string starting" in str(e.args))
 
 
 if __name__ == "__main__":
-    print "Use nosetest to run this tests: nosetest hamcrest_integration.py"
+    print("Use nosetest to run this tests: nosetest %s" % __file__)

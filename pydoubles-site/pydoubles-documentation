@@ -1,3 +1,5 @@
+[migrated]
+
 <pre class="python">class SimpleExample(unittest.TestCase):
    def test_ask_the_sender_to_send_the_report(self):
         sender = spy(Sender())

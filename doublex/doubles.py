@@ -24,7 +24,7 @@ import inspect
 import hamcrest
 
 from .internal import (ANY_ARG, OperationList, Method, MockBase, SpyBase,
-                       AttributeFactory)
+                       AttributeFactory, WrongApiUsage)
 from .proxy import create_proxy, get_class
 from .matchers import MockIsExpectedInvocation
 
@@ -36,6 +36,7 @@ __all__ = ['Stub', 'Spy', 'ProxySpy', 'Mock', 'Mimic',
 
 class Stub(object):
     _default_behavior = lambda x: None
+    _new_attr_hooks = []
 
     def __new__(cls, collaborator=None):
         '''Creates a fresh class clone per instance. This is required due to
@@ -51,12 +52,14 @@ class Stub(object):
         self._proxy = create_proxy(collaborator)
         self._stubs = OperationList()
         self._setting_up = False
+        self._new_attr_hooks = self._new_attr_hooks[:]
         self._deactivate = False
         self.__class__.__setattr__ = self.__setattr__hook
 
     def _activate_next(self):
         self.__enter__()
         self._deactivate = True
+        return self
 
     def __enter__(self):
         self._setting_up = True
@@ -82,7 +85,7 @@ class Stub(object):
         actual_retval = self._perform_invocation(invocation)
 
         retval = stubbed_retval if stubbed_retval is not None else actual_retval
-        invocation._context.retval = retval
+        invocation.context.retval = retval
         return retval
 
     def _prepare_invocation(self, invocation):
@@ -128,7 +131,7 @@ class Spy(Stub, SpyBase):
 
     def _get_invocations_to(self, name):
         return [i for i in self._recorded
-                if self._proxy.same_method(name, i._name)]
+                if self._proxy.same_method(name, i.name)]
 
 
 class ProxySpy(Spy):
@@ -163,7 +166,10 @@ def Mimic(double, collab):
     def _get_method(self, key):
         if key not in list(self._methods.keys()):
             typename = self._proxy.get_attr_typename(key)
-            assert typename in ['instancemethod', 'function', 'method'], typename
+            if typename not in ['instancemethod', 'function', 'method']:
+                raise WrongApiUsage(
+                    "Mimic does not support attribute '%s' (type '%s')" % (key, typename))
+
             method = Method(self, key)
             self._methods[key] = method
 

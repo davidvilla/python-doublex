@@ -1,7 +1,11 @@
+[migrated]
+
 For the time being you can find the doublex API documentation at:
 
 <a href="https://bitbucket.org/DavidVilla/python-doublex/wiki">https://bitbucket.org/DavidVilla/python-doublex/wiki</a>
+
 <h3>What provides doublex respect to pyDoubles?</h3>
+
 Respect to pyDoubles, <strong>doublex</strong>...:
 <ul>
 	<li>Use just hamcrest matchers (for all features).</li>

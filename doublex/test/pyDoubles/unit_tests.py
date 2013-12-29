@@ -9,11 +9,17 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.html)
 Project home: https://bitbucket.org/carlosble/pydoubles
 """
 
-import unittest
+import sys
 import re
 from nose.tools import nottest
 
 from doublex.pyDoubles import *
+
+
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 
 
 class SomeException(Exception):
@@ -73,18 +79,18 @@ class ProxySpyTests(unittest.TestCase):
         assert_that_was_called(self.spy.something)
 
     def test_assert_needs_always_a_method_from_a_double(self):
-        self.failUnlessRaises(WrongApiUsage,
-             assert_that_was_called, self.spy)
+        with self.assertRaises(WrongApiUsage):
+            assert_that_was_called(self.spy)
 
     def test_assert_needs_always_a_method_from_a_double_not_the_original(self):
-        self.failUnlessRaises(WrongApiUsage,
-             assert_that_was_called, Collaborator().hello)
+        with self.assertRaises(WrongApiUsage):
+            assert_that_was_called(Collaborator().hello)
 
     def test_one_method_called_other_wasnt(self):
         self.spy.something()
 
-        self.failUnlessRaises(UnexpectedBehavior,
-             assert_that_was_called, self.spy.hello)
+        with self.assertRaises(UnexpectedBehavior):
+            assert_that_was_called(self.spy.hello)
 
     def test_two_methods_called_assert_on_the_first(self):
         self.spy.hello()
@@ -96,20 +102,20 @@ class ProxySpyTests(unittest.TestCase):
 #    def test_get_method_name(self):
 #        name = _Introspector_().method_name(self.spy.hello)
 #
-#        self.assertEquals("hello", name)
+#        self.assertEqual("hello", name)
 
     def test_call_original_method(self):
-        self.assertEquals("ok", self.spy.something())
+        self.assertEqual("ok", self.spy.something())
 
 # pyDobules internal API specific
 #    def test_get_instance_from_method(self):
 #        spy_found = _Introspector_().double_instance_from_method(self.spy.hello)
 #
-#        self.assertEquals(self.spy, spy_found)
+#        self.assertEqual(self.spy, spy_found)
 
     def test_assert_was_called_when_wasnt(self):
-        self.failUnlessRaises(UnexpectedBehavior,
-             assert_that_was_called, self.spy.hello)
+        with self.assertRaises(UnexpectedBehavior):
+            assert_that_was_called(self.spy.hello)
 
     def test_was_called_with_same_parameters(self):
         self.spy.one_arg_method(1)
@@ -126,15 +132,15 @@ class ProxySpyTests(unittest.TestCase):
         self.spy.one_arg_method(1)
         args_checker = assert_that_was_called(self.spy.one_arg_method)
 
-        self.failUnlessRaises(ArgsDontMatch,
-            args_checker.with_args, 2)
+        with self.assertRaises(ArgsDontMatch):
+            args_checker.with_args(2)
 
     def test_was_called_with_same_params_but_no_params_accepted(self):
         self.spy.hello()
         args_checker = assert_that_was_called(self.spy.hello)
 
-        self.failUnlessRaises(TypeError,
-            args_checker.with_args, "something")
+        with self.assertRaises(TypeError):
+            args_checker.with_args("something")
 
     def test_was_called_with_several_parameters(self):
         self.spy.two_args_method(1, 2)
@@ -146,15 +152,15 @@ class ProxySpyTests(unittest.TestCase):
         self.spy.one_arg_method(1)
         args_checker = assert_that_was_called(self.spy.one_arg_method)
 
-        self.failUnlessRaises(ArgsDontMatch,
-            args_checker.with_args, "2")
+        with self.assertRaises(ArgsDontMatch):
+            args_checker.with_args("2")
 
     def test_was_called_with_keyed_args_not_matching(self):
         self.spy.kwarg_method(key_param="foo")
         args_checker = assert_that_was_called(self.spy.kwarg_method)
 
-        self.failUnlessRaises(ArgsDontMatch,
-            args_checker.with_args, key_param="bar")
+        with self.assertRaises(ArgsDontMatch):
+            args_checker.with_args(key_param="bar")
 
     def test_was_called_with_keyed_args_matching(self):
         self.spy.kwarg_method(key_param="foo")
@@ -166,13 +172,13 @@ class ProxySpyTests(unittest.TestCase):
         try:
             assert_that_was_called(self.spy.kwarg_method
                                    ).with_args("bar")
-        except ArgsDontMatch, e:
+        except ArgsDontMatch as e:
             self.assertTrue(str(e).find("foo") != -1, str(e))
 
     def test_stub_out_method(self):
         when(self.spy.one_arg_method).then_return(3)
 
-        self.assertEquals(3, self.spy.one_arg_method(5))
+        self.assertEqual(3, self.spy.one_arg_method(5))
 
     def test_stub_method_was_called(self):
         when(self.spy.one_arg_method).then_return(3)
@@ -182,7 +188,7 @@ class ProxySpyTests(unittest.TestCase):
     def test_stub_out_method_returning_a_list(self):
         when(self.spy.one_arg_method).then_return([1, 2, 3])
 
-        self.assertEquals([1, 2, 3], self.spy.one_arg_method(5))
+        self.assertEqual([1, 2, 3], self.spy.one_arg_method(5))
 
     def test_stub_method_returning_list_was_called(self):
         when(self.spy.one_arg_method).then_return([1, 2, 3])
@@ -192,7 +198,7 @@ class ProxySpyTests(unittest.TestCase):
     def test_stub_out_method_with_args(self):
         when(self.spy.one_arg_method).with_args(2).then_return(3)
 
-        self.assertEquals(3, self.spy.one_arg_method(2))
+        self.assertEqual(3, self.spy.one_arg_method(2))
 
     def test_stub_method_with_args_was_called(self):
         when(self.spy.one_arg_method).with_args(2).then_return(3)
@@ -204,7 +210,7 @@ class ProxySpyTests(unittest.TestCase):
     def test_stub_out_method_with_args_calls_actual(self):
         when(self.spy.one_arg_method).with_args(2).then_return(3)
 
-        self.assertEquals(4, self.spy.one_arg_method(4))
+        self.assertEqual(4, self.spy.one_arg_method(4))
 
         assert_that_was_called(self.spy.one_arg_method).with_args(4)
 
@@ -212,8 +218,8 @@ class ProxySpyTests(unittest.TestCase):
         when(self.spy.one_arg_method).with_args(2).then_return(3)
         when(self.spy.one_arg_method).with_args(3).then_return(4)
 
-        self.assertEquals(3, self.spy.one_arg_method(2))
-        self.assertEquals(4, self.spy.one_arg_method(3))
+        self.assertEqual(3, self.spy.one_arg_method(2))
+        self.assertEqual(4, self.spy.one_arg_method(3))
 
     def test_recorded_calls_work_on_several_stubs(self):
         when(self.spy.one_arg_method).with_args(2).then_return(3)
@@ -228,15 +234,15 @@ class ProxySpyTests(unittest.TestCase):
         when(self.spy.one_arg_method).then_return(1000)
         when(self.spy.one_arg_method).with_args(2).then_return(3)
 
-        self.assertEquals(3, self.spy.one_arg_method(2))
-        self.assertEquals(1000, self.spy.one_arg_method(8))
+        self.assertEqual(3, self.spy.one_arg_method(2))
+        self.assertEqual(1000, self.spy.one_arg_method(8))
 
     def test_stub_with_kwargs(self):
         when(self.spy.kwarg_method).with_args(key_param=2
                                             ).then_return(3)
 
-        self.assertEquals(3, self.spy.kwarg_method(key_param=2))
-        self.assertEquals(6, self.spy.kwarg_method(key_param=6))
+        self.assertEqual(3, self.spy.kwarg_method(key_param=2))
+        self.assertEqual(6, self.spy.kwarg_method(key_param=6))
 
     def test_stub_raising_exception(self):
         when(self.spy.hello).then_raise(SomeException())
@@ -249,25 +255,26 @@ class ProxySpyTests(unittest.TestCase):
     def test_stub_returning_what_receives(self):
         when(self.spy.method_one).then_return_input()
 
-        self.assertEquals(20, self.spy.method_one(20))
+        self.assertEqual(20, self.spy.method_one(20))
 
     def test_stub_returning_what_receives_when_no_params(self):
         when(self.spy.hello).then_return_input()
 
-        self.failUnlessRaises(ApiMismatch, self.spy.hello)
+        with self.assertRaises(ApiMismatch):
+            self.spy.hello()
 
     def test_be_able_to_return_objects(self):
         when(self.spy.one_arg_method).then_return(Collaborator())
 
         collaborator = self.spy.one_arg_method(1)
 
-        self.assertEquals(1, collaborator.one_arg_method(1))
+        self.assertEqual(1, collaborator.one_arg_method(1))
 
     def test_any_arg_matcher(self):
         when(self.spy.two_args_method).with_args(1, ANY_ARG).then_return(1000)
 
-        self.assertEquals(1000, self.spy.two_args_method(1, 2))
-        self.assertEquals(1000, self.spy.two_args_method(1, 5))
+        self.assertEqual(1000, self.spy.two_args_method(1, 2))
+        self.assertEqual(1000, self.spy.two_args_method(1, 5))
 
     def test_any_arg_matcher_was_called(self):
         when(self.spy.two_args_method).with_args(1, 2).then_return(1000)
@@ -310,7 +317,7 @@ class ProxySpyTests(unittest.TestCase):
         try:
             assert_that_method(self.spy.one_arg_method).was_called().times(5)
             self.fail("Should have been called 2 times")
-        except UnexpectedBehavior, e:
+        except UnexpectedBehavior as e:
             for arg in e.args:
                 if re.search("5", arg) and re.search("one_arg_method", arg):
                     return
@@ -421,8 +428,8 @@ class SpyTests(unittest.TestCase):
         when(self.spy.two_args_method).with_args(5, 5).then_return(2000)
         handle1 = self.spy.one_arg_method
         handle2 = self.spy.two_args_method
-        self.assertEquals(1000, handle1(1))
-        self.assertEquals(2000, handle2(5, 5))
+        self.assertEqual(1000, handle1(1))
+        self.assertEqual(2000, handle2(5, 5))
 
         assert_that_was_called(handle1).with_args(1)
         assert_that_was_called(handle2).with_args(5, 5)
@@ -448,7 +455,7 @@ class SpyTests(unittest.TestCase):
         obj = CallableObj()
         when(self.spy.one_arg_method).then_return(obj)
 
-        self.assertEquals(obj, self.spy.one_arg_method(1),
+        self.assertEqual(obj, self.spy.one_arg_method(1),
                         "Wrong returned object")
 
     # bitbucket Issue #5
@@ -458,7 +465,7 @@ class SpyTests(unittest.TestCase):
             assert_that_was_called(self.spy.one_arg_method).with_params(2)  # should be with_args
             self.fail("TypeError should be raised")
 
-        except AttributeError, e:
+        except AttributeError as e:
             expected = "'assert_that_method' object has no attribute 'with_params'"
             hamcrest.assert_that(str(e), hamcrest.contains_string(expected))
 
@@ -478,7 +485,7 @@ class MockTests(unittest.TestCase):
     def test_fail_on_unexpected_call_msg_is_human_readable(self):
         try:
             self.mock.hello()
-        except UnexpectedBehavior, e:
+        except UnexpectedBehavior as e:
             for arg in e.args:
                 if re.search("No one", arg):
                     return
@@ -517,7 +524,7 @@ class MockTests(unittest.TestCase):
     def test_expect_call_returning_value(self):
         expect_call(self.mock.one_arg_method).with_args(1).returning(1000)
 
-        self.assertEquals(1000, self.mock.one_arg_method(1))
+        self.assertEqual(1000, self.mock.one_arg_method(1))
 
     def test_assert_expectations_are_satisfied(self):
         expect_call(self.mock.hello)
@@ -544,12 +551,13 @@ class MockTests(unittest.TestCase):
         expect_call(self.mock.hello)
         self.mock.hello()
         self.mock.hello()
-        self.failUnlessRaises(UnexpectedBehavior,
-                        self.mock.assert_that_is_satisfied)
+
+        with self.assertRaises(UnexpectedBehavior):
+            self.mock.assert_that_is_satisfied()
 
     def test_using_when_or_expect_call_without_double(self):
-        self.failUnlessRaises(WrongApiUsage,
-                        expect_call, Collaborator())
+        with self.assertRaises(WrongApiUsage):
+            expect_call(Collaborator())
 
     def test_expectations_on_synonyms(self):
         expect_call(self.mock.one_arg_method)
@@ -565,16 +573,16 @@ class MockTests(unittest.TestCase):
         self.mock.one_arg_method(1)
         self.mock.one_arg_method(1)
 
-        self.failUnlessRaises(UnexpectedBehavior,
-            self.mock.assert_that_is_satisfied)
+        with self.assertRaises(UnexpectedBehavior):
+            self.mock.assert_that_is_satisfied()
 
     def test_expect_several_times(self):
         expect_call(self.mock.one_arg_method).with_args(1).times(2)
 
         self.mock.one_arg_method(1)
 
-        self.failUnlessRaises(UnexpectedBehavior,
-            self.mock.assert_that_is_satisfied)
+        with self.assertRaises(UnexpectedBehavior):
+            self.mock.assert_that_is_satisfied()
 
     def test_expect_several_times_matches_exactly(self):
         expect_call(self.mock.one_arg_method).with_args(1).times(2)
@@ -602,16 +610,16 @@ class MockTests(unittest.TestCase):
     def test_times_and_return_value(self):
         expect_call(self.mock.one_arg_method).returning(1000).times(2)
 
-        self.assertEquals(1000, self.mock.one_arg_method(1))
-        self.assertEquals(1000, self.mock.one_arg_method(1))
+        self.assertEqual(1000, self.mock.one_arg_method(1))
+        self.assertEqual(1000, self.mock.one_arg_method(1))
 
         self.mock.assert_that_is_satisfied()
 
     def test_times_and_return_value_and_input_args(self):
         expect_call(self.mock.one_arg_method).with_args(10).returning(1000).times(2)
 
-        self.assertEquals(1000, self.mock.one_arg_method(10))
-        self.assertEquals(1000, self.mock.one_arg_method(10))
+        self.assertEqual(1000, self.mock.one_arg_method(10))
+        self.assertEqual(1000, self.mock.one_arg_method(10))
 
         self.mock.assert_that_is_satisfied()
 
@@ -662,12 +670,12 @@ class StubMethodsTests(unittest.TestCase):
     def test_method_returning_value(self):
         self.collaborator.hello = method_returning("bye")
 
-        self.assertEquals("bye", self.collaborator.hello())
+        self.assertEqual("bye", self.collaborator.hello())
 
     def test_method_args_returning_value(self):
         self.collaborator.one_arg_method = method_returning("bye")
 
-        self.assertEquals("bye", self.collaborator.one_arg_method(1))
+        self.assertEqual("bye", self.collaborator.one_arg_method(1))
 
     def test_method_raising_exception(self):
         self.collaborator.hello = method_raising(SomeException())
@@ -687,25 +695,25 @@ class MatchersTests(unittest.TestCase):
         when(self.spy.one_arg_method).with_args(
                     str_containing("abc")).then_return(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method("abc"))
+        self.assertEqual(1000, self.spy.one_arg_method("abc"))
 
     def test_str_containing_with_substr(self):
         when(self.spy.one_arg_method).with_args(
                     str_containing("abc")).then_return(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method("XabcX"))
+        self.assertEqual(1000, self.spy.one_arg_method("XabcX"))
 
     def test_str_containing_with_substr_unicode(self):
         when(self.spy.one_arg_method).with_args(
                     str_containing("abc")).then_return(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method(u"XabcñX"))
+        self.assertEqual(1000, self.spy.one_arg_method(u"XabcñX"))
 
     def test_str_containing_but_matcher_not_used(self):
         when(self.spy.one_arg_method).with_args(
                         "abc").then_return(1000)
 
-        self.assertNotEquals(1000, self.spy.one_arg_method("XabcX"))
+        self.assertNotEqual(1000, self.spy.one_arg_method("XabcX"))
 
     def test_was_called_and_substr_matcher(self):
         self.spy.one_arg_method("XabcX")
@@ -717,13 +725,13 @@ class MatchersTests(unittest.TestCase):
         when(self.spy.one_arg_method).with_args(
                         str_not_containing("abc")).then_return(1000)
 
-        self.assertNotEquals(1000, self.spy.one_arg_method("abc"))
+        self.assertNotEqual(1000, self.spy.one_arg_method("abc"))
 
     def test_str_not_containing_stubs_anything_else(self):
         when(self.spy.one_arg_method).with_args(
                         str_not_containing("abc")).then_return(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method("xxx"))
+        self.assertEqual(1000, self.spy.one_arg_method("xxx"))
 
     def test_str_not_containing_was_called(self):
         self.spy.one_arg_method("abc")
@@ -735,14 +743,14 @@ class MatchersTests(unittest.TestCase):
                         str_containing("abc"),
                         str_containing("xxx")).then_return(1000)
 
-        self.assertNotEquals(1000,
+        self.assertNotEqual(1000,
                     self.spy.two_args_method("abc", "yyy"))
 
     def test_str_length_matcher(self):
         when(self.spy.one_arg_method).with_args(
                         str_length(5)).then_return(1000)
 
-        self.assertEquals(1000,
+        self.assertEqual(1000,
                     self.spy.one_arg_method("abcde"))
 
     def test_matchers_when_passed_arg_is_none(self):
@@ -771,7 +779,7 @@ class MatchersTests(unittest.TestCase):
             assert_that_was_called(self.spy.one_arg_method).with_args(
                                    str_containing("xxx"))
 
-        except ArgsDontMatch, e:
+        except ArgsDontMatch as e:
             self.assertTrue("xxx" in str(e.args), str(e.args))
             self.assertTrue("string containing" in str(e.args))
 
@@ -816,11 +824,11 @@ class StubTests(unittest.TestCase):
         my_stub = stub(Collaborator())
         when(my_stub.something).then_return(10)
 
-        self.assertEquals(10, my_stub.something())
+        self.assertEqual(10, my_stub.something())
 
     def test_restricted_stub_method_not_stubbed(self):
         my_stub = stub(Collaborator())
-        self.assertEquals(None, my_stub.hello())
+        self.assertEqual(None, my_stub.hello())
 
 
 # Create hamcrest matchers instead
@@ -841,7 +849,7 @@ class StubTests(unittest.TestCase):
 #
 #        when(self.spy.one_arg_method).with_args(
 #            CustomMatcher('zzz')).then_return(1000)
-#        self.assertEquals(1000, self.spy.one_arg_method('xx'))
+#        self.assertEqual(1000, self.spy.one_arg_method('xx'))
 #
 #    def test_custom_matcher_do_not_follow_convention(self):
 #        class CustomMatcher(PyDoublesMatcher):
@@ -858,4 +866,4 @@ class StubTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    print "Use nosetest to run this tests: nosetest unit.py"
+    print("Use nosetest to run this tests: nosetest %s" % __file__)

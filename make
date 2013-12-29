@@ -15,5 +15,14 @@ debian:
 	rmdir trunk
 	svn up debian
 
+wiki:
+	hg clone ssh://hg@bitbucket.org/DavidVilla/python-doublex/wiki
+
 clean:
+	find . -name *.pyc -delete
+	find . -name *.pyo -delete
+	find . -name *~ -delete
+	$(RM) -r dist build *.egg-info .tox
 	$(RM) -r .svn debian MANIFEST
+	$(RM) -r *.egg-info
+	$(RM) -r slides/reveal.js
