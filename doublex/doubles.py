@@ -53,7 +53,13 @@ class Stub(object):
         self._stubs = OperationList()
         self._setting_up = False
         self._new_attr_hooks = self._new_attr_hooks[:]
+        self._deactivate = False
         self.__class__.__setattr__ = self.__setattr__hook
+
+    def _activate_next(self):
+        self.__enter__()
+        self._deactivate = True
+        return self
 
     def __enter__(self):
         self._setting_up = True
