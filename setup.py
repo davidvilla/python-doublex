@@ -8,6 +8,8 @@ from setuptools import setup, find_packages
 # http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html
 import multiprocessing, logging
 
+print(find_packages())
+
 config = dict(
     name             = 'doublex',
     version          = '1.7.3',
@@ -28,16 +30,20 @@ config = dict(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.1',
         'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development',
         'Topic :: Software Development :: Quality Assurance',
         'Topic :: Software Development :: Testing',
-        ])
+        ],
+    )
 
 if sys.version_info >= (3,):
-    config.update(
-        use_2to3 = True,
-        )
+    config.update(dict(
+        use_2to3=True,
+    ))
 
 setup(**config)

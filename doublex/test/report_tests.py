@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012 David Villa Alises
+# Copyright © 2012, 2013 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ class MessageMixin(object):
         try:
             assert_that(value, matcher)
             self.fail("Exception should be raised")
-        except AssertionError, e:
+        except AssertionError as e:
             assert_that(str(e).strip(), is_(message.strip()))
 
 
@@ -244,7 +244,7 @@ Expected: these calls:
         try:
             self.mock.unexpected()
             self.fail("This should raise exception")
-        except AssertionError, e:
+        except AssertionError as e:
             assert_that(str(e), is_(expected_message))
 
     def test_expect_1_void_method_but_nothing_called(self):

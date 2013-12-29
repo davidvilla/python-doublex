@@ -92,6 +92,7 @@ class Method(Observable):
         super(Method, self).__init__()
         self.double = double
         self.name = name
+        self.__name__ = name
         self._event = threading.Event()
 
     def __call__(self, *args, **kargs):

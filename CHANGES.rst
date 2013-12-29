@@ -1,3 +1,10 @@
+20131227
+========
+
+- Release 1.7.4
+- Double methods copy original __name__ attribute
+- Mock support for properties
+
 20131107
 ========
 

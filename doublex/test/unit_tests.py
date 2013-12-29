@@ -20,12 +20,21 @@
 
 
 import sys
-from unittest import TestCase
 import itertools
-import thread
 import threading
-import io
-import copy
+import thread
+
+if sys.version_info >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
+
+if sys.version_info >= (3, 0):
+    unicode = str
+    from io import StringIO
+else:
+    from io import BytesIO as StringIO
+
 
 from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.text.stringcontainsinorder import *
@@ -149,6 +158,8 @@ class StubTests(TestCase):
             expected = "hello() takes exactly 1 argument (2 given)"
             if sys.version_info >= (3,):
                 expected = "hello() takes exactly 1 positional argument (2 given)"
+            if sys.version_info >= (3, 3):
+                expected = "hello() takes 1 positional argument but 2 were given"
             assert_that(str(e), contains_string(expected))
 
     # bitbucket issue #6
@@ -445,15 +456,16 @@ class BuiltinSpyTests(TestCase):
 
 class ProxySpyTests(TestCase):
     def test_must_give_argument(self):
-        self.failUnlessRaises(TypeError, ProxySpy)
+        with self.assertRaises(TypeError):
+            ProxySpy()
 
     def test_given_argument_can_not_be_oldstyle_class(self):
-        self.failUnlessRaises(TypeError,
-                              ProxySpy, Collaborator)
+        with self.assertRaises(TypeError):
+            ProxySpy(Collaborator)
 
     def test_given_argument_can_not_be_newstyle_class(self):
-        self.failUnlessRaises(TypeError,
-                              ProxySpy, ObjCollaborator)
+        with self.assertRaises(TypeError):
+            ProxySpy(ObjCollaborator)
 
     def test_propagate_stubbed_calls_to_collaborator(self):
         class Foo:
@@ -546,9 +558,8 @@ class MockOrderTests(TestCase):
         self.mock.bar()
         self.mock.foo()
 
-        self.failUnlessRaises(
-            AssertionError,
-            assert_that, self.mock, verify())
+        with self.assertRaises(AssertionError):
+            assert_that(self.mock, verify())
 
     def test_method_name_order_does_not_matter_with_any_order(self):
         with self.mock:
@@ -699,6 +710,8 @@ class ApiMismatchTest(TestCase):
             expected = "Collaborator.hello() takes exactly 1 argument (2 given)"
             if sys.version_info >= (3,):
                 expected = "Collaborator.hello() takes exactly 1 positional argument (2 given)"
+            if sys.version_info >= (3, 3):
+                expected = "hello() takes 1 positional argument but 2 were given"
             assert_that(str(e), contains_string(expected))
 
     def test_fail_wrong_kargs(self):
@@ -932,7 +945,7 @@ class StubDelegateTests(TestCase):
 
     def test_delegate_to_list(self):
         with self.stub:
-            self.stub.foo().delegates(range(3))
+            self.stub.foo().delegates(list(range(3)))
 
         self.assert_012(self.stub.foo)
 
@@ -985,7 +998,7 @@ class MockDelegateTest(TestCase):
 
     def test_delegate_to_list_is_only_an_expectation(self):
         with self.mock:
-            self.mock.foo().delegates(range(3))
+            self.mock.foo().delegates(list(range(3)))
 
         self.mock.foo()
         assert_that(self.mock, verify())
@@ -1078,9 +1091,9 @@ class PropertyTests(TestCase):
 
     def test_spy_get_property_fail(self):
         spy = Spy(ObjCollaborator)
-        self.failUnlessRaises(
-            AssertionError,
-            assert_that, spy, property_got('prop'))
+
+        with self.assertRaises(AssertionError):
+            assert_that(spy, property_got('prop'))
 
     def test_spy_set_property_using_class(self):
         spy = Spy(ObjCollaborator)
@@ -1098,9 +1111,9 @@ class PropertyTests(TestCase):
 
     def test_spy_set_property_fail(self):
         spy = Spy(ObjCollaborator)
-        self.failUnlessRaises(
-            AssertionError,
-            assert_that, spy, property_set('prop'))
+
+        with self.assertRaises(AssertionError):
+            assert_that(spy, property_set('prop'))
 
     def test_spy_set_property_to(self):
         spy = Spy(ObjCollaborator)
@@ -1505,7 +1518,7 @@ class VarArgsTest(TestCase):
 # new on 1.7.2
 class TracerTests(TestCase):
     def setUp(self):
-        self.out = io.BytesIO()
+        self.out = StringIO()
         self.tracer = Tracer(self.out.write)
 
     def test_trace_single_method(self):

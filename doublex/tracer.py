@@ -1,7 +1,7 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
 from .doubles import Stub
-from .internal import Method, WrongApiUsage
+from .internal import Method, Property, WrongApiUsage
 
 
 class MethodTracer(object):
@@ -34,18 +34,18 @@ class Tracer(object):
         if isinstance(target, Method):
             self.trace_method(target)
         elif isinstance(target, Stub) or issubclass(target, Stub):
-            self.trace_double(target)
+            self.trace_class(target)
         else:
             raise WrongApiUsage('Can not trace %s' % target)
 
     def trace_method(self, method):
         method.attach(MethodTracer(self.logger, method))
 
-    def trace_double(self, double):
+    def trace_class(self, double):
         def attach_new_method(attr):
             if isinstance(attr, Method):
                 attr.attach(MethodTracer(self.logger, attr))
-            else:
+            elif isinstance(attr, Property):
                 attr.attach(PropertyTracer(self.logger, attr))
 
         double._new_attr_hooks.append(attach_new_method)
