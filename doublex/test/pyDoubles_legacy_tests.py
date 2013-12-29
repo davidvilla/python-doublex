@@ -1,6 +1,10 @@
 # -*- coding:utf-8; tab-width:4; mode:python -*-
 
-from unittest import TestCase
+import sys
+if sys.version_info >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 from hamcrest import is_not, all_of, contains_string, has_length
 from hamcrest.library.object.hasproperty import *
@@ -29,21 +33,18 @@ class pyDoubles__ProxySpyTests(TestCase):
         assert_that(self.spy.something, called())
 
     def test_assert_needs_always_a_method_from_a_double(self):
-        self.failUnlessRaises(
-            WrongApiUsage,
-            assert_that, self.spy, called())
+        with self.assertRaises(WrongApiUsage):
+            assert_that(self.spy, called())
 
     def test_assert_needs_always_a_method_from_a_double_not_the_original(self):
-        self.failUnlessRaises(
-            WrongApiUsage,
-            assert_that, Collaborator().hello, called())
+        with self.assertRaises(WrongApiUsage):
+            assert_that(Collaborator().hello, called())
 
     def test_one_method_called_other_wasnt(self):
         self.spy.something()
 
-        self.failUnlessRaises(
-            AssertionError,
-            assert_that, self.spy.hello, called())
+        with self.assertRaises(AssertionError):
+            assert_that(self.spy.hello, called())
 
     def test_two_methods_called_assert_on_the_first(self):
         self.spy.hello()
@@ -55,21 +56,20 @@ class pyDoubles__ProxySpyTests(TestCase):
 #    def test_get_method_name(self):
 #        name = _Introspector_().method_name(self.spy.hello)
 #
-#        self.assertEquals("hello", name)
+#        self.assertEqual("hello", name)
 
     def test_call_original_method(self):
-        self.assertEquals("ok", self.spy.something())
+        self.assertEqual("ok", self.spy.something())
 
 #    # This is testing internal API! Not applicable
 #    def test_get_instance_from_method(self):
 #        spy_found = _Introspector_().double_instance_from_method(self.spy.hello)
 #
-#        self.assertEquals(self.spy, spy_found)
+#        self.assertEqual(self.spy, spy_found)
 
     def test_assert_was_called_when_wasnt(self):
-        self.failUnlessRaises(
-            AssertionError,
-            assert_that, self.spy.hello, called())
+        with self.assertRaises(AssertionError):
+            assert_that(self.spy.hello, called())
 
     def test_was_called_with_same_parameters(self):
         self.spy.one_arg_method(1)
@@ -123,14 +123,14 @@ class pyDoubles__ProxySpyTests(TestCase):
         self.spy.kwarg_method(key_param="foo")
         try:
             assert_that(self.spy.kwarg_method, called().with_args("bar"))
-        except AssertionError, e:
+        except AssertionError as e:
             assert_that(str(e), contains_string("foo"))
 
     def test_stub_out_method(self):
         with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(3)
 
-        self.assertEquals(3, self.spy.one_arg_method(5))
+        self.assertEqual(3, self.spy.one_arg_method(5))
 
     def test_stub_method_was_called(self):
         with self.spy:
@@ -230,7 +230,7 @@ class pyDoubles__ProxySpyTests(TestCase):
                 self.spy.hello().returns_input()
 
             self.fail("TypeError should be raised")
-        except TypeError, e:
+        except TypeError as e:
             assert_that(str(e),
                         contains_string("Collaborator.hello() has no input args"))
 
@@ -255,7 +255,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         with self.spy:
             self.spy.kwarg_method(key_param=anything()).returns(1000)
 
-        self.assertEquals(1000, self.spy.kwarg_method(key_param=2))
+        self.assertEqual(1000, self.spy.kwarg_method(key_param=2))
 
     def test_any_arg_matcher_was_called(self):
         with self.spy:
@@ -298,7 +298,7 @@ class pyDoubles__ProxySpyTests(TestCase):
         try:
             assert_that(self.spy.one_arg_method, called().times(5))
             self.fail("Should have been called 5 times")
-        except AssertionError, e:
+        except AssertionError as e:
             assert_that(str(e), contains_string("5"))
             assert_that(str(e), contains_string("one_arg_method"))
 
@@ -386,8 +386,8 @@ class pyDoubles__SpyTests(TestCase):
         handle1 = self.spy.one_arg_method
         handle2 = self.spy.two_args_method
 
-        self.assertEquals(1000, handle1(1))
-        self.assertEquals(2000, handle2(5, 5))
+        self.assertEqual(1000, handle1(1))
+        self.assertEqual(2000, handle2(5, 5))
         assert_that(handle1, called().with_args(1))
         assert_that(handle2, called().with_args(5, 5))
 
@@ -410,7 +410,7 @@ class pyDoubles__SpyTests(TestCase):
         with self.spy:
             self.spy.one_arg_method(ANY_ARG).returns(obj)
 
-        self.assertEquals(obj, self.spy.one_arg_method(1),
+        self.assertEqual(obj, self.spy.one_arg_method(1),
                           "Wrong returned object")
 
 
@@ -428,7 +428,7 @@ class pyDoubles__MockTests(TestCase):
     def test_fail_on_unexpected_call_msg_is_human_readable(self):
         try:
             self.mock.hello()
-        except AssertionError, e:
+        except AssertionError as e:
             assert_that(str(e), contains_string("No one"))
 
     def test_define_expectation_and_call_method(self):
@@ -473,7 +473,7 @@ class pyDoubles__MockTests(TestCase):
         with self.mock:
             self.mock.one_arg_method(1).returns(1000)
 
-        self.assertEquals(1000, self.mock.one_arg_method(1))
+        self.assertEqual(1000, self.mock.one_arg_method(1))
 
     def test_assert_expectations_are_satisfied(self):
         with self.mock:
@@ -559,8 +559,8 @@ class pyDoubles__MockTests(TestCase):
         with self.mock:
             self.mock.one_arg_method(ANY_ARG).returns(1000).times(2)
 
-        self.assertEquals(1000, self.mock.one_arg_method(1))
-        self.assertEquals(1000, self.mock.one_arg_method(1))
+        self.assertEqual(1000, self.mock.one_arg_method(1))
+        self.assertEqual(1000, self.mock.one_arg_method(1))
 
         assert_that(self.mock, verify())
 
@@ -568,8 +568,8 @@ class pyDoubles__MockTests(TestCase):
         with self.mock:
             self.mock.one_arg_method(10).returns(1000).times(2)
 
-        self.assertEquals(1000, self.mock.one_arg_method(10))
-        self.assertEquals(1000, self.mock.one_arg_method(10))
+        self.assertEqual(1000, self.mock.one_arg_method(10))
+        self.assertEqual(1000, self.mock.one_arg_method(10))
 
         assert_that(self.mock, verify())
 
@@ -618,12 +618,12 @@ class pyDoubles__StubMethodsTests(TestCase):
     def test_method_returning_value(self):
         self.collaborator.hello = method_returning("bye")
 
-        self.assertEquals("bye", self.collaborator.hello())
+        self.assertEqual("bye", self.collaborator.hello())
 
     def test_method_args_returning_value(self):
         self.collaborator.one_arg_method = method_returning("bye")
 
-        self.assertEquals("bye", self.collaborator.one_arg_method(1))
+        self.assertEqual("bye", self.collaborator.one_arg_method(1))
 
     def test_method_raising_exception(self):
         self.collaborator.hello = method_raising(SomeException)
@@ -642,7 +642,7 @@ class pyDoubles__MatchersTests(TestCase):
         with self.spy:
             self.spy.one_arg_method(contains_string("abc")).returns(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method("abc"))
+        self.assertEqual(1000, self.spy.one_arg_method("abc"))
 
     def test_str_containing_with_substr(self):
         with self.spy:
@@ -654,13 +654,13 @@ class pyDoubles__MatchersTests(TestCase):
         with self.spy:
             self.spy.one_arg_method(contains_string("abc")).returns(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method(u"XabcñX"))
+        self.assertEqual(1000, self.spy.one_arg_method(u"XabcñX"))
 
     def test_str_containing_but_matcher_not_used(self):
         with self.spy:
             self.spy.one_arg_method("abc").returns(1000)
 
-        self.assertNotEquals(1000, self.spy.one_arg_method("XabcX"))
+        self.assertNotEqual(1000, self.spy.one_arg_method("XabcX"))
 
     def test_was_called_and_substr_matcher(self):
         self.spy.one_arg_method("XabcX")
@@ -672,13 +672,13 @@ class pyDoubles__MatchersTests(TestCase):
         with self.spy:
             self.spy.one_arg_method(is_not(contains_string("abc"))).returns(1000)
 
-        self.assertNotEquals(1000, self.spy.one_arg_method("abc"))
+        self.assertNotEqual(1000, self.spy.one_arg_method("abc"))
 
     def test_str_not_containing_stubs_anything_else(self):
         with self.spy:
             self.spy.one_arg_method(is_not(contains_string("abc"))).returns(1000)
 
-        self.assertEquals(1000, self.spy.one_arg_method("xxx"))
+        self.assertEqual(1000, self.spy.one_arg_method("xxx"))
 
     def test_str_not_containing_was_called(self):
         self.spy.one_arg_method("abc")
@@ -691,14 +691,14 @@ class pyDoubles__MatchersTests(TestCase):
                 contains_string("abc"),
                 contains_string("xxx")).returns(1000)
 
-        self.assertNotEquals(1000,
-                             self.spy.two_args_method("abc", "yyy"))
+        self.assertNotEqual(1000,
+                            self.spy.two_args_method("abc", "yyy"))
 
     def test_str_length_matcher(self):
         with self.spy:
             self.spy.one_arg_method(has_length(5)).returns(1000)
 
-        self.assertEquals(1000,
+        self.assertEqual(1000,
                           self.spy.one_arg_method("abcde"))
 
     def test_matchers_when_passed_arg_is_none(self):
@@ -728,7 +728,7 @@ class pyDoubles__MatchersTests(TestCase):
             assert_that(self.spy.one_arg_method,
                         called().with_args(contains_string("xxx")))
 
-        except AssertionError, e:
+        except AssertionError as e:
             assert_that(str(e), contains_string("xxx"))
             assert_that(
                 str(e), contains_string("string containing"))
@@ -784,7 +784,7 @@ class pyDoubles__MatchersTests(TestCase):
 #
 #        when(self.spy.one_arg_method).with_args(
 #            CustomMatcher('zzz')).then_return(1000)
-#        self.assertEquals(1000, self.spy.one_arg_method('xx'))
+#        self.assertEqual(1000, self.spy.one_arg_method('xx'))
 #
 #    def test_custom_matcher_do_not_follow_convention(self):
 #        class CustomMatcher(PyDoublesMatcher):

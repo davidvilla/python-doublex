@@ -19,7 +19,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import itertools
 import threading
 import collections
 
@@ -60,8 +59,7 @@ class OperationList(list):
         if not invocation in self:
             raise LookupError
 
-        compatible = [i for i in self if i == invocation]
-        return sorted(compatible)[0]
+        return [i for i in self if invocation == i][-1]
 
     def show(self, indent=0):
         if not self:
@@ -70,11 +68,11 @@ class OperationList(list):
         lines = [add_indent(i, indent) for i in self]
         return str.join('\n', lines)
 
-    def count(self, invocation, pred=None):
-        if pred is None:
+    def count(self, invocation, predicate=None):
+        if predicate is None:
             return list.count(self, invocation)
 
-        return sum(1 for i in self if pred(invocation, i))
+        return [predicate(invocation, i) for i in self].count(True)
 
 
 class Observable(object):
@@ -94,6 +92,7 @@ class Method(Observable):
         super(Method, self).__init__()
         self.double = double
         self.name = name
+        self.__name__ = name
         self._event = threading.Event()
 
     def __call__(self, *args, **kargs):
@@ -104,6 +103,9 @@ class Method(Observable):
             self._event.set()
             self.notify(*args, **kargs)
 
+        if self.double._deactivate:
+            self.double._setting_up = self.double._deactivate = False
+
         return retval
 
     def _create_invocation(self, args, kargs):
@@ -113,7 +115,7 @@ class Method(Observable):
     def calls(self):
         if not isinstance(self.double, SpyBase):
             raise WrongApiUsage("Only Spy derivates store invocations")
-        return [x._context for x in self.double._get_invocations_to(self.name)]
+        return [x.context for x in self.double._get_invocations_to(self.name)]
 
     def _was_called(self, context, times):
         invocation = Invocation(self.double, self.name, context)
@@ -164,10 +166,10 @@ def func_raising(e):
 @total_ordering
 class Invocation(object):
     def __init__(self, double, name, context=None):
-        self._double = double
-        self._name = name
-        self._context = context or InvocationContext()
-        self._context.signature = double._proxy.get_signature(name)
+        self.double = double
+        self.name = name
+        self.context = context or InvocationContext()
+        self.context.signature = double._proxy.get_signature(name)
         self.__delegate = func_returning(None)
 
     @classmethod
@@ -186,12 +188,12 @@ class Invocation(object):
             raise WrongApiUsage(reason)
 
     def returns(self, value):
-        self._context.retval = value
+        self.context.retval = value
         self.delegates(func_returning(value))
         return self
 
     def returns_input(self):
-        if not self._context.args:
+        if not self.context.args:
             raise TypeError("%s has no input args" % self)
 
         self.delegates(func_returning_input(self))
@@ -205,27 +207,33 @@ class Invocation(object):
             raise WrongApiUsage("times must be >= 1. Use is_not(called()) for 0 times")
 
         for i in range(1, n):
-            self._double._manage_invocation(self)
+            self.double._manage_invocation(self)
 
     def _apply_stub(self, actual_invocation):
-        return actual_invocation._context.apply_on(self.__delegate)
+        return actual_invocation.context.apply_on(self.__delegate)
 
     def _apply_on_collaborator(self):
-        return self._double._proxy.perform_invocation(self)
+        return self.double._proxy.perform_invocation(self)
 
     def __eq__(self, other):
-        return self._double._proxy.same_method(self._name, other._name) and \
-            self._context.matches(other._context)
+        return self.double._proxy.same_method(self.name, other.name) and \
+            self.context.matches(other.context)
 
     def __lt__(self, other):
-        return any([self._name < other._name,
-                    self._context < other._context])
+        return any([self.name < other.name,
+                    self.context < other.context])
 
     def __repr__(self):
-        return "%s.%s%s" % (self._double._classname(), self._name, self._context)
+        return "%s.%s%s" % (self.double._classname(), self.name, self.context)
 
     def _show(self, indent=0):
         return add_indent(self, indent)
+
+
+ANY_ARG_MUST_BE_LAST = "ANY_ARG must be the last positional argument. "
+ANY_ARG_WITHOUT_KARGS = "Keyword arguments are not allowed if ANY_ARG is given. "
+ANY_ARG_CAN_BE_KARG = "ANY_ARG is not allowed as keyword value. "
+ANY_ARG_DOC = "See http://goo.gl/R6mOt"
 
 
 @total_ordering
@@ -237,8 +245,22 @@ class InvocationContext(object):
         self.check_some_args = False
 
     def update_args(self, args, kargs):
+        self._check_ANY_ARG_sanity(args, kargs)
         self.args = args
         self.kargs = kargs
+
+    def _check_ANY_ARG_sanity(self, args, kargs):
+        try:
+            if args.index(ANY_ARG) != len(args) - 1:
+                raise WrongApiUsage(ANY_ARG_MUST_BE_LAST + ANY_ARG_DOC)
+
+            if kargs:
+                raise WrongApiUsage(ANY_ARG_WITHOUT_KARGS + ANY_ARG_DOC)
+        except ValueError:
+            pass
+
+        if ANY_ARG in kargs.values():
+            raise WrongApiUsage(ANY_ARG_CAN_BE_KARG + ANY_ARG_DOC)
 
     def apply_on(self, method):
         return method(*self.args, **self.kargs)
@@ -251,10 +273,35 @@ class InvocationContext(object):
 
     @classmethod
     def _assert_values_match(cls, a, b):
+        if all(isinstance(x, tuple) for x in (a, b)):
+            return cls._assert_tuple_args_match(a, b)
+
+        if all(isinstance(x, dict) for x in (a, b)):
+            return cls._assert_kargs_match(a, b)
+
         if isinstance(a, BaseMatcher):
             a, b = b, a
 
         hamcrest.assert_that(a, hamcrest.is_(b))
+
+    @classmethod
+    def _assert_tuple_args_match(cls, a, b):
+        if len(a) != len(b):
+            a, b = cls._adapt_tuples(a, b)
+
+        for i, j in zip(a, b):
+            cls._assert_values_match(i, j)
+
+    @classmethod
+    def _adapt_tuples(cls, a, b):
+        if len(a) > len(b):
+            return cls._adapt_tuples(b, a)
+
+        if a[:-1] != ANY_ARG:
+            raise AssertionError("Incompatible argument list: %s, %s" % (a, b))
+
+        a = a[:-1] + (hamcrest.anything(),) * (len(b) - len(a))
+        return a, b
 
     def copy(self):
         retval = InvocationContext(*self.args, **self.kargs)
@@ -263,26 +310,15 @@ class InvocationContext(object):
 
     def replace_ANY_ARG(self, actual):
         try:
-            first = self.args.index(ANY_ARG)
+            index = self.args.index(ANY_ARG)
         except ValueError:
             return self
 
         retval = self.copy()
-        args = list(self.args[0:first])
-        args.extend([hamcrest.anything()] * (len(actual.args) - first))
+        args = list(self.args[0:index])
+        args.extend([hamcrest.anything()] * (len(actual.args) - index))
         retval.args = tuple(args)
         retval.kargs = actual.kargs.copy()
-        return retval
-
-    def add_unspecifed_args(self, context):
-        arg_spec = context.signature.get_arg_spec()
-        if arg_spec is None:
-            raise WrongApiUsage(
-                'free spies does not support the with_some_args() matcher')
-
-        keys = arg_spec.args
-        retval = dict((k,hamcrest.anything()) for k in keys)
-        retval.update(context.kargs)
         return retval
 
     def matches(self, other):
@@ -304,6 +340,22 @@ class InvocationContext(object):
             return True
         except AssertionError:
             return False
+
+    def add_unspecifed_args(self, context):
+        arg_spec = context.signature.get_arg_spec()
+
+        if arg_spec is None:
+            raise WrongApiUsage(
+                'free spies does not support the with_some_args() matcher')
+
+        if arg_spec.keywords is not None:
+            raise WrongApiUsage(
+                'with_some_args() can not be applied to method %s' % self.signature)
+
+        keys = arg_spec.args
+        retval = dict((k, hamcrest.anything()) for k in keys)
+        retval.update(context.kargs)
+        return retval
 
     def __lt__(self, other):
         if ANY_ARG in other.args or self.args < other.args:
@@ -352,7 +404,7 @@ class InvocationFormatter(object):
 
 class PropertyInvocation(Invocation):
     def __eq__(self, other):
-        return self._name == other._name
+        return self.name == other.name
 
 
 class PropertyGet(PropertyInvocation):
@@ -360,10 +412,10 @@ class PropertyGet(PropertyInvocation):
         super(PropertyGet, self).__init__(double, name)
 
     def _apply_on_collaborator(self):
-        return getattr(self._double._proxy.collaborator, self._name)
+        return getattr(self.double._proxy.collaborator, self.name)
 
     def __repr__(self):
-        return "get %s.%s" % (self._double._classname(), self._name)
+        return "get %s.%s" % (self.double._classname(), self.name)
 
 
 class PropertySet(PropertyInvocation):
@@ -373,31 +425,44 @@ class PropertySet(PropertyInvocation):
         super(PropertySet, self).__init__(double, name, param)
 
     def _apply_on_collaborator(self):
-        return setattr(self._double._proxy.collaborator, self._name, self.value)
+        return setattr(self.double._proxy.collaborator, self.name, self.value)
+
+    def __eq__(self, other):
+        return PropertyInvocation.__eq__(self, other) \
+            and self.context.matches(other.context)
 
     def __repr__(self):
-        return "set %s.%s to %s" % (self._double._classname(),
-                                    self._name, self.value)
+        return "set %s.%s to %s" % (self.double._classname(),
+                                    self.name, self.value)
 
 
-def property_factory(double, key):
-    def manage(invocation):
-        return double._manage_invocation(invocation)
+class Property(property, Observable):
+    def __init__(self, double, key):
+        self.double = double
+        self.key = key
+        property.__init__(self, self.get_value, self.set_value)
+        Observable.__init__(self)
 
-    def get_property(obj):
-        return manage(PropertyGet(double, key))
+    def manage(self, invocation):
+        return self.double._manage_invocation(invocation)
 
-    def set_property(obj, value):
-        prop = double._proxy.get_class_attr(key)
+    def get_value(self, obj):
+        if not self.double._setting_up:
+            self.notify()
+
+        return self.manage(PropertyGet(self.double, self.key))
+
+    def set_value(self, obj, value):
+        prop = self.double._proxy.get_class_attr(self.key)
         if prop.fset is None:
-            raise AttributeError("can't set attribute %s" % key)
+            raise AttributeError("can't set attribute %s" % self.key)
 
-        invocation = manage(PropertySet(double, key, value))
+        invocation = self.manage(PropertySet(self.double, self.key, value))
 
-        if double._setting_up:
+        if self.double._setting_up:
             invocation.returns(value)
-
-    return property(get_property, set_property)
+        else:
+            self.notify(value)
 
 
 class AttributeFactory(object):
@@ -406,7 +471,7 @@ class AttributeFactory(object):
     typemap = dict(
         instancemethod    = Method,
         method_descriptor = Method,
-        property          = property_factory,
+        property          = Property,
         # -- python3 --
         method            = Method,
         function          = Method,
@@ -423,6 +488,9 @@ class AttributeFactory(object):
             setattr(double.__class__, key, attr)
         else:
             object.__setattr__(double, key, attr)
+
+        for hook in double._new_attr_hooks:
+            hook(attr)
 
 
 class SpyBase(object):

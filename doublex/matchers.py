@@ -18,10 +18,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-
+import time
 import hamcrest
+from hamcrest.core.matcher import Matcher
 from hamcrest.core.base_matcher import BaseMatcher
-from hamcrest import assert_that, is_
+from hamcrest import is_, instance_of
 
 from .internal import (
     Method, InvocationContext, ANY_ARG, MockBase, SpyBase,
@@ -31,13 +32,51 @@ __all__ = ['called',
            'never',
            'verify', 'any_order_verify',
            'property_got', 'property_set',
-           'assert_that', 'is_']
+           'assert_that', 'wait_that',
+           'is_', 'instance_of']
 
 
 # just hamcrest aliases
 at_least = hamcrest.greater_than_or_equal_to
 at_most = hamcrest.less_than_or_equal_to
 any_time = hamcrest.greater_than(0)
+
+
+class MatcherRequiredError(Exception):
+    pass
+
+
+def assert_that(actual, matcher=None, reason=''):
+    if matcher and not isinstance(matcher, Matcher):
+        raise MatcherRequiredError("%s should be a hamcrest Matcher" % str(matcher))
+    return hamcrest.assert_that(actual, matcher, reason)
+
+
+def wait_that(actual, matcher, reason='', delta=1, timeout=5):
+    '''
+    Poll the given matcher each 'delta' seconds until 'matcher'
+    matches 'actual' or 'timeout' is reached.
+    '''
+    exc = None
+    init = time.time()
+    timeout_reached = False
+    while 1:
+        try:
+            if time.time() - init > timeout:
+                timeout_reached = True
+                break
+
+            assert_that(actual, matcher, reason)
+            break
+
+        except AssertionError as e:
+            time.sleep(delta)
+            exc = e
+
+    if timeout_reached:
+        msg = exc.args[0] + ' after {0} seconds'.format(timeout)
+        exc.args = msg,
+        raise exc
 
 
 class OperationMatcher(BaseMatcher):
@@ -173,7 +212,8 @@ class property_got(OperationMatcher):
             self.operation, 1, cmp_pred=Invocation.__eq__)
 
     def times(self, n):
-        return property_got(self.property_name, n)
+        self._times = n
+        return self
 
     def describe_to(self, description):
         description.append_text('these calls:\n')
@@ -200,10 +240,12 @@ class property_set(OperationMatcher):
             self.operation, self._times, cmp_pred=Invocation.__eq__)
 
     def to(self, value):
-        return property_set(self.property_name, value)
+        self.value = value
+        return self
 
     def times(self, n):
-        return property_set(self.property_name, self.value, n)
+        self._times = n
+        return self
 
     def describe_to(self, description):
         description.append_text('these calls:\n')

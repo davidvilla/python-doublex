@@ -1,0 +1,3 @@
+- function doubles (supporting __call__ method)
+- orphan spy methods
+- double chains
