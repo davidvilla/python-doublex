@@ -1,0 +1,74 @@
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+
+\usepackage{listings}
+\newcommand{\lstfont}{\ttfamily\fontfamily{pcr}}
+\lstset{
+  % frame
+  frame              = Ltb,
+  framerule          = 0pt,
+  aboveskip          = 0.5cm,
+  framextopmargin    = 3pt,
+  framexbottommargin = 3pt,
+  framexleftmargin   = 0.4cm,
+  framesep           = 0pt,
+  rulesep            = .4pt,
+  %--
+  % caption
+  belowcaptionskip   = 5pt,
+  %--
+  % text style
+  stringstyle        = \ttfamily,
+  showstringspaces   = false,
+  basicstyle         = \scriptsize\lstfont,
+  keywordstyle       = \bfseries,
+  %--
+  % numbers
+  numbers            = none,
+  numbersep          = 15pt,
+  numberstyle        = \scriptsize\lstfont,
+  numberfirstline    = false,
+  %
+  breaklines         = true,
+  emptylines         = 1,     % several empty lines are shown as one
+  %
+  literate = % caracteres especiales
+    {á}{{\'a}}1 {Á}{{\'A}}1
+    {é}{{\'e}}1 {É}{{\'E}}1
+    {í}{{\'i}}1 {Í}{{\'I}}1
+    {ó}{{\'o}}1 {Ó}{{\'O}}1
+    {ú}{{\'u}}1 {Ú}{{\'U}}1
+    {ñ}{{\~n}}1 {Ñ}{{\~N}}1
+    {¡}{{!`}}1 {¿}{{?`}}1
+}
+
+\parskip=10pt
+
+\mode<presentation>
+{
+  \usetheme{Frankfurt}
+
+  \setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+% Delete this, if you do not want the table of contents to pop up at
+% the beginning of each subsection:
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command:
+
+%\beamerdefaultoverlayspecification{<+->}
