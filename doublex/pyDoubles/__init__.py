@@ -19,7 +19,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-This is a wrapper to offer the pyDoubles API implemented
+This is a wrapper to provide the pyDoubles API implemented
 over the doublex package.
 """
 
@@ -100,8 +100,7 @@ class expect_call(object):
             raise doublex.WrongApiUsage
 
         with self.method.double:
-            for i in range(n - 1):
-                self.method.double._manage_invocation(self.invocation)
+            self.invocation.times(n)
 
     def _remove_previous(self):
         if self.invocation is None:
