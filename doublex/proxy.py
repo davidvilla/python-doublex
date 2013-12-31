@@ -187,8 +187,6 @@ class MethodSignature(Signature):
 
     def get_call_args(self, context):
         args = context.args
-#        print self.name, args
-
         if self.proxy.isclass():
             args = (None,) + args  # self
 

@@ -36,7 +36,7 @@ else:
     from io import BytesIO as StringIO
 
 
-from hamcrest import is_not, all_of, contains_string, has_length
+from hamcrest import is_not, all_of, contains_string, has_length, has_entry, starts_with
 from hamcrest.library.text.stringcontainsinorder import *
 from hamcrest.library.object.hasproperty import *
 from hamcrest.library.number.ordering_comparison import *
@@ -452,6 +452,11 @@ class BuiltinSpyTests(TestCase):
         except AttributeError as e:
             expected = "'list' object has no attribute 'wrong'"
             assert_that(str(e), contains_string(expected))
+
+    def test_dict_builtin_method(self):
+        spy = Spy(dict)
+        spy.__setitem__(3, 5)
+        assert_that(spy.__setitem__, called().with_args(3, 5))
 
 
 class ProxySpyTests(TestCase):
@@ -908,6 +913,18 @@ class MatcherTests(TestCase):
     # new on 1.7
     def test_assert_that_requires_a_matcher(self):
         self.assertRaises(MatcherRequiredError, assert_that, self.spy.m1, True)
+
+    # from pydoubles docs
+    def test_has_entry_matcher(self):
+        with Spy() as spy:
+            spy.one_arg_method(has_entry(is_('two'), 2)).returns(1000)
+
+        assert_that(spy.one_arg_method({'one': 1, 'two': 2}), is_(1000))
+
+    def test_all_of_matcher(self):
+        with Spy() as spy:
+            spy.one_arg_method(all_of(starts_with('h'), instance_of(str))).returns(1000)
+        assert_that(spy.one_arg_method('hello'), is_(1000))
 
 
 class StubObserverTests(TestCase):
@@ -1463,14 +1480,48 @@ class orphan_methods_tests(TestCase):
 
 
 class when_tests(TestCase):
-    def test_when(self):
+    def test_stub_when(self):
         stub = Stub()
         when(stub).add(2, 2).returns(5)
         when(stub).add(2, 4).returns(8)
+        when(stub).sub(3, ANY_ARG).returns(100)
+        when(stub).foo(ANY_ARG).returns_input()
+        when(stub).foo(anything(), 7).returns(300)
 
         assert_that(stub.add(2, 2), is_(5))
         assert_that(stub.add(2, 4), is_(8))
+        assert_that(stub.sub(3, 600), is_(100))
+        assert_that(stub.foo((8, 2)), is_((8, 2)))
+        assert_that(stub.foo(3, 7), is_(300))
+
         assert_that(stub.add(), is_(None))
+
+    def test_stub_when_with_args(self):
+        stub = Stub()
+        when(stub).some_calculation(5).returns(10)
+        when(stub).some_calculation(10).returns(20)
+
+        assert_that(stub.some_calculation(5), is_(10))
+
+    def test_spy_when(self):
+        spy = Spy()
+        when(spy).add(2, 2).returns(5)
+        when(spy).add(2, 4).returns(8)
+
+        assert_that(spy.add(2, 2), is_(5))
+        assert_that(spy.add(2, 4), is_(8))
+        assert_that(spy.add(), is_(None))
+
+    # from pydoubles docs
+    def test_has_entry_matcher(self):
+        spy = Spy()
+        when(spy).one_arg_method(has_entry(is_('two'), 2)).returns(1000)
+        assert_that(spy.one_arg_method({'one': 1, 'two': 2}), is_(1000))
+
+    def test_all_of_matcher(self):
+        spy = Spy()
+        when(spy).one_arg_method(all_of(starts_with('h'), instance_of(str))).returns(1000)
+        assert_that(spy.one_arg_method('hello'), is_(1000))
 
 
 class expect_call_tests(TestCase):
@@ -1483,6 +1534,13 @@ class expect_call_tests(TestCase):
         assert_that(mock.add(2, 2), is_(5))
 
         assert_that(mock, verify())
+
+    def test_except_call_with_stub_or_spy_forbidden(self):
+        with self.assertRaises(WrongApiUsage):
+            expect_call(Stub()).foo()
+
+        with self.assertRaises(WrongApiUsage):
+            expect_call(Spy()).foo()
 
 
 # new on 1.7.2

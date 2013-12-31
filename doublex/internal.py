@@ -469,12 +469,13 @@ class AttributeFactory(object):
     """Create double methods, properties or attributes from collaborator"""
 
     typemap = dict(
-        instancemethod    = Method,
-        method_descriptor = Method,
-        property          = Property,
+        instancemethod     = Method,
+        method_descriptor  = Method,
+        wrapper_descriptor = Method,
+        property           = Property,
         # -- python3 --
-        method            = Method,
-        function          = Method,
+        method             = Method,
+        function           = Method,
         )
 
     @classmethod
