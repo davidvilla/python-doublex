@@ -12,7 +12,7 @@ print(find_packages())
 
 config = dict(
     name             = 'doublex',
-    version          = '1.8',
+    version          = '1.8a',
     description      = 'Test doubles for Python',
     keywords         = ['unit tests', 'doubles', 'stub', 'spy', 'mock'],
     author           = 'David Villa Alises',

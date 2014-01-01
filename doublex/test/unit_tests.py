@@ -1200,7 +1200,7 @@ class PropertyTests(TestCase):
         assert_that(collaborator.prop, is_(20))
 
 
-# FIXME: new on tip
+# FIXME: new on 1.8
 class PropertyMockTests(TestCase):
     def test_mock_get(self):
         with Mock(ObjCollaborator) as mock:
@@ -1210,7 +1210,7 @@ class PropertyMockTests(TestCase):
 
         assert_that(mock, verify())
 
-    def test_mock_get_never_got(self):
+    def test_mock_get_but_never_got(self):
         with Mock(ObjCollaborator) as mock:
             mock.prop
 
@@ -1235,7 +1235,7 @@ class PropertyMockTests(TestCase):
 
         assert_that(mock, verify())
 
-    def test_mock_set_never_set(self):
+    def test_mock_set_but_never_set(self):
         with Mock(ObjCollaborator) as mock:
             mock.prop = 5
 

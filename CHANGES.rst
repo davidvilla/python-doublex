@@ -1,9 +1,16 @@
+20140101
+========
+
+- Release 1.8a
+- [NEW] inline stubbing and mocking functions: when, expect_call (merge with feature-inline-stubbing)
+- [NEW] Testing Python 2.6, 2.7, 3.2 and 3.3 using tox
+- [NEW] Add AttributeFactory type: wrapper_descriptor for builtin method (such as list.__setitem__)
+
 20131227
 ========
 
-- Release 1.7.4
-- Double methods copy original __name__ attribute
-- Mock support for properties
+- [NEW] Double methods copy original __name__ attribute
+- [NEW] Mock support for properties
 
 20131107
 ========
@@ -17,7 +24,7 @@
 
 - Release 1.6.8
 - [NEW] with_some_args matcher
-- [NEW] set_default_behavior module function to define behavior for non stubbed methods.
+- [NEW] set_default_behavior() module function to define behavior for non stubbed methods.
 
 20130513
 ========
@@ -35,25 +42,25 @@
 ========
 
 - Release 1.6.3
-- async race condition bug fixed
+- [FIXED] async race condition bug
 
 20130211
 ========
 
-- Access to spy invocations with _method_.calls
+- [NEW] Access to spy invocations with _method_.calls
 
 20130110
 ========
 
 - Release 1.6
-- Ad-hoc stub attributes
-- AttributeFactory callable types: function, method (Closes: #bitbucket:issue/7)
-- BuiltingSignature for non Python functions
+- [NEW] Ad-hoc stub attributes
+- [NEW] AttributeFactory callable types: function, method (Closes: #bitbucket:issue/7)
+- [NEW] BuiltingSignature for non Python functions
 
 20121118
 ========
 
-- ProxySpy propagates stubbed invocations too
+- [NEW] ProxySpy propagates stubbed invocations too
 
 20121025
 ========
@@ -63,7 +70,7 @@
 20121008
 ========
 
-- release 1.5 to replace pyDoubles
+- Release 1.5 to replace pyDoubles
 
 20120928
 ========

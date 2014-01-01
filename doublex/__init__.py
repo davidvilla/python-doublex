@@ -14,6 +14,9 @@ def when(double):
     if not isinstance(double, Stub):
         raise WrongApiUsage("when() takes a double, '%s' given" % double)
 
+    if isinstance(double, Mock):
+        raise WrongApiUsage("when() takes a stub or spy. Use expect_call() for mocks")
+
     return double._activate_next()
 
 
