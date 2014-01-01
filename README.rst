@@ -48,21 +48,20 @@ relevant links
 * `documentation    <http://doublex.readthedocs.org/>`_
 * `release notes    <http://doublex.readthedocs.org/en/latest/release-notes.html>`_
 * `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
-* `issues           <https://bitbucket.org/DavidVilla/python-doublex/issues>`_
 * `sources          <https://bitbucket.org/DavidVilla/python-doublex>`_
 * `PyPI project     <http://pypi.python.org/pypi/doublex>`_
 * `pyDoubles        <http://doublex.readthedocs.org/en/latest/pyDoubles.html>`_
 * `Crate page       <https://crate.io/packages/doublex/>`_
-* `buildbot job     <http://fowler.esi.uclm.es:8010/waterfall?show=doublex>`_
+* `buildbot job     <https://fowler.esi.uclm.es:8010/builders/doublex>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
 
 
 Debian
-------
+^^^^^^
 
-* package: http://packages.debian.org/source/sid/doublex
-* amateur debian package at: ``deb http://babel.esi.uclm.es/arco/ sid main``
-* official ubuntu package: https://launchpad.net/ubuntu/+source/doublex
+* `official package <http://packages.debian.org/source/sid/doublex`_ (may be outdated)
+* amateur repository: ``deb http://babel.esi.uclm.es/arco/ sid main`` (always updated)
+* `official ubuntu package  <https://launchpad.net/ubuntu/+source/doublex>`_
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
 
 
