@@ -60,7 +60,7 @@ relevant links
 Debian
 ^^^^^^
 
-* `official package <http://packages.debian.org/source/sid/doublex`_ (may be outdated)
+* `official package <http://packages.debian.org/source/sid/doublex>`_ (may be outdated)
 * amateur repository: ``deb http://babel.esi.uclm.es/arco/ sid main`` (always updated)
 * `official ubuntu package  <https://launchpad.net/ubuntu/+source/doublex>`_
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
