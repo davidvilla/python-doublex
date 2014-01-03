@@ -39,19 +39,19 @@ a trivial example
            # then
            assert_that(spy.some_method, called())
 
-See more about `doublex doubles <http://doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
+See more about `doublex doubles <http://python-doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
 
 
 relevant links
 --------------
 
-* `install          <http://doublex.readthedocs.org/en/latest/install.html/>`_
-* `documentation    <http://doublex.readthedocs.org/>`_
-* `release notes    <http://doublex.readthedocs.org/en/latest/release-notes.html>`_
+* `install          <http://python-doublex.readthedocs.org/en/latest/install.html/>`_
+* `documentation    <http://python-doublex.readthedocs.org/>`_
+* `release notes    <http://python-doublex.readthedocs.org/en/latest/release-notes.html>`_
 * `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
 * `sources          <https://bitbucket.org/DavidVilla/python-doublex>`_
 * `PyPI project     <http://pypi.python.org/pypi/doublex>`_
-* `pyDoubles        <http://doublex.readthedocs.org/en/latest/pyDoubles.html>`_
+* `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
 * `crate            <https://crate.io/packages/doublex/>`_
 * `buildbot job     <https://fowler.esi.uclm.es:8010/builders/doublex>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_

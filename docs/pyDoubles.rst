@@ -43,7 +43,7 @@ hamcrest aliases.
 ``doublex`` supports all the pyDoubles features and some more that can not be easily
 backported. If you are a pyDoubles user you can run your tests using doublex.pyDoubles
 module. However, we recommed the `native doublex API
-<http://doublex.readthedocs.org/en/latest/reference.html#reference/>`_ for your new developments.
+<http://python-doublex.readthedocs.org/en/latest/reference.html#reference/>`_ for your new developments.
 
 In most cases the only required change in your code is the ``import`` sentence, that change from:
 

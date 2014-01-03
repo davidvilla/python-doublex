@@ -79,7 +79,7 @@ __ http://docs.python.org/2/library/threading.html#event-objects
 The ``spy.write.attach()`` is part of the doublex stub-observer `mechanism`__, a
 way to run arbitrary code when stubbed methods are called.
 
-__ http://doublex.readthedocs.org/en/latest/reference.html#stub-observers
+__ http://python-doublex.readthedocs.org/en/latest/reference.html#stub-observers
 
 That works because the ``called()`` assertion is performed only when the spy releases the
 barrier. If the ``write()`` invocation never happens, the ``barrier.wait()`` continues

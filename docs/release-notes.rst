@@ -8,11 +8,11 @@ doublex 1.8
   `doc`__ and `tests`__.
 * Added support for mocking properties. See `doc`__ and `tests`__.
 * Testing with tox for Python 2.6, 2.7, 3.2 and 3.3.
-* Documentation now at `<http://doublex.readthedocs.org>`_
+* Documentation now at `<http://python-doublex.readthedocs.org>`_
 
-__ http://doublex.readthedocs.org/en/latest/inline-setup.html
+__ http://python-doublex.readthedocs.org/en/latest/inline-setup.html
 __ https://bitbucket.org/DavidVilla/python-doublex/src/7b22f6d23455712b3e8894e40ae6272fc852762e/doublex/test/unit_tests.py?at=default#cl-1482
-__ http://doublex.readthedocs.org/en/latest/properties.html#mocking-properties
+__ http://python-doublex.readthedocs.org/en/latest/properties.html#mocking-properties
 __ https://bitbucket.org/DavidVilla/python-doublex/src/7b22f6d23455712b3e8894e40ae6272fc852762e/doublex/test/unit_tests.py?at=default#cl-1204
 
 
@@ -33,10 +33,10 @@ doublex 1.7
 * NEW ``with_some_args()`` matcher to specify just relevant argument values in spy assertions. See `doc`__ and `tests`__.
 * NEW module level ``set_default_behavior()`` function to define behavior for non stubbed methods. Thanks to `Eduardo Ferro`__. See `doc`__ and `tests`__.
 
-__ http://doublex.readthedocs.org/en/latest/reference.html#with-some-args-asserting-just-relevant-arguments
+__ http://python-doublex.readthedocs.org/en/latest/reference.html#with-some-args-asserting-just-relevant-arguments
 __ https://bitbucket.org/DavidVilla/python-doublex/src/147de5e7a52efae3c871c3065c082794b7272819/doublex/test/unit_tests.py?at=default#cl-1218
 __ https://bitbucket.org/eferro
-__ http://doublex.readthedocs.org/en/latest/reference.html#changing-default-stub-behavior
+__ http://python-doublex.readthedocs.org/en/latest/reference.html#changing-default-stub-behavior
 __ https://bitbucket.org/DavidVilla/python-doublex/src/147de5e7a52efae3c871c3065c082794b7272819/doublex/test/unit_tests.py?at=default#cl-1243
 
 
@@ -73,7 +73,7 @@ doublex 1.6.2
   argument values. (see `test`__ and `doc`__).
 
 __ https://bitbucket.org/DavidVilla/python-doublex/src/ce8cdff71b8e3528380c305bf7d9ca75a64f6460/doublex/test/unit_tests.py?at=v1.6.2#cl-271
-__ http://doublex.readthedocs.org/en/latest/reference.html#calls-low-level-access-to-invocation-records
+__ http://python-doublex.readthedocs.org/en/latest/reference.html#calls-low-level-access-to-invocation-records
 
 
 doublex 1.6
@@ -99,7 +99,7 @@ This release includes support for asynchronous spy assertions. See `this blog 
 doublex/pyDoubles 1.5
 ---------------------
 
-Since this release, doublex supports the pyDoubles API by means a wrapper. See `pyDoubles <http://doublex.readthedocs.org/en/latest/pyDoubles.html>`_ for details.
+Since this release, doublex supports the pyDoubles API by means a wrapper. See `pyDoubles <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_ for details.
 
 In most cases the only required change in your code is the ``import`` sentence, that change from::
 

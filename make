@@ -15,6 +15,14 @@ debian:
 	rmdir trunk
 	svn up debian
 
+
+.PHONY: docs doctests
+docs:
+	$(MAKE) -C docs
+
+doctests:
+	$(MAKE) -C doctests
+
 wiki:
 	hg clone ssh://hg@bitbucket.org/DavidVilla/python-doublex/wiki
 
@@ -26,3 +34,5 @@ clean:
 	$(RM) -r .svn debian MANIFEST
 	$(RM) -r *.egg-info
 	$(RM) -r slides/reveal.js
+	$(MAKE) -C docs clean
+	$(MAKE) -C doctests clean
