@@ -1,0 +1,111 @@
+.. index::
+   single:  Properties
+
+.. _properties:
+
+Properties
+==========
+
+**doublex** supports stub and spy properties in a pretty easy way in relation to other
+frameworks like python-mock.
+
+That requires two constraints:
+
+* It does not support "free" doubles. ie: you must give a collaborator in the constructor.
+* collaborator must be a new-style class. See the next example.
+
+
+Stubbing properties
+-------------------
+
+
+.. sourcecode:: python
+
+   with Spy(Collaborator) as spy:
+       spy.prop = 2  # stubbing 'prop' value
+
+   assert_that(spy.prop, is_(2))  # double property getter invoked
+
+
+Spying properties
+-----------------
+
+Continuing previous example:
+
+
+.. sourcecode:: python
+
+   class Collaborator(object):
+       @property
+       def prop(self):
+           return 1
+
+       @prop.setter
+       def prop(self, value):
+           pass
+
+   spy = Spy(Collaborator)
+   value = spy.prop
+
+   assert_that(spy, property_got('prop'))  # property 'prop' was read.
+
+   spy.prop = 4
+   spy.prop = 5
+   spy.prop = 5
+
+   assert_that(spy, property_set('prop'))  # was set to any value
+   assert_that(spy, property_set('prop').to(4))
+   assert_that(spy, property_set('prop').to(5).times(2))
+   assert_that(spy, never(property_set('prop').to(6)))
+
+
+Mocking properties
+------------------
+
+Getting property:
+
+
+.. sourcecode:: python
+
+   with Mock(Collaborator) as mock:
+       mock.prop
+
+   mock.prop
+
+   assert_that(mock, verify())
+
+
+Setting property:
+
+
+.. sourcecode:: python
+
+   with Mock(Collaborator) as mock:
+       mock.prop = 5
+
+   mock.prop = 5
+
+   assert_that(mock, verify())
+
+
+Using matchers:
+
+
+.. sourcecode:: python
+
+   with Mock(Collaborator) as mock:
+       mock.prop = all_of(greater_than(8), less_than(12))
+
+   mock.prop = 10
+
+   assert_that(mock, verify())
+
+
+
+.. Local Variables:
+..  coding: utf-8
+..  mode: rst
+..  mode: flyspell
+..  ispell-local-dictionary: "american"
+..  fill-columnd: 90
+.. End:
