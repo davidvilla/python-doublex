@@ -24,6 +24,7 @@ config = dict(
     test_suite       = 'doublex.test',
     license          = 'GPLv3',
     long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
+    install_requires=[line for line in open('requirements.txt')],
     classifiers      = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
