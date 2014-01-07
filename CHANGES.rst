@@ -1,3 +1,10 @@
+20140107
+========
+- Release 1.8.1
+- PyHamcrest must be a requirement. Thanks to Javier Santacruz and Guillermo Pascual
+  https://bitbucket.org/DavidVilla/python-doublex/pull-request/7
+  https://bitbucket.org/DavidVilla/python-doublex/issue/18
+
 20140101
 ========
 

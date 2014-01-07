@@ -8,7 +8,10 @@ from setuptools import setup, find_packages
 # http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html
 import multiprocessing, logging
 
-print(find_packages())
+
+def local_open(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname))
+
 
 config = dict(
     name             = 'doublex',
@@ -19,12 +22,11 @@ config = dict(
     author_email     = 'David.Villa@gmail.com',
     url              = 'https://bitbucket.org/DavidVilla/python-doublex',
     packages         = find_packages(),
-    data_files       = [('', ['README.rst']),
-                        ('share/doc/python-doublex', ['README.rst'])],
+    data_files       = [('', ['README.rst'])],
     test_suite       = 'doublex.test',
     license          = 'GPLv3',
-    long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
-    install_requires=[line for line in open('requirements.txt')],
+    long_description = local_open('README.rst').read(),
+    install_requires = local_open('requirements.txt').readlines(),
     classifiers      = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',

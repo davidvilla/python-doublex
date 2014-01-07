@@ -30,9 +30,11 @@ clean:
 	find . -name *.pyc -delete
 	find . -name *.pyo -delete
 	find . -name *~ -delete
+	$(RM) -r *.egg-info MANIFEST
 	$(RM) -r dist build *.egg-info .tox
-	$(RM) -r .svn debian MANIFEST
-	$(RM) -r *.egg-info
 	$(RM) -r slides/reveal.js
 	$(MAKE) -C docs clean
 	$(MAKE) -C doctests clean
+
+vclean: clean
+	$(RM) -r .svn debian
