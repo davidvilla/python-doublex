@@ -22,7 +22,7 @@ Or use pip::
     $ sudo pip install doubles-X.X.tar.gz
 
 .. note::
-   doublex depends on PyHamcrest, but it you use ``pip`` it is automatically installed too.
+   doublex depends on PyHamcrest, but if you use ``pip`` it is automatically installed too.
 
 
 Also it is available as Debian and Ubuntu official packages, although may be outdated::
