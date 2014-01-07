@@ -27,7 +27,7 @@ setup.
 
 
 Note that :py:func:`when` and :py:func:`except_call` internally provide almost the same
-functionality. Two functions are provide only for test readability
+functionality. Two functions are provided only for test readability
 purposes. :py:func:`when` is intented for stubs, spies and proxyspies, and
 :py:func:`except_call` is intented for mocks.
 
