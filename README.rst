@@ -7,7 +7,7 @@
     :alt: Number of PyPI downloads
 
 
-Powerful test doubles framework for Python.
+Powerful test doubles framework for Python
 
 
 [
@@ -54,16 +54,6 @@ design principles
 * supports old and new style classes.
 
 
-related
--------
-
-* `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
-* `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
-* `crate            <https://crate.io/packages/doublex/>`_
-* `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
-
-
-
 Debian
 ^^^^^^
 
@@ -71,6 +61,15 @@ Debian
 * amateur repository: ``deb http://babel.esi.uclm.es/arco/ sid main`` (always updated)
 * `official ubuntu package  <https://launchpad.net/ubuntu/+source/doublex>`_
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
+
+
+related
+-------
+
+* `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
+* `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
+* `crate            <https://crate.io/packages/doublex/>`_
+* `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
 
 
 .. Local Variables:
