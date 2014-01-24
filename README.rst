@@ -15,7 +15,8 @@ Powerful test doubles framework for Python.
 `changelog <http://python-doublex.readthedocs.org/en/latest/release-notes.html>`_ |
 `sources   <https://bitbucket.org/DavidVilla/python-doublex>`_ |
 `issues    <https://bitbucket.org/DavidVilla/python-doublex/issues>`_ |
-`PyPI      <http://pypi.python.org/pypi/doublex>`_
+`PyPI      <http://pypi.python.org/pypi/doublex>`_ |
+`buildbot  <http://fowler.esi.uclm.es:8010/builders/doublex>`_
 
 
 a trivial example
@@ -57,8 +58,8 @@ related
 * `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
 * `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
 * `crate            <https://crate.io/packages/doublex/>`_
-* `buildbot job     <https://fowler.esi.uclm.es:8010/builders/doublex>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
+
 
 
 Debian
