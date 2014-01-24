@@ -9,14 +9,13 @@
 
 Powerful test doubles framework for Python.
 
-design principles
------------------
 
-* doubles should not have public API framework methods. It avoids silent misspelling.
-* doubles do not require collaborator instances, just classes, and it never instantiate them.
-* ``assert_that()`` is used for ALL assertions.
-* invocation order for mocks is relevant by default.
-* supports old and new style classes.
+`install   <http://python-doublex.readthedocs.org/en/latest/install.html/>`_ |
+`docs      <http://python-doublex.readthedocs.org/>`_ |
+`changelog <http://python-doublex.readthedocs.org/en/latest/release-notes.html>`_ |
+`sources   <https://bitbucket.org/DavidVilla/python-doublex>`_ |
+`issues    <https://bitbucket.org/DavidVilla/python-doublex/issues>`_ |
+`PyPI      <http://pypi.python.org/pypi/doublex>`_
 
 
 a trivial example
@@ -42,15 +41,20 @@ a trivial example
 See more about `doublex doubles <http://python-doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
 
 
-relevant links
---------------
+design principles
+-----------------
 
-* `install          <http://python-doublex.readthedocs.org/en/latest/install.html/>`_
-* `documentation    <http://python-doublex.readthedocs.org/>`_
-* `release notes    <http://python-doublex.readthedocs.org/en/latest/release-notes.html>`_
+* doubles should not have public API framework methods. It avoids silent misspelling.
+* doubles do not require collaborator instances, just classes, and it never instantiate them.
+* ``assert_that()`` is used for ALL assertions.
+* invocation order for mocks is relevant by default.
+* supports old and new style classes.
+
+
+related
+-------
+
 * `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
-* `sources          <https://bitbucket.org/DavidVilla/python-doublex>`_
-* `PyPI project     <http://pypi.python.org/pypi/doublex>`_
 * `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
 * `crate            <https://crate.io/packages/doublex/>`_
 * `buildbot job     <https://fowler.esi.uclm.es:8010/builders/doublex>`_

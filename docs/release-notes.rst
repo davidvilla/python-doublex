@@ -1,5 +1,5 @@
-Release notes
-=============
+Release notes / Changelog
+=========================
 
 doublex 1.8
 -----------
