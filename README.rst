@@ -10,6 +10,7 @@
 Powerful test doubles framework for Python.
 
 
+[
 `install   <http://python-doublex.readthedocs.org/en/latest/install.html/>`_ |
 `docs      <http://python-doublex.readthedocs.org/>`_ |
 `changelog <http://python-doublex.readthedocs.org/en/latest/release-notes.html>`_ |
@@ -17,6 +18,7 @@ Powerful test doubles framework for Python.
 `issues    <https://bitbucket.org/DavidVilla/python-doublex/issues>`_ |
 `PyPI      <http://pypi.python.org/pypi/doublex>`_ |
 `buildbot  <http://fowler.esi.uclm.es:8010/builders/doublex>`_
+]
 
 
 a trivial example
