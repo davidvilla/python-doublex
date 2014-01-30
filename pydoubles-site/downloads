@@ -1,0 +1,22 @@
+Get latest release from <a href="https://bitbucket.org/DavidVilla/python-doublex/downloads">here</a>
+
+<pre class="bash">
+gunzip doublex-X.X.tar.gz
+tar xvf doublex-X.X.tar
+cd doublex-X.X/
+sudo python setup.py install
+</pre>
+
+Or use pip:
+
+<pre>$ sudo pip install doubles-X.X.tar.gz</pre>
+
+Pydoubles is also available on <a href="http://pypi.python.org/pypi/doublex">Pypi</a>:
+
+<pre>$ sudo pip install doublex</pre>
+
+You can also get the latest source code from the mercurial repository. Check out the project:
+
+<pre>$ hg clone https://bitbucket.org/DavidVilla/python-doublex</pre>
+
+Browse the source code, get support and notify bugs in the <a href="https://bitbucket.org/DavidVilla/python-doublex/issues">issue tracker</a>.
