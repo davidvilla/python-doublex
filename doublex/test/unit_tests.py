@@ -112,6 +112,13 @@ class FreeStubTests(TestCase):
 
         assert_that(stub.foo(1), is_(1))
 
+    # FIXME: new on tip
+    def test_returns_input_two_args(self):
+        with Stub() as stub:
+            stub.foo(ANY_ARG).returns_input()
+
+        assert_that(stub.foo(1, 2), is_((1, 2)))
+
     def test_raises(self):
         with self.stub:
             self.stub.foo(2).raises(SomeException)
@@ -1003,6 +1010,22 @@ class StubDelegateTests(TestCase):
         except WrongApiUsage as e:
             expected = "delegates() must be called with callable or iterable instance (got 'None' instead)"
             assert_that(str(e), contains_string(expected))
+
+    # FIXME: explain in docs
+    def test_delegates_with_params(self):
+        with self.stub:
+            self.stub.foo(anything()).delegates(lambda x: x + 2)
+
+        assert_that(self.stub.foo(3), is_(5))
+
+    # FIXME: new on tip
+    def test_delegate_to_dict(self):
+        with self.stub:
+            self.stub.foo(anything()).delegates({0: 2, 1: 7, 2: 12})
+
+        assert_that(self.stub.foo(1), is_(7))
+
+
 
 
 class MockDelegateTest(TestCase):

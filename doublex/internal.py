@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012,2013 David Villa Alises
+# Copyright © 2012,2013,2014 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -151,7 +151,11 @@ def func_returning_input(invocation):
     def func(*args, **kargs):
         if not args:
             raise TypeError("%s has no input args" % invocation)
-        return args[0]
+
+        if len(args) == 1:
+            return args[0]
+
+        return args
 
     return func
 
@@ -179,6 +183,10 @@ class Invocation(object):
     def delegates(self, delegate):
         if isinstance(delegate, collections.Callable):
             self.__delegate = delegate
+            return
+
+        if isinstance(delegate, collections.Mapping):
+            self.__delegate = delegate.get
             return
 
         try:
