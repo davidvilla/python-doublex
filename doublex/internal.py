@@ -258,8 +258,16 @@ class InvocationContext(object):
         self.kargs = kargs
 
     def _check_ANY_ARG_sanity(self, args, kargs):
+        def find_ANY_ARG(args):
+            for i, v in enumerate(args):
+                if id(ANY_ARG) == id(v):
+                    return i
+
+            raise ValueError
+
         try:
-            if args.index(ANY_ARG) != len(args) - 1:
+#            if args.index(ANY_ARG) != len(args) - 1:
+            if find_ANY_ARG(args) != len(args) - 1:
                 raise WrongApiUsage(ANY_ARG_MUST_BE_LAST + ANY_ARG_DOC)
 
             if kargs:
