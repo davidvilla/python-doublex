@@ -70,8 +70,7 @@ related
 * `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
 * `crate            <https://crate.io/packages/doublex/>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
-
-** `ludibrio <https://pypi.python.org/pypi/ludibrio>`_
+** `ludibrio        <https://pypi.python.org/pypi/ludibrio>`_
 
 .. Local Variables:
 ..  coding: utf-8
