@@ -72,6 +72,8 @@ related
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
 ** `ludibrio        <https://pypi.python.org/pypi/ludibrio>`_
 
+[testing bitsynchub]
+
 .. Local Variables:
 ..  coding: utf-8
 ..  mode: rst
