@@ -74,6 +74,8 @@ related
 * `ludibrio        <https://pypi.python.org/pypi/ludibrio>`_
 
 
+[testing travis]
+
 .. Local Variables:
 ..  coding: utf-8
 ..  mode: rst
