@@ -6,6 +6,9 @@
     :target: https://crate.io/packages/doublex/
     :alt: Number of PyPI downloads
 
+.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
+
+
 
 Powerful test doubles framework for Python
 
