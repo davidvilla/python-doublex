@@ -7,7 +7,8 @@
     :alt: Number of PyPI downloads
 
 .. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
-
+    :target: https://travis-ci.org/davidvilla/python-doublex
+    :alt: Travis CI status
 
 
 Powerful test doubles framework for Python
