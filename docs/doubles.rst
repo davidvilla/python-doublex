@@ -25,15 +25,6 @@ Invocations over the ``Stub`` must meet the collaborator interface:
 .. testsetup:: *
 
    import unittest
-   from doublex import Stub, Spy, ProxySpy, Mock, Mimic
-   from doublex import ANY_ARG, assert_that, is_, never
-   from doublex import called, verify, any_order_verify
-   from doublex import method_returning, method_raising
-   from doublex import property_got, property_set
-   from doublex import set_default_behavior
-
-   import hamcrest
-   from hamcrest import contains_string, greater_than, has_length, less_than, all_of, anything
 
    class SomeException(Exception):
        pass
@@ -48,6 +39,8 @@ Invocations over the ``Stub`` must meet the collaborator interface:
 
 
 .. sourcecode:: python
+
+   from doublex import Stub, ANY_ARG, assert_that, is_
 
    class Collaborator:
        def hello(self):
@@ -95,6 +88,8 @@ This allows you to invoke any method you want because it is not restricted to an
 
 .. sourcecode:: python
 
+   from doublex import Stub, assert_that, is_
+
    # given
    with Stub() as stub:
        stub.foo('hi').returns(10)
@@ -120,6 +115,9 @@ Invocations over the Spy must meet the collaborator interface.
 
 
 .. sourcecode:: python
+
+   from hamcrest import contains_string
+   from doublex import Spy, assert_that, called
 
    class Sender:
        def say(self):
@@ -182,6 +180,8 @@ As the "free" Stub, this is a spy not restricted by a collaborator interface.
 
 .. sourcecode:: python
 
+   from doublex import Stub, assert_that
+
    # given
    with Spy() as sender:
        sender.helo().returns("OK")
@@ -213,6 +213,8 @@ spy method is called
 
 
 .. sourcecode:: python
+
+   from doublex import ProxySpy, assert_that
 
    sender = ProxySpy(Sender())  # NOTE: It takes an instance (not class)
 
@@ -246,6 +248,8 @@ sequence does not match, an AssertionError is raised. "free" mocks are provided 
 
 .. sourcecode:: python
 
+   from doublex import Mock, assert_that, verify
+
    with Mock() as smtp:
        smtp.helo()
        smtp.mail(ANY_ARG)
@@ -267,6 +271,8 @@ order just use ``any_order_verify()`` matcher instead:
 
 .. sourcecode:: python
 
+   from doublex import Mock, assert_that, any_order_verify
+
    with Mock() as mock:
        mock.foo()
        mock.bar()
@@ -282,8 +288,19 @@ Programmed invocation sequence also may specify stubbed return values:
 
 .. sourcecode:: python
 
+   from doublex import Mock, assert_that
+
    with Mock() as mock:
        mock.foo().returns(10)
 
    assert_that(mock.foo(), is_(10))
    assert_that(mock, verify())
+
+
+.. Local Variables:
+..  coding: utf-8
+..  mode: rst
+..  mode: flyspell
+..  ispell-local-dictionary: "american"
+..  fill-columnd: 90
+.. End:

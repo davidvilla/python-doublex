@@ -11,6 +11,8 @@ assertions over this. An example:
 .. testcode:: calls
 .. sourcecode:: python
 
+   from doublex import Spy, assert_that, ANY_ARG, is_
+
    class TheCollaborator(object):
        def method(self, *args, **kargs):
            pass

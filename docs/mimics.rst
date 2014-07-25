@@ -20,6 +20,7 @@ same class hierarchy, and usually this is pretty enough when the code uses "duck
 
 .. sourcecode:: python
 
+   >>> from doublex import Spy
    >>> spy = Spy(B())
    >>> isinstance(spy, Spy)
    True
@@ -34,6 +35,7 @@ double class to achieve full replacement instances (Liskov principle):
 
 .. sourcecode:: python
 
+   >>> from doublex import Stub, Mimic
    >>> spy = Mimic(Spy, B)
    >>> isinstance(spy, B)
    True

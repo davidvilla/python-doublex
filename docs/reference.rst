@@ -39,6 +39,8 @@ It implies that something like:
 
 .. sourcecode:: python
 
+   from hamcrest import assert_that
+
    assert_that(foo, bar)
 
 
@@ -47,7 +49,9 @@ independently of the value of ``bar``. A more obvious example:
 
 .. sourcecode:: python
 
-   assert_that(2 + 2, 5)  # that assertion IS satisfied!
+   from hamcrest import assert_that
+
+   assert_that(2 + 2, 5)  # OMG! that assertion IS satisfied!
 
 For this reason, when you need compare values (equivalent to the unit ``assertEquals``) you must always use a matcher, like ``is_`` or ``equal_to``:
 
@@ -95,12 +99,15 @@ behavior for non stubbed methods is to return ``None``, although it can be chang
 
 .. sourcecode:: python
 
+   >>> from doublex import Stub
    >>> stub = Stub()
    >>> stub.method()
 
 This behavior may be customized in each test using the Python context manager facility:
 
 .. sourcecode:: python
+
+   from doublex import Stub
 
    with Stub() as stub:
     	stub.method(<args>).returns(<value>)
@@ -111,6 +118,9 @@ to define amazing stub conditions:
 
 
 .. sourcecode:: python
+
+   from hamcrest import all_of, has_length, greater_than, less_than
+   from doublex import Stub, assert_that, is_
 
    with Stub() as stub:
        stub.foo(has_length(less_than(4))).returns('<4')
@@ -126,9 +136,6 @@ to define amazing stub conditions:
    assert_that(stub.foo([0] * 9), is_('>8'))
 
 
-``all_of``, ``has_length``, ``less_than`` and ``greater_than`` are standard hamcrest matchers.
-
-
 .. _returns_input:
 
 Stubs returning input
@@ -136,6 +143,8 @@ Stubs returning input
 
 
 .. sourcecode:: python
+
+   from doublex import Stub, assert_that
 
    def test_returns_input(self):
        with Stub() as stub:
@@ -151,6 +160,8 @@ Stubs raising exceptions
 
 
 .. sourcecode:: python
+
+   from doublex import Stub
 
    def test_raises(self):
        with Stub() as stub:
@@ -174,6 +185,9 @@ Any non-stubbed method returns ``None``. But this behavior can be changed by mea
 
 .. sourcecode:: python
 
+   from doublex import Stub, assert_that
+   from doublex import set_default_behavior, method_returning
+
    set_default_behavior(Stub, method_returning(20))
    stub  = Stub()
    assert_that(stub.unknown(), is_(20))
@@ -182,6 +196,9 @@ Or to a specific instance:
 
 
 .. sourcecode:: python
+
+   from doublex import Stub, assert_that, is_
+   from doublex import set_default_behavior, method_returning
 
    stub = Stub()
    set_default_behavior(stub, method_returning(20))
@@ -192,6 +209,7 @@ Also, it is possible to raise some exception:
 
 .. sourcecode:: python
 
+   >>> from doublex import Stub, set_default_behavior, method_raising
    >>> stub = Stub()
    >>> set_default_behavior(stub, method_raising(SomeException))
    >>> stub.unknown()
@@ -218,6 +236,8 @@ called()
 
 .. sourcecode:: python
 
+   from doublex import Spy, assert_that, called
+
    spy = Spy()
 
    spy.m1()
@@ -243,6 +263,9 @@ Match explicit argument values:
 
 
 .. sourcecode:: python
+
+   from hamcrest import contains_string, less_than, greater_than
+   from doublex import Spy, assert_that, called
 
    spy = Spy()
 
@@ -281,6 +304,9 @@ Other example with a string argument and combining several matchers:
 
 .. sourcecode:: python
 
+   from hamcrest import has_length, greater_than, less_than
+   from doublex import Spy, assert_that, called, never
+
    spy = Spy()
 
    spy.foo("abcd")
@@ -289,9 +315,6 @@ Other example with a string argument and combining several matchers:
    assert_that(spy.foo, called().with_args(has_length(greater_than(3))))
    assert_that(spy.foo, called().with_args(has_length(less_than(5))))
    assert_that(spy.foo, never(called().with_args(has_length(greater_than(5)))))
-
-
-``has_length``, ``less_than`` and ``greater_than`` are standard hamcrest matchers.
 
 
 .. index::
@@ -305,6 +328,8 @@ only some arguments are relevant:
 
 
 .. sourcecode:: python
+
+   from hamcrest import anything
 
    spy.foo(1, 2, 20)
    spy.bar(1, key=2)
@@ -339,6 +364,8 @@ An example:
 
 .. sourcecode:: python
 
+   from doublex import ANY_ARG
+
    spy.arg0()
    spy.arg1(1)
    spy.arg3(1, 2, 3)
@@ -358,6 +385,8 @@ Also for stubs:
 
 
 .. sourcecode:: python
+
+   from doublex import Stub, assert_that, ANY_ARG, is_
 
    with Stub() as stub:
        stub.foo(ANY_ARG).returns(True)
@@ -389,6 +418,9 @@ them. That works but the resulting code is a bit dirty:
 
 .. sourcecode:: python
 
+   from hamcrest import anything
+   from doublex import Spy, assert_that, ANY_ARG
+
    class Foo:
        def five_args_method(self, a, b, c, d, e=None):
            return 4
@@ -408,6 +440,8 @@ The :py:func:`with_some_args()` allows to specify just some arguments, assuming 
 
 
 .. sourcecode:: python
+
+   from doublex import Spy, assert_that, called
 
    class Foo:
        def five_args_method(self, a, b, c, d, e=None):
@@ -444,10 +478,13 @@ Convenient replacement for ``hamcrest.is_not()``:
 
 .. sourcecode:: python
 
+   from hamcrest import is_not
+   from doublex import Spy, assert_that, called, never
+
    spy = Spy()
 
-   assert_that(spy.m5, hamcrest.is_not(called()))  # is_not() works too
-   assert_that(spy.m5, never(called()))            # but prefer never() due to better error report messages
+   assert_that(spy.m5, is_not(called()))  # is_not() works
+   assert_that(spy.m5, never(called()))   # but prefer never() due to better error report messages
 
 
 .. index::
@@ -461,6 +498,9 @@ times(): asserting number of calls
 
 .. sourcecode:: python
 
+   from hamcrest import anything, all_of, greater_than, less_than
+   from doublex import Spy, assert_that, called, ANY_ARG, never
+
    spy = Spy()
 
    spy.foo()
@@ -468,7 +508,7 @@ times(): asserting number of calls
    spy.foo(1)
    spy.foo(2)
 
-   assert_that(spy.never, never(called()))                      # = 0 times
+   assert_that(spy.unknown, never(called()))                    # = 0 times
    assert_that(spy.foo, called())                               # > 0
    assert_that(spy.foo, called().times(greater_than(0)))        # > 0 (same)
    assert_that(spy.foo, called().times(4))                      # = 4
@@ -484,10 +524,6 @@ times(): asserting number of calls
    assert_that(spy.foo, called().with_args(1).times(less_than(5)))     # < 5
    assert_that(spy.foo, called().with_args(1).times(
                all_of(greater_than(1), less_than(8))))                 # 1 < times < 8
-
-
-:py:func:`anything`, :py:func:`all_of`, :py:func:`less_than` and :py:func:`greater_than`
-are standard hamcrest matchers.
 
 
 .. Local Variables:

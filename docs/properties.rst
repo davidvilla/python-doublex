@@ -21,6 +21,8 @@ Stubbing properties
 
 .. sourcecode:: python
 
+   from doublex import Spy, assert_that, is_
+
    with Spy(Collaborator) as spy:
        spy.prop = 2  # stubbing 'prop' value
 
@@ -34,6 +36,9 @@ Continuing previous example:
 
 
 .. sourcecode:: python
+
+   from doublex import Spy, assert_that, never
+   from doublex import property_got, property_set
 
    class Collaborator(object):
        @property
@@ -67,6 +72,8 @@ Getting property:
 
 .. sourcecode:: python
 
+   from doublex import Mock, assert_that, verify
+
    with Mock(Collaborator) as mock:
        mock.prop
 
@@ -80,6 +87,8 @@ Setting property:
 
 .. sourcecode:: python
 
+   from doublex import Mock, assert_that, verify
+
    with Mock(Collaborator) as mock:
        mock.prop = 5
 
@@ -92,6 +101,9 @@ Using matchers:
 
 
 .. sourcecode:: python
+
+   from hamcrest import all_of, greater_than, less_than
+   from doublex import Mock, assert_that, verify
 
    with Mock(Collaborator) as mock:
        mock.prop = all_of(greater_than(8), less_than(12))

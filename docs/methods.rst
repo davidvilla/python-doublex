@@ -8,6 +8,8 @@ Create a standalone stub method directly over any instance (even no doubles), wi
 
 .. sourcecode:: python
 
+   from doublex import method_returning, method_raising, assert_that
+
    collaborator = Collaborator()
    collaborator.foo = method_returning("bye")
    assert_that(collaborator.foo(), is_("bye"))
