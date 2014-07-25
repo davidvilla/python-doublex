@@ -1456,8 +1456,16 @@ class ProxySpy_default_behavior_tests(TestCase):
         assert_that(spy.hello(), is_(40))
 
 
+class orphan_spy_method_tests(TestCase):
+    # FIXME: new on tip. Fixes issue #21 (http://goo.gl/Fu6w8D)
+    def test_spy(self):
+        m = method_returning(3)
+        m()
+        assert_that(m, called())
+
+
 # FIXME: new on tip
-class orphan_methods_tests(TestCase):
+class new_style_orphan_methods_tests(TestCase):
     def setUp(self):
         self.obj = Collaborator()
 

@@ -189,14 +189,14 @@ def Mimic(double, collab):
 
 
 def method_returning(value):
-    with Stub() as stub:
+    with Spy() as stub:
         method = Method(stub, 'orphan')
         method(ANY_ARG).returns(value)
         return method
 
 
 def method_raising(exception):
-    with Stub() as stub:
+    with Spy() as stub:
         method = Method(stub, 'orphan')
         method(ANY_ARG).raises(exception)
         return method
