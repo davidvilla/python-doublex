@@ -15,7 +15,7 @@ Powerful test doubles framework for Python
 
 
 [
-`install   <http://python-doublex.readthedocs.org/en/latest/install.html/>`_ |
+`install   <http://python-doublex.readthedocs.org/en/latest/install.html>`_ |
 `docs      <http://python-doublex.readthedocs.org/>`_ |
 `changelog <http://python-doublex.readthedocs.org/en/latest/release-notes.html>`_ |
 `sources   <https://bitbucket.org/DavidVilla/python-doublex>`_ |
