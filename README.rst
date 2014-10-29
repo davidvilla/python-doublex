@@ -56,7 +56,7 @@ Features
 * ``assert_that()`` is used for ALL assertions.
 * mock invocation order is relevant by default.
 * supports old and new style classes.
-* supports Python versions: 2.6, 2.7, 3.2, 3.3, 3.4
+* **supports Python versions: 2.6, 2.7, 3.2, 3.3, 3.4**
 
 
 Debian
