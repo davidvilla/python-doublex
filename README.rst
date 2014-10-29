@@ -48,14 +48,15 @@ a trivial example
 See more about `doublex doubles <http://python-doublex.readthedocs.org/en/latest/reference.html#doubles>`_.
 
 
-design principles
------------------
+Features
+--------
 
-* doubles should not have public API framework methods. It avoids silent misspelling.
+* doubles have not public API framework methods. It could cause silent misspelling.
 * doubles do not require collaborator instances, just classes, and it never instantiate them.
 * ``assert_that()`` is used for ALL assertions.
-* invocation order for mocks is relevant by default.
+* mock invocation order is relevant by default.
 * supports old and new style classes.
+* supports Python versions: 2.6, 2.7, 3.2, 3.3, 3.4
 
 
 Debian
