@@ -325,9 +325,12 @@ class InvocationContext(object):
         return retval
 
     def replace_ANY_ARG(self, actual):
-        try:
-            index = self.args.index(ANY_ARG)
-        except ValueError:
+        index = None
+        for i, val in enumerate(self.args):
+            if val is ANY_ARG:
+                index = i
+
+        if index is None:
             return self
 
         retval = self.copy()

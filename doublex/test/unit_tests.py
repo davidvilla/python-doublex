@@ -1510,6 +1510,21 @@ class new_style_orphan_methods_tests(TestCase):
 #        assert_that(spy.method, called().times(3))
 
 
+class returning_complex_objects_tests(TestCase):
+    def test_object_compararion(self):
+        class A(object):
+            def __init__(self, value):
+                self.value = value
+
+            def __eq__(self, other):
+                return self.value == other.value
+
+        with Stub() as stub:
+            stub.foo(A(1)).returns(A(1))
+
+        self.assertEquals(A(1), stub.foo(A(1)))
+
+
 class when_tests(TestCase):
     def test_stub_when(self):
         stub = Stub()
