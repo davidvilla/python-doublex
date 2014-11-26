@@ -112,7 +112,7 @@ class FreeStubTests(TestCase):
 
         assert_that(stub.foo(1), is_(1))
 
-    # FIXME: new on tip
+    # new on 1.8.2
     def test_returns_input_two_args(self):
         with Stub() as stub:
             stub.foo(ANY_ARG).returns_input()
@@ -1018,14 +1018,13 @@ class StubDelegateTests(TestCase):
 
         assert_that(self.stub.foo(3), is_(5))
 
-    # FIXME: new on tip
+    # new on 1.8.2
+    # FIXME: include in docs
     def test_delegate_to_dict(self):
         with self.stub:
             self.stub.foo(anything()).delegates({0: 2, 1: 7, 2: 12})
 
         assert_that(self.stub.foo(1), is_(7))
-
-
 
 
 class MockDelegateTest(TestCase):
@@ -1223,7 +1222,7 @@ class PropertyTests(TestCase):
         assert_that(collaborator.prop, is_(20))
 
 
-# FIXME: new on 1.8
+# new on 1.8
 class PropertyMockTests(TestCase):
     def test_mock_get(self):
         with Mock(ObjCollaborator) as mock:
@@ -1457,7 +1456,8 @@ class ProxySpy_default_behavior_tests(TestCase):
 
 
 class orphan_spy_method_tests(TestCase):
-    # FIXME: new on tip. Fixes issue #21 (http://goo.gl/Fu6w8D)
+    # new on 1.8.2
+    # issue 21
     def test_spy(self):
         m = method_returning(3)
         m()
@@ -1510,8 +1510,9 @@ class new_style_orphan_methods_tests(TestCase):
 #        assert_that(spy.method, called().times(3))
 
 
-class returning_complex_objects_tests(TestCase):
-    def test_object_compararion(self):
+class custom_types_tests(TestCase):
+    # issue 22
+    def test_custom_equality_comparable_objects(self):
         class A(object):
             def __init__(self, value):
                 self.value = value

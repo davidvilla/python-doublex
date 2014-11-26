@@ -326,6 +326,7 @@ class InvocationContext(object):
 
     def replace_ANY_ARG(self, actual):
         index = None
+
         for i, val in enumerate(self.args):
             if val is ANY_ARG:
                 index = i

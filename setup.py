@@ -15,7 +15,7 @@ def local_open(fname):
 
 config = dict(
     name             = 'doublex',
-    version          = '1.8.1',
+    version          = '1.8.2',
     description      = 'Python test doubles',
     keywords         = ['unit tests', 'doubles', 'stub', 'spy', 'mock'],
     author           = 'David Villa Alises',

@@ -1,3 +1,14 @@
+20141126
+========
+
+- Release 1.8.2
+- Bug fixed: https://bitbucket.org/DavidVilla/python-doublex/issue/22
+- returns_input() may return several parameters
+- delegates() accepts dictionaries.
+- method_returning() and assert_raises() are now spies:
+  https://bitbucket.org/DavidVilla/python-doublex/issue/21
+-
+
 20140107
 ========
 - Release 1.8.1
