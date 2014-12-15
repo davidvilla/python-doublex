@@ -14,11 +14,7 @@
     :target: https://crate.io/packages/doublex/
     :alt: Supported Python versions
 
-..image:: https://pypip.in/py_versions/doublex/badge.svg
-    :target: https://pypi.python.org/pypi/doublex/
-    :alt: Supported Python versions
-
-.. image:: https://pypip.in/license/doublex/badge.svg
+..image:: https://pypip.in/license/doublex/badge.svg
     :target: https://pypi.python.org/pypi/doublex/
     :alt: License
 
