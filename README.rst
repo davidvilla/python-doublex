@@ -10,6 +10,10 @@
     :target: https://travis-ci.org/davidvilla/python-doublex
     :alt: Travis CI status
 
+.. image:: https://pypip.in/d/doublex/badge.png
+    :target: https://crate.io/packages/doublex/
+    :alt: Number of PyPI downloads
+
 .. image:: https://pypip.in/py_versions/doublex/badge.svg
     :target: https://crate.io/packages/doublex/
     :alt: Supported Python versions
