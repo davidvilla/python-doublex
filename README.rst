@@ -14,6 +14,9 @@
     :target: https://pypi.pthon.org/pypi/doublex/
     :alt: Supported Python Versions
 
+.. image:: https://pypip.in/license/doublex/badge.png
+    :target: https://pypi.pthon.org/pypi/doublex/
+    :alt: License
 
 Powerful test doubles framework for Python
 
