@@ -1,6 +1,24 @@
 Release notes / Changelog
 =========================
 
+doublex 1.8.2
+-------------
+
+* Fixed `issue 12`__. :py:func:`returns_input` now may manage several parameters. See `test`__.
+* Fixed `issue 21`__. :py:func:`method_returning` and :py:func:`assert_raises` are now spies. See `test`__.
+* Fixed `issue 22`__. See `test`__.
+* :py:func:`delegates` now accepts dictionaries. See `test`__.
+
+__ https://bitbucket.org/DavidVilla/python-doublex/issue/12
+__ https://bitbucket.org/DavidVilla/python-doublex/src/283adb2abef49be5f87bf58ccb83b3a313849c33/doublex/test/unit_tests.py?at=default#cl-116
+__ https://bitbucket.org/DavidVilla/python-doublex/issue/21
+__ https://bitbucket.org/DavidVilla/python-doublex/src/ace1edccb3fadbcf0992b5bf63f4e729ff877abd/doublex/test/unit_tests.py?at=default#cl-1461
+__ https://bitbucket.org/DavidVilla/python-doublex/issue/22
+__ https://bitbucket.org/DavidVilla/python-doublex/src/283adb2abef49be5f87bf58ccb83b3a313849c33/doublex/test/unit_tests.py?at=default#cl-1514
+__ https://bitbucket.org/DavidVilla/python-doublex/src/283adb2abef49be5f87bf58ccb83b3a313849c33/doublex/test/unit_tests.py?at=default#cl-1023
+
+
+
 doublex 1.8
 -----------
 
