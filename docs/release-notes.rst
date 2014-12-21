@@ -7,7 +7,7 @@ doublex 1.8.2
 * Fixed `issue 12`__. :py:func:`returns_input` now may manage several parameters. See `test`__.
 * Fixed `issue 21`__. :py:func:`method_returning` and :py:func:`method_raising` are now spies. See `test`__.
 * Fixed `issue 22`__. See `test`__.
-* :py:func:`Method.delegates` now accepts dictionaries. See `test`__.
+* :py:func:`delegates` now accepts dictionaries. See `test`__.
 
 __ https://bitbucket.org/DavidVilla/python-doublex/issue/12
 __ https://bitbucket.org/DavidVilla/python-doublex/src/283adb2abef49be5f87bf58ccb83b3a313849c33/doublex/test/unit_tests.py?at=default#cl-116
