@@ -1,20 +1,20 @@
-.. image:: https://pypip.in/v/doublex/badge.png?style=plastic
+.. image:: https://pypip.in/v/doublex/badge.png
     :target: https://crate.io/packages/doublex/
     :alt: Latest PyPI version
 
-.. image:: https://pypip.in/d/doublex/badge.png?style=plastic
+.. image:: https://pypip.in/d/doublex/badge.png
     :target: https://crate.io/packages/doublex/
     :alt: Number of PyPI downloads
 
-.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master&style=plastic
+.. image:: https://travis-ci.org/davidvilla/python-doublex.svg
     :target: https://travis-ci.org/davidvilla/python-doublex
     :alt: Travis CI status
 
-.. image:: https://pypip.in/py_versions/doublex/badge.png?style=plastic
+.. image:: https://pypip.in/py_versions/doublex/badge.png
     :target: https://pypi.pthon.org/pypi/doublex/
     :alt: Supported Python Versions
 
-.. image:: https://pypip.in/license/doublex/badge.png?style=plastic
+.. image:: https://pypip.in/license/doublex/badge.png
     :target: https://pypi.pthon.org/pypi/doublex/
     :alt: License
 
