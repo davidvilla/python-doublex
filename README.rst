@@ -6,7 +6,7 @@
     :target: https://crate.io/packages/doublex/
     :alt: Number of PyPI downloads
 
-.. image:: https://travis-ci.org/davidvilla/python-doublex.svg
+.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
     :target: https://travis-ci.org/davidvilla/python-doublex
     :alt: Travis CI status
 
