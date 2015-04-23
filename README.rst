@@ -1,4 +1,4 @@
-.. image:: https://pypip.in/v/doublex/badge.png
+.. image:: https://pypip.in/v/doublex/badge.png&style=plastic
     :target: https://crate.io/packages/doublex/
     :alt: Latest PyPI version
 
