@@ -14,7 +14,7 @@ similar to pyDoubles API, that is, instead of use the double context manager:
    with Mock() as mock:
        mock.bar(2).returns(50)
 
-You may invoke the :py:func:`when` and :py:func:`except_call` functions to get the same
+You may invoke the :py:func:`when` and :py:func:`expect_call` functions to get the same
 setup.
 
 .. sourcecode:: python
@@ -26,10 +26,10 @@ setup.
    expect_call(mock).bar(2).returns(50)
 
 
-Note that :py:func:`when` and :py:func:`except_call` internally provide almost the same
+Note that :py:func:`when` and :py:func:`expect_call` internally provide almost the same
 functionality. Two functions are provided only for test readability
 purposes. :py:func:`when` is intented for stubs, spies and proxyspies, and
-:py:func:`except_call` is intented for mocks.
+:py:func:`expect_call` is intented for mocks.
 
 
 .. Local Variables:
