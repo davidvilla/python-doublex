@@ -1,4 +1,4 @@
-.. image:: https://badge.fury.io/py/doublex.svg
+.. image:: https://badge.fury.io/py/doublex.png
     :target: https://badge.fury.io/py/doublex
     :alt: Latest PyPI version
 
