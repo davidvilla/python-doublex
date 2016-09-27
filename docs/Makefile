@@ -51,8 +51,8 @@ help:
 GENERATED=doubles.rst reference.rst methods.rst delegates.rst observers.rst mimics.rst async-spies.rst calls.rst properties.rst
 
 clean:
-	rm -rf $(BUILDDIR)/*
-	$(RM) $(GENERATED) *~
+	rm -rf $(BUILDDIR)/* *~
+#	$(RM) $(GENERATED)
 
 html: index.rst release-notes.rst $(GENERATED)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
