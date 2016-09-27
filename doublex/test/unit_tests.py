@@ -36,12 +36,22 @@ else:
     from io import BytesIO as StringIO
 
 
-from hamcrest import is_not, all_of, contains_string, has_length, has_entry, starts_with
-from hamcrest.library.text.stringcontainsinorder import *
-from hamcrest.library.object.hasproperty import *
-from hamcrest.library.number.ordering_comparison import *
+from hamcrest import (
+    is_, is_not, instance_of, all_of, has_length, has_entry, starts_with,
+    anything, greater_than, less_than,
+    contains_string, string_contains_in_order)
 
-from doublex import *
+from doublex import (
+    set_default_behavior,
+    ANY_ARG,
+    assert_that,
+    when, called, never,
+    Stub, Spy, ProxySpy, Mock, Tracer, Mimic,
+    property_set, property_got,
+    method_returning, method_raising, expect_call, verify, any_order_verify,
+    WrongApiUsage
+    )
+
 from doublex.matchers import MatcherRequiredError
 from doublex.internal import InvocationContext
 
