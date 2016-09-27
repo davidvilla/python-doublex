@@ -1,6 +1,17 @@
 Release notes / Changelog
 =========================
 
+doublex 1.8.3
+-------------
+
+* Fixed `issue 25`__ Python 3.5 type hints support. See `test`__.
+* Fixed `issue 23`__ Several tests failing because hamcrest.core.string_description.StringDescription is not a string anymore.
+
+__ https://bitbucket.org/DavidVilla/python-doublex/issues/25/support-from-python-35-type-hints-when
+__ https://bitbucket.org/DavidVilla/python-doublex/src/4b78564c9b3a8cc3fba170594c738ebbc9156996/doublex/test3/unit_tests.py?at=default&fileviewer=file-view-default#unit_tests.py-8
+__ https://bitbucket.org/DavidVilla/python-doublex/issues/23/doubles-test-failing
+
+
 doublex 1.8.2
 -------------
 

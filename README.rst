@@ -78,8 +78,8 @@ related
 * `crate            <https://crate.io/packages/doublex/>`_
 * `github clone     <https://github.com/davidvilla/python-doublex>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
-* `ludibrio        <https://pypi.python.org/pypi/ludibrio>`_
-
+* `ludibrio         <https://pypi.python.org/pypi/ludibrio>`_
+* `doubles          <https://github.com/uber/doubles>`_
 
 .. Local Variables:
 ..  coding: utf-8
