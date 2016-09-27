@@ -1,7 +1,3 @@
-.. image:: https://pypip.in/v/doublex/badge.png
-    :target: https://crate.io/packages/doublex/
-    :alt: Latest PyPI version
-
 .. image:: https://badge.fury.io/py/doublex.svg
     :target: https://badge.fury.io/py/doublex
     :alt: Latest PyPI version
