@@ -2,7 +2,7 @@
 # -*- coding: utf-8; mode: shell-script; tab-width: 4 -*-
 
 function ian-release-hook() {
-    local version=$(version-upstream)
+    local version=$(upstream-version)
     log-info "setting version to $version"
     sc-assert-files-exist version.py
     echo "__version__ = '$version'" > version.py
