@@ -174,11 +174,20 @@ class BuiltinSignature(Signature):
                 nargs, len(context.args)))
 
 
+# Thanks to David Pärsson (https://github.com/davidparsson)
+# issue: https://bitbucket.org/DavidVilla/python-doublex/issues/25/support-from-python-35-type-hints-when
+def getfullargspec(method):
+    try:
+        return inspect.getargspec(method)
+    except ValueError:
+        return inspect.getfullargspec(method)
+
+
 class MethodSignature(Signature):
     "colaborator method signature"
     def __init__(self, proxy, name):
         super(MethodSignature, self).__init__(proxy, name)
-        self.argspec = inspect.getargspec(self.method)
+        self.argspec = getfullargspec(self.method)
 
     def get_arg_spec(self):
         retval = inspect.getargspec(self.method)

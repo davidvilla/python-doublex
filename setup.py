@@ -13,9 +13,12 @@ def local_open(fname):
     return open(os.path.join(os.path.dirname(__file__), fname))
 
 
+exec(local_open('version.py').read())
+
+
 config = dict(
     name             = 'doublex',
-    version          = '1.8.2',
+    version          = __version__,
     description      = 'Python test doubles',
     keywords         = ['unit tests', 'doubles', 'stub', 'spy', 'mock'],
     author           = 'David Villa Alises',
@@ -38,6 +41,7 @@ config = dict(
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Software Development',
         'Topic :: Software Development :: Quality Assurance',
         'Topic :: Software Development :: Testing',
@@ -46,7 +50,8 @@ config = dict(
 
 if sys.version_info >= (3,):
     config.update(dict(
-        use_2to3=True,
+        use_2to3 = True,
+        test_suite = 'doublex.test3',
     ))
 
 setup(**config)
