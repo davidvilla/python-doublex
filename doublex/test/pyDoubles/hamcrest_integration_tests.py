@@ -10,13 +10,14 @@ Project home: https://bitbucket.org/carlosble/pydoubles
 """
 
 import unittest
-from hamcrest.core.core import *
+from hamcrest.core.core import is_, instance_of, all_of, equal_to
 from hamcrest.library.collection.isdict_containing import has_entry
 from hamcrest.library.object.haslength import has_length
 from hamcrest.library.text.isequal_ignoring_case import equal_to_ignoring_case
 from hamcrest.library.text.stringstartswith import starts_with
-from doublex.pyDoubles import *
 from .unit_tests import Collaborator
+from doublex.pyDoubles import (
+    spy, when, assert_that_was_called, assert_that_method, ArgsDontMatch)
 
 
 class HamcrestIntegrationTest(unittest.TestCase):

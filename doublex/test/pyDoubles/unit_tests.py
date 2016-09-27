@@ -13,7 +13,24 @@ import sys
 import re
 from nose.tools import nottest
 
-from doublex.pyDoubles import *
+import hamcrest
+from doublex.pyDoubles import (
+    ANY_ARG,
+    stub, empty_stub,
+    when,
+    spy, empty_spy, proxy_spy,
+    mock, empty_mock, expect_call,
+    method_returning,
+    method_raising,
+    assert_that_was_called,
+    assert_that_method,
+    str_containing, str_not_containing, str_length,
+    obj_with_fields,
+    UnexpectedBehavior,
+    ApiMismatch,
+    WrongApiUsage,
+    ArgsDontMatch,
+    )
 
 
 if sys.version_info >= (2, 7):
@@ -420,8 +437,7 @@ class SpyTests(unittest.TestCase):
         non_ascii  = u'España'
         self.spy.one_arg_method(non_ascii)
 
-        assert_that_was_called(self.spy.one_arg_method).with_args(
-                                                        non_ascii)
+        assert_that_was_called(self.spy.one_arg_method).with_args(non_ascii)
 
     def test_stub_methods_can_be_handled_separately(self):
         when(self.spy.one_arg_method).with_args(1).then_return(1000)
@@ -693,25 +709,25 @@ class MatchersTests(unittest.TestCase):
 
     def test_str_cotaining_with_exact_match(self):
         when(self.spy.one_arg_method).with_args(
-                    str_containing("abc")).then_return(1000)
+            str_containing("abc")).then_return(1000)
 
         self.assertEqual(1000, self.spy.one_arg_method("abc"))
 
     def test_str_containing_with_substr(self):
         when(self.spy.one_arg_method).with_args(
-                    str_containing("abc")).then_return(1000)
+            str_containing("abc")).then_return(1000)
 
         self.assertEqual(1000, self.spy.one_arg_method("XabcX"))
 
     def test_str_containing_with_substr_unicode(self):
         when(self.spy.one_arg_method).with_args(
-                    str_containing("abc")).then_return(1000)
+            str_containing("abc")).then_return(1000)
 
         self.assertEqual(1000, self.spy.one_arg_method(u"XabcñX"))
 
     def test_str_containing_but_matcher_not_used(self):
         when(self.spy.one_arg_method).with_args(
-                        "abc").then_return(1000)
+            "abc").then_return(1000)
 
         self.assertNotEqual(1000, self.spy.one_arg_method("XabcX"))
 
@@ -719,43 +735,43 @@ class MatchersTests(unittest.TestCase):
         self.spy.one_arg_method("XabcX")
 
         assert_that_was_called(self.spy.one_arg_method).with_args(
-                                    str_containing("abc"))
+            str_containing("abc"))
 
     def test_str_not_containing(self):
         when(self.spy.one_arg_method).with_args(
-                        str_not_containing("abc")).then_return(1000)
+            str_not_containing("abc")).then_return(1000)
 
         self.assertNotEqual(1000, self.spy.one_arg_method("abc"))
 
     def test_str_not_containing_stubs_anything_else(self):
         when(self.spy.one_arg_method).with_args(
-                        str_not_containing("abc")).then_return(1000)
+            str_not_containing("abc")).then_return(1000)
 
         self.assertEqual(1000, self.spy.one_arg_method("xxx"))
 
     def test_str_not_containing_was_called(self):
         self.spy.one_arg_method("abc")
         assert_that_was_called(self.spy.one_arg_method).with_args(
-                                str_not_containing("xxx"))
+            str_not_containing("xxx"))
 
     def test_several_matchers(self):
         when(self.spy.two_args_method).with_args(
-                        str_containing("abc"),
-                        str_containing("xxx")).then_return(1000)
+            str_containing("abc"),
+            str_containing("xxx")).then_return(1000)
 
         self.assertNotEqual(1000,
-                    self.spy.two_args_method("abc", "yyy"))
+                            self.spy.two_args_method("abc", "yyy"))
 
     def test_str_length_matcher(self):
         when(self.spy.one_arg_method).with_args(
-                        str_length(5)).then_return(1000)
+            str_length(5)).then_return(1000)
 
         self.assertEqual(1000,
-                    self.spy.one_arg_method("abcde"))
+                         self.spy.one_arg_method("abcde"))
 
     def test_matchers_when_passed_arg_is_none(self):
         when(self.spy.one_arg_method).with_args(
-                        str_length(5)).then_return(1000)
+            str_length(5)).then_return(1000)
         self.assertTrue(self.spy.one_arg_method(None) is None)
 
     def test_compare_objects_is_not_possible_without_eq_operator(self):
@@ -777,7 +793,7 @@ class MatchersTests(unittest.TestCase):
 
         try:
             assert_that_was_called(self.spy.one_arg_method).with_args(
-                                   str_containing("xxx"))
+                str_containing("xxx"))
 
         except ArgsDontMatch as e:
             self.assertTrue("xxx" in str(e.args[0]), str(e.args[0]))
@@ -798,8 +814,8 @@ class MatchersTests(unittest.TestCase):
             assert_that_method(
                 self.spy.one_arg_method).was_called().with_args(
                 obj_with_fields({
-                            'id': 20,
-                            'test_field': 'OK'}))
+                    'id': 20,
+                    'test_field': 'OK'}))
             self.fail('Wrong assertion, id field is different')
         except ArgsDontMatch:
             pass
