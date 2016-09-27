@@ -2,10 +2,6 @@
     :target: http://pypi.python.org/pypi/doublex
     :alt: Latest PyPI version
 
-.. image:: https://pypip.in/d/doublex/badge.png
-    :target: https://crate.io/packages/doublex/
-    :alt: Number of PyPI downloads
-
 .. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
     :target: https://travis-ci.org/davidvilla/python-doublex
     :alt: Travis CI status
