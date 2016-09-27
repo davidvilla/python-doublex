@@ -1,0 +1,103 @@
+doublex (1.8.2-1) unstable; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Wed, 26 Nov 2014 10:57:37 +0100
+
+doublex (1.8.1-1) unstable; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Tue, 07 Jan 2014 16:42:56 +0100
+
+doublex (1.8a-1) UNRELEASED; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Wed, 01 Jan 2014 18:15:11 +0100
+
+doublex (1.7.2-1) unstable; urgency=low
+
+  * New release
+  * [/control] using 3.9.4 standards-version
+
+ -- David Villa Alises <David.Villa@gmail.com>  Wed, 06 Nov 2013 23:40:56 +0100
+
+doublex (1.7.1-1) UNRELEASED; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Mon, 28 Oct 2013 15:19:12 +0100
+
+doublex (1.6.6-4) UNRELEASED; urgency=low
+
+  [ Jakub Wilk ]
+  * Use canonical URIs for Vcs-* fields.
+
+ -- David Villa Alises <David.Villa@gmail.com>  Mon, 28 Oct 2013 15:18:09 +0100
+
+doublex (1.6.6-2) unstable; urgency=low
+
+  * [/control] python3:Depends for python3-doublex
+
+ -- David Villa Alises <David.Villa@gmail.com>  Sat, 27 Apr 2013 21:05:27 +0200
+
+doublex (1.6.6-1) UNRELEASED; urgency=low
+
+  * New release
+  * [/control] python3 support
+
+ -- David Villa Alises <David.Villa@gmail.com>  Sat, 27 Apr 2013 19:58:24 +0200
+
+doublex (1.6.5-1) UNRELEASED; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Thu, 25 Apr 2013 09:28:52 +0200
+
+doublex (1.6.3-2) UNRELEASED; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Mon, 18 Feb 2013 13:44:35 +0100
+
+doublex (1.6.1-1) UNRELEASED; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Thu, 07 Feb 2013 14:10:36 +0100
+
+doublex (1.6-1) UNRELEASED; urgency=low
+
+  * New release
+  * [/control] python3 support
+
+ -- David Villa Alises <David.Villa@gmail.com>  Thu, 10 Jan 2013 13:34:34 +0100
+
+doublex (1.5.1-1) unstable; urgency=low
+
+  * New release
+  * First official release: (Closes: #688979)
+  * debian/rules: clone specific version tag
+  * debian/watch added
+
+ -- David Villa Alises <David.Villa@gmail.com>  Thu, 25 Oct 2012 16:03:44 +0200
+
+doublex (1.5-1) UNRELEASED; urgency=low
+
+  * Release to substitute pyDoubles
+  * [/control] New description
+
+ -- David Villa Alises <David.Villa@gmail.com>  Tue, 09 Oct 2012 12:00:05 +0200
+
+doublex (0.6.3-1) UNRELEASED; urgency=low
+
+  * New release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Wed, 03 Oct 2012 15:31:42 +0200
+
+doublex (0.6.2-1) UNRELEASED; urgency=low
+
+  * Initial release
+
+ -- David Villa Alises <David.Villa@gmail.com>  Fri, 28 Sep 2012 14:04:37 +0200

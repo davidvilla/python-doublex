@@ -1,0 +1,55 @@
+This work was packaged for Debian by:
+
+    David Villa Alises <David.Villa@gmail.com> on Mon,  3 Sep 2012 18:00:00 +0100
+
+It was downloaded from:
+
+    https://bitbucket.org/DavidVilla/python-doublex
+
+Upstream Author:
+
+    David Villa Alises <David.Villa@gmail.com>
+
+
+Copyright:
+
+    Copyright (C) 2012     David Villa Alises <David.Villa@gmail.com>
+
+
+License:
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This package is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+On Debian systems, the complete text of the GNU General
+Public License version 3 can be found in `/usr/share/common-licenses/GPL-3'.
+
+
+Legacy pyDoubles tests (test/pyDoubles/*) copyright by:
+
+    Carlos Ble Jurado <ble.jurado@gmail.com>
+    www.iExpertos.com
+
+License:
+
+    Apache 2.0
+
+On Debian systems, the complete text of the GNU General
+Public License version 3 can be found in `/usr/share/common-licenses/Apache-2.0'.
+
+
+The Debian packaging is:
+
+    Copyright (C) 2012 David Villa Alises <David.Villa@gmail.com>
+
+and is licensed under the GPL version 3, see above.
