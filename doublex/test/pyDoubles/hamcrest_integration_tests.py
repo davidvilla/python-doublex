@@ -75,8 +75,8 @@ class HamcrestIntegrationTest(unittest.TestCase):
             assert_that_method(self.spy.one_arg_method).was_called().with_args(
                 starts_with('tt'))
         except ArgsDontMatch as e:
-            self.assertTrue("tt" in str(e.args))
-            self.assertTrue("string starting" in str(e.args))
+            self.assertTrue("tt" in str(e.args[0]))
+            self.assertTrue("string starting" in str(e.args[0]))
 
 
 if __name__ == "__main__":

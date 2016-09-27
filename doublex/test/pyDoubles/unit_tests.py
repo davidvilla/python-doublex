@@ -319,7 +319,7 @@ class ProxySpyTests(unittest.TestCase):
             self.fail("Should have been called 2 times")
         except UnexpectedBehavior as e:
             for arg in e.args:
-                if re.search("5", arg) and re.search("one_arg_method", arg):
+                if re.search("5", str(arg)) and re.search("one_arg_method", str(arg)):
                     return
             self.fail("No enough readable exception message")
 
@@ -487,7 +487,7 @@ class MockTests(unittest.TestCase):
             self.mock.hello()
         except UnexpectedBehavior as e:
             for arg in e.args:
-                if re.search("No one", arg):
+                if re.search("No one", str(arg)):
                     return
             self.fail("No enough readable exception message")
 
@@ -780,8 +780,8 @@ class MatchersTests(unittest.TestCase):
                                    str_containing("xxx"))
 
         except ArgsDontMatch as e:
-            self.assertTrue("xxx" in str(e.args), str(e.args))
-            self.assertTrue("string containing" in str(e.args))
+            self.assertTrue("xxx" in str(e.args[0]), str(e.args[0]))
+            self.assertTrue("string containing" in str(e.args[0]))
 
     def test_obj_with_field_matcher(self):
         obj = Collaborator()
