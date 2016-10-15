@@ -1,0 +1,169 @@
+[migrated]
+
+<pre class="python">class SimpleExample(unittest.TestCase):
+   def test_ask_the_sender_to_send_the_report(self):
+        sender = spy(Sender())
+        service = SavingsService(sender)
+
+        service.analyze_month()
+        assert_that_method(sender.send_email).was_called(
+                        ).with_args('reports@x.com', ANY_ARG)</pre>
+<h3>Import the framework in your tests</h3>
+<pre class="python">import unittest
+from doublex.pyDoubles import *</pre>
+If you are afraid of importing everything from the pyDoubles.framework module, you can use custom imports, although it has been carefully designed to not conflict with your own classes.
+<pre class="python">import unittest
+from doublex.pyDoubles import stub, spy, mock
+from doublex.pyDoubles import when, expect_call, assert_that_method
+from doublex.pyDoubles import method_returning, method_raising</pre>
+You can import <a href="http://code.google.com/p/hamcrest/">Hamcrest</a> matchers which are fully supported:
+<pre class="python">from hamcrest import *</pre>
+<h3>Which doubles do you need?</h3>
+You can choose to stub out a method in a regular object instance, to stub the whole object, or to create three types of spies and two types of mock objects.
+<h4>Stubs</h4>
+There are several ways to stub out methods.
+<h5>Stub out a single method</h5>
+If you just need to replace a single method in the collaborator object and you don't care about the input parameters, you can stub out just that single method:
+<pre class="python">collaborator = Collaborator() # create the actual object
+collaborator.some_calculation = method_returning(10)</pre>
+Now, when your production code invokes the method "some_calculation" in the collaborator object, the framework will return 10, no matter what parameters are passed in as the input.
+
+If you want the method to raise an exception when called use this:
+<pre class="python">collaborator.some_calculation = method_raising(ApplicationException())</pre>
+You can pass in any type of exception.
+<h5>Stub out the whole object</h5>
+Now the collaborator instance won't be the actual object but a replacement.
+<pre class="python">collaborator = stub(Collaborator())</pre>
+Any method will return "None" when called with any input parameters.
+If you want to change the return value you can use the "when" sentence:
+<pre class="python">when(collaborator.some_calculation).then_return(10)</pre>
+Now, when your production code invokes "some_calculation" method, the stub will return 10, no matter what arguments are passed in.
+You can also specify different return values depending on the input:
+<pre class="python">when(collaborator.some_calculation).with_args(5).then_return(10)
+when(collaborator.some_calculation).with_args(10).then_return(20)</pre>
+This means that "collaborator.some_calculation(5)" will return 10, and that it will return 20 when the input is 10. You can define as many input/output specifications as you want.
+<pre class="python">when(collaborator.some_calculation).with_args(5).then_return(10)
+when(collaborator.some_calculation).then_return(20)</pre>
+This time, "collaborator.some_calculation(5)" will return 10, and it will return 20 in any other case.
+<h5>Any argument matches</h5>
+The special keyword ANY_ARG is a wildcard for any argument in the
+stubbed method:
+<pre class="python">when(collaborator.some_other_method).with_args(5, ANY_ARG).then_return(10)</pre>
+The method "some_other_method" will return 10 as long as the first parameter is 5, no matter what the second parameter is. You can use any combination of "ANY_ARG" arguments. But remember that if all of them are ANY, you shouldn't specify the arguments, just use this:
+<pre class="python">when(collaborator.some_other_method).then_return(10)</pre>
+It is also possible to make the method return exactly the first parameter passed in:
+<pre class="python">when(collaborator.some_other_method).then_return_input()</pre>
+So this call: collaborator.some_other_method(10) wil return 10.
+<h5><a name="matchers"></a>Matchers</h5>
+You can also specify that arguments will match a certain function. Say that you want to return a value only if the input argument contains the substring "abc":
+<pre class="python">when(collaborator.some_method).with_args(
+        str_containing("abc")).then_return(10)</pre>
+In the last release, pyDoubles matchers are just aliases for the hamcrest counterparts. See <a href="http://www.pydoubles.org/release-notes/#release-1.5">release notes</a>.
+<h5>Hamcrest Matchers</h5>
+Since pyDoubles v1.2, we fully support <a href="http://code.google.com/p/hamcrest/">Hamcrest</a> matchers.
+They are used exactly like pyDoubles matchers:
+<pre class="python">from hamcrest import *
+from doublex.pyDoubles import *
+
+    def test_has_entry_matcher(self):
+        list = {'one':1, 'two':2}
+        when(self.spy.one_arg_method).with_args(
+            has_entry(equal_to('two'), 2)).then_return(1000)
+        assert_that(1000, equal_to(self.spy.one_arg_method(list)))
+
+    def test_all_of_matcher(self):
+        text = 'hello'
+        when(self.spy.one_arg_method).with_args(
+            all_of(starts_with('h'), instance_of(str))).then_return(1000)
+        assert_that(1000, equal_to(self.spy.one_arg_method(text)))</pre>
+Note that the tests above are just showhing the pyDoubles framework working together with Hamcrest, they are not good examples of unit tests for your production code.
+The method assert_that comes from Hamcrest, as well as the matchers: has_entry, equal_to, all_of, starts_with, instance_of.
+Notice that all_of and any_of, allow you to define more than one matcher for a single argument, which is really powerful.
+For more informacion on matchers, read <a href="http://www.rubenbernardez.com/blog/2011/07/pydoubles-v1-2-released-hamcrest-compatibility/">this blog post</a>.
+<h5>Stub out the whole unexisting object</h5>
+If the Collaborator class does not exist yet, or you don't want the framework to check that the call to the stub object method matches the actual API in the actual object, you can use an "empty" stub.
+<pre class="python">collaborator = empty_stub()
+when(collaborator.alpha_operation).then_return("whatever")</pre>
+The framework is creating the method "alpha_operation" dynamically
+and making it return "whatever".
+
+The use of empty_stub, empty_spy or empty_mock is not recommended because you lose the API match check. We only use them as the construction of the object is too complex among other circumstances.
+<h4>Spies</h4>
+Please read the documentation above about stubs, because the API to
+define method behaviors is the same for stubs and spies. To create
+the object:
+<pre class="python">collaborator = spy(Collaborator())</pre>
+After the execution of the system under test, we want to validate
+that certain call was made:
+<pre class="python">assert_that_method(collaborator.send_email).was_called()</pre>
+That will make the test pass if method "send_email" was invoked one or more times, no matter what arguments were passed in.
+We can also be precise about the arguments:
+<pre class="python">assert_that_method(collaborator.send_email).was_called().with_args("example@iexpertos.com")</pre>
+Notice that you can combine the "when" statement with the called assertion:
+<pre class="python">def test_sut_asks_the_collaborator_to_send_the_email(self):
+   sender = spy(Sender())
+   when(sender.send_email).then_return(SUCCESS)
+   object_under_test = Sut(sender)
+
+   object_under_test.some_action()
+
+   assert_that_method(
+ sender.send_email).was_called().with_args("example@iexpertos.com")</pre>
+Any other call to any method in the "sender" double will return "None" and will not interrupt the test. We are not telling all that happens between the sender and the SUT, we are just asserting on what we want to verify.
+
+The ANY_ARG matcher can be used to verify the call as well:
+<pre class="python">assert_that_method(collaborator.some_other_method).was_called().with_args(5, ANY_ARG)</pre>
+Matchers can also be used in the assertion:
+<pre class="python">assert_that_method(collaborator.some_other_method).was_called().with_args(5, str_containing("abc"))</pre>
+It is also possible to assert that wasn't called using:
+<pre class="python">assert_that_method(collaborator.some_method).was_never_called()</pre>
+You can assert on the number of times a call was made:
+<pre class="python">assert_that_method(collaborator.some_method).was_called().times(2)
+assert_that_method(collaborator.some_method).was_called(
+     ).with_args(SOME_VALUE, OTHER_VALUE).times(2)</pre>
+You can also create an "empty_spy" to not base the object in a
+certain instance:
+<pre class="python">sender = empty_spy()</pre>
+<h5>The ProxySpy</h5>
+There is a special type of spy supported by the framework which
+is the ProxySpy:
+<pre class="python">collaborator = proxy_spy(Collaborator())</pre>
+The proxy spy will record any call made to the object but rather than replacing the actual methods in the actual object, it will execute them. So the actual methods in the Collaborator will be invoked by default. You can replace the methods one by one using the "when" statement:
+<pre class="python">when(collaborator.some_calculation).then_return(1000)</pre>
+Now "some_calculation" method will be a stub method but the remaining methods in the class will be the regular implementation.
+
+The ProxySpy might be interesting when you don't know what the actual method will return in a given scenario, but still you want to check that some call is made. It can be used for debugging purposes.
+<h4>Mocks</h4>
+Before calls are made, they have to be expected:
+<pre class="python">def test_sut_asks_the_collaborator_to_send_the_email(self):
+   sender = mock(Sender())
+   expect_call(sender.send_email)
+   object_under_test = Sut(sender)
+
+   object_under_test.some_action()
+
+   sender.assert_that_is_satisfied()</pre>
+The test is quite similar to the one using a spy. However the framework behaves different. If any other call to the sender is made during "some_action", the test will fail. This makes the test more fragile. However, it makes sure that this interaction is the only one between the two objects, and this might be important for you.
+<h5>More precise expectations</h5>
+You can also expect the call to have certain input parameters:
+<pre class="python">expect_call(sender.send_email).with_args("example@iexpertos.com")</pre>
+<h5>Setting the return of the expected call</h5>
+Additionally, if you want to return anything when the expected call
+occurs, there are two ways:
+<pre class="python">expect_call(sender.send_email).returning(SUCCESS)</pre>
+Which will return SUCCESS whatever arguments you pass in, or
+<pre class="python">expect_call(sender.send_email).with_args("wrong_email").returning(FAILURE)</pre>
+Which expects the method to be invoked with "wrong_email" and will return FAILURE.
+
+Mocks are strict so if you expect the call to happen several times, be explicit with that:
+<pre class="python">expect_call(sender.send_email).times(2)</pre>
+<pre class="python">expect_call(sender.send_email).with_args("admin@iexpertos.com").times(2)</pre>
+Make sure the "times" part is at the end of the sentence:
+<pre class="python">expect_call(sender.send_email).with_args("admin@iexpertos.com").returning('OK').times(2)</pre>
+As you might have seen, the "when" statement is not used for mocks, only for stubs and spies. Mock objects use the "expect_call" syntax together with the "assert_that_is_satisfied"
+(instance method).
+<h3>More documentation</h3>
+The best and most updated documentation are the unit tests of the framework itself. We encourage the user to read the tests and see what features are supported in every commit into the source code repository:
+<a href="https://bitbucket.org/DavidVilla/python-doublex/src/tip/test/pyDoubles/unit_tests.py">pyDoublesTests/unit.py</a>
+
+You can also read about what's new in every release in <a href="http://www.iexpertos.com/blog?cat=10">the blog</a>

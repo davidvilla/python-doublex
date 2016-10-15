@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+
+APP=doublex
+VERSION=$(shell head -n 1 debian/changelog | cut -f2 -d " " | tr -d "()" | cut -f1 -d "-")
+
+ORIG_REPO=hg clone http://bitbucket.org/DavidVilla/python-doublex -r v$(VERSION)
+ORIG_DIR=$(APP)-$(VERSION)
+EXCLUDE=--exclude=debian --exclude=\*~ --exclude=.hg --exclude=.svn --exclude=\*.pyc
+
+# http://wiki.debian.org/Python/LibraryStyleGuide
+
+PYTHON2=$(shell pyversions -vr)
+PYTHON3=$(shell py3versions -vr)
+
+%:
+	dh $@ --with python2,python3
+
+
+build-python%:
+	python$* setup.py build
+
+override_dh_auto_build: $(PYTHON3:%=build-python%)
+	dh_auto_build
+
+install-python%:
+	python$* setup.py install --root=$(CURDIR)/debian/tmp --install-layout=deb
+
+override_dh_auto_install: $(PYTHON3:%=install-python%)
+	dh_auto_install
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build
+	rm -rf *.egg-info
+
+get-orig-source:
+	$(ORIG_REPO) $(ORIG_DIR)
+	tar $(EXCLUDE) -czf $(APP)_$(VERSION).orig.tar.gz $(ORIG_DIR)
+	$(RM) -r $(ORIG_DIR)
