@@ -1,0 +1,49 @@
+Source: doublex
+Section: python
+Priority: optional
+Maintainer: David Villa Alises <David.Villa@gmail.com>
+Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
+Build-Depends:
+ debhelper (>= 7.0.50),
+ python-all (>= 2.6.6-3),
+ python-setuptools (>= 0.6b3),
+ python3-all,
+ python3-setuptools
+Standards-Version: 3.9.6
+X-Python-Version: >= 2.6
+Homepage: https://bitbucket.org/DavidVilla/python-doublex
+Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/doublex/trunk/
+Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/doublex/trunk/
+
+
+Package: python-doublex
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, python-hamcrest
+Replaces: python-pydoubles
+Description: test doubles framework for Python 2
+ doublex is a test doubles framework for the Python unittest module. It may be
+ used as a effective tool to perform Test Driven Development.
+ .
+ It provides stubs, spies, proxy-spies, mocks, individual methods, properties,
+ etc. Methods support observer attachment or delegate return value generation
+ to iterables, generators or even third party functions. A special double
+ factory (called Mimic) allows one to create doubles inheriting original class
+ superclasses. This provides replacements for the original instances even for
+ code performing explicit type checking.
+ .
+ doublex supersedes pyDoubles and it provides its legacy API as a wrapper.
+
+
+Package: python3-doublex
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}, python3-hamcrest
+Description: test doubles framework for Python 3
+ doublex is a test doubles framework for the Python unittest module. It may be
+ used as a effective tool to perform Test Driven Development.
+ .
+ It provides stubs, spies, proxy-spies, mocks, individual methods, properties,
+ etc. Methods support observer attachment or delegate return value generation
+ to iterables, generators or even third party functions. A special double
+ factory (called Mimic) allows one to create doubles inheriting original class
+ superclasses. This provides replacements for the original instances even for
+ code performing explicit type checking.
