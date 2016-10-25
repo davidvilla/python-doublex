@@ -76,6 +76,7 @@ related
 
 * `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
 * `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
+* `doublex-expects  <https://pypi.python.org/pypi/doublex-expects>`_
 * `crate            <https://crate.io/packages/doublex/>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
 * `ludibrio         <https://pypi.python.org/pypi/ludibrio>`_
