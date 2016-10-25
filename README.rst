@@ -2,16 +2,17 @@
     :target: http://pypi.python.org/pypi/doublex
     :alt: Latest PyPI version
 
-.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
-    :target: https://travis-ci.org/davidvilla/python-doublex
-    :alt: Travis CI status
+
+.. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000 
+    :alt: License
 
 .. image:: https://img.shields.io/pypi/pyversions/doublex.png?maxAge=2592000   
     :target: http://pypi.python.org/pypi/doublex
     :alt: Supported Python Versions
 
-.. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000 
-    :alt: License
+.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
+    :target: https://travis-ci.org/davidvilla/python-doublex
+    :alt: Travis CI status
 
 Powerful test doubles framework for Python
 
