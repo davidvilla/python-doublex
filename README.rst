@@ -2,16 +2,17 @@
     :target: http://pypi.python.org/pypi/doublex
     :alt: Latest PyPI version
 
-.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
-    :target: https://travis-ci.org/davidvilla/python-doublex
-    :alt: Travis CI status
+
+.. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000 
+    :alt: License
 
 .. image:: https://img.shields.io/pypi/pyversions/doublex.png?maxAge=2592000   
     :target: http://pypi.python.org/pypi/doublex
     :alt: Supported Python Versions
 
-.. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000 
-    :alt: License
+.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
+    :target: https://travis-ci.org/davidvilla/python-doublex
+    :alt: Travis CI status
 
 Powerful test doubles framework for Python
 
@@ -23,7 +24,8 @@ Powerful test doubles framework for Python
 `sources   <https://bitbucket.org/DavidVilla/python-doublex>`_ |
 `issues    <https://bitbucket.org/DavidVilla/python-doublex/issues>`_ |
 `PyPI      <http://pypi.python.org/pypi/doublex>`_ |
-`buildbot  <http://fowler.esi.uclm.es:8010/builders/doublex>`_
+`github clone <https://github.com/davidvilla/python-doublex>`_ |
+`travis  <https://travis-ci.org/davidvilla/python-doublex>`_
 ]
 
 
@@ -58,14 +60,14 @@ Features
 * ``assert_that()`` is used for ALL assertions.
 * mock invocation order is relevant by default.
 * supports old and new style classes.
-* **supports Python versions: 2.6, 2.7, 3.2, 3.3, 3.4**
+* **supports Python versions: 2.6, 2.7, 3.3, 3.4, 3.5**
 
 
 Debian
 ^^^^^^
 
 * `official package <http://packages.debian.org/source/sid/doublex>`_ (may be outdated)
-* amateur repository: ``deb http://babel.esi.uclm.es/arco/ sid main`` (always updated)
+* amateur repository: ``deb http://pike.esi.uclm.es/arco/ sid main`` (always updated)
 * `official ubuntu package  <https://launchpad.net/ubuntu/+source/doublex>`_
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
 
@@ -75,8 +77,8 @@ related
 
 * `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
 * `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
+* `doublex-expects  <https://pypi.python.org/pypi/doublex-expects>`_
 * `crate            <https://crate.io/packages/doublex/>`_
-* `github clone     <https://github.com/davidvilla/python-doublex>`_
 * `other doubles    <http://garybernhardt.github.io/python-mock-comparison/>`_
 * `ludibrio         <https://pypi.python.org/pypi/ludibrio>`_
 * `doubles          <https://github.com/uber/doubles>`_
