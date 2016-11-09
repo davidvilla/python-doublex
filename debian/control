@@ -9,7 +9,7 @@ Build-Depends:
  python-setuptools (>= 0.6b3),
  python3-all,
  python3-setuptools
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 X-Python-Version: >= 2.6
 Homepage: https://bitbucket.org/DavidVilla/python-doublex
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/doublex/trunk/
