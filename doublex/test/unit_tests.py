@@ -53,7 +53,7 @@ from doublex import (
     )
 
 from doublex.matchers import MatcherRequiredError
-from doublex.internal import InvocationContext
+from doublex.internal import InvocationContext, Method
 
 
 class InvocationContextTests(TestCase):

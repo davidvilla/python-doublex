@@ -15,8 +15,6 @@ def local_open(fname):
 
 exec(local_open('version.py').read())
 
-packages = [x for x in find_packages() if 'test' not in x]
-
 config = dict(
     name             = 'doublex',
     version          = __version__,
@@ -25,7 +23,7 @@ config = dict(
     author           = 'David Villa Alises',
     author_email     = 'David.Villa@gmail.com',
     url              = 'https://bitbucket.org/DavidVilla/python-doublex',
-    packages         = packages,
+    packages         = find_packages(),
     data_files       = [('', ['README.rst'])],
     test_suite       = 'doublex.test',
     license          = 'GPLv3',

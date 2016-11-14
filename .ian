@@ -7,3 +7,7 @@ function ian-release-hook() {
     sc-assert-files-exist version.py
     echo "__version__ = '$version'" > version.py
 }
+
+function ian-clean-hook() {
+	rm -rf .tox
+}
