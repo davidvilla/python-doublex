@@ -35,6 +35,8 @@ def local_open(fname):
 
 exec(local_open('version.py').read())
 
+print(find_packages())
+
 config = dict(
     name             = 'doublex',
     version          = __version__,
@@ -43,7 +45,7 @@ config = dict(
     author           = 'David Villa Alises',
     author_email     = 'David.Villa@gmail.com',
     url              = 'https://bitbucket.org/DavidVilla/python-doublex',
-    packages         = find_packages(),
+    packages         = ['doublex'],
     data_files       = [('', ['README.rst'])],
     test_suite       = 'doublex.test',
     license          = 'GPLv3',
@@ -69,7 +71,6 @@ config = dict(
 
 if sys.version_info >= (3,):
     config.update(dict(
-        use_2to3 = True,
         test_suite = 'doublex.test3',
     ))
 

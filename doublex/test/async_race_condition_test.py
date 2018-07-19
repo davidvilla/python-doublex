@@ -3,7 +3,12 @@
 # All bugs by Oscar Aceña <oscar.acena@gmail.com>
 
 import time
-import thread
+
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
 import unittest
 
 from doublex import ProxySpy, assert_that, called

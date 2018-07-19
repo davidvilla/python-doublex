@@ -22,7 +22,10 @@
 import sys
 import itertools
 import threading
-import thread
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 
 if sys.version_info >= (2, 7):
     from unittest import TestCase

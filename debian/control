@@ -18,7 +18,7 @@ Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/doublex/tr
 
 Package: python-doublex
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-hamcrest
+Depends: ${misc:Depends}, ${python:Depends}, python-hamcrest, python-six
 Replaces: python-pydoubles
 Description: test doubles framework for Python 2
  doublex is a test doubles framework for the Python unittest module. It may be
@@ -36,7 +36,7 @@ Description: test doubles framework for Python 2
 
 Package: python3-doublex
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, python3-hamcrest
+Depends: ${misc:Depends}, ${python3:Depends}, python3-hamcrest, python3-six
 Description: test doubles framework for Python 3
  doublex is a test doubles framework for the Python unittest module. It may be
  used as a effective tool to perform Test Driven Development.

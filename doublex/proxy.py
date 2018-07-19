@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-
+import sys
 import inspect
 
 try:
@@ -27,6 +27,13 @@ except ImportError:
     from .py27_backports import getcallargs
 
 from .internal import ANY_ARG
+
+
+def get_func(func):
+    if sys.version_info >= (3, 4):
+        return func.__func__
+    else:
+        return func.im_func
 
 
 def create_proxy(collaborator):
@@ -59,7 +66,8 @@ class Proxy(object):
     def is_method_or_func(self, method_name):
         func = getattr(self.collaborator, method_name)
         if inspect.ismethod(func):
-            func = func.im_func
+            func = get_func(func)
+            # func = func.im_func
         return inspect.isfunction(func)
 
 

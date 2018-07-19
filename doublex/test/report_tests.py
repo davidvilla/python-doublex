@@ -26,7 +26,7 @@ from nose.tools import nottest
 
 import doublex
 from doublex.internal import Invocation, InvocationContext
-from unit_tests import ObjCollaborator
+from .unit_tests import ObjCollaborator
 
 
 def create_invocation(name, args=None, kargs=None, retval=None):

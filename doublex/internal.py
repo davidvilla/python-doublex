@@ -2,7 +2,7 @@
 
 # doublex
 #
-# Copyright © 2012,2013,2014 David Villa Alises
+# Copyright © 2012-2018 David Villa Alises
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 
 import threading
 import collections
+import functools
+import six
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
@@ -190,7 +192,7 @@ class Invocation(object):
             return
 
         try:
-            self.__delegate = iter(delegate).next
+            self.__delegate = functools.partial(six.next, iter(delegate))
         except TypeError:
             reason = "delegates() must be called with callable or iterable instance (got '%s' instead)" % delegate
             raise WrongApiUsage(reason)
@@ -414,7 +416,7 @@ class InvocationFormatter(object):
 
     @classmethod
     def _format_value(cls, arg):
-        if isinstance(arg, unicode):
+        if isinstance(arg, six.text_type):
             arg = get_string(arg)
 
         if isinstance(arg, (int, str, dict)):
