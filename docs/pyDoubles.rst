@@ -2,6 +2,9 @@
 pyDoubles
 =========
 
+**IMPORTANT: pyDoubles support is removed since version 1.9.**
+
+
 ``doublex`` started as a attempt to improve and simplify the codebase and API of the
 `pyDoubles <https://bitbucket.org/carlosble/pydoubles>`_ framework (by Carlos Ble).
 
