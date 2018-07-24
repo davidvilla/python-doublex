@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import sys
 import time
 import hamcrest
 from hamcrest.core.matcher import Matcher
@@ -126,13 +127,17 @@ class MethodCalled(OperationMatcher):
         self.context.check_some_args = True
         return self
 
-    def async(self, timeout):
+    def _async(self, timeout):
         self._async_timeout = timeout
         return self
 
     def times(self, n):
         self._times = n
         return self
+
+
+if sys.version_info < (3, 7):
+    setattr(MethodCalled, 'async', MethodCalled._async)
 
 
 def called():

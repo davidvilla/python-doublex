@@ -1,3 +1,10 @@
+doublex (1.9.1-1) unstable; urgency=low
+
+  * New release
+  * Python3.7 support
+
+ -- David Villa Alises <David.Villa@gmail.com>  Tue, 24 Jul 2018 10:47:21 +0200
+
 doublex (1.9.0-1) unstable; urgency=low
 
   * New release
