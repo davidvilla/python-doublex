@@ -3,10 +3,10 @@
     :alt: Latest PyPI version
 
 
-.. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000 
+.. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000
     :alt: License
 
-.. image:: https://img.shields.io/pypi/pyversions/doublex.png?maxAge=2592000   
+.. image:: https://img.shields.io/pypi/pyversions/doublex.png?maxAge=2592000
     :target: http://pypi.python.org/pypi/doublex
     :alt: Supported Python Versions
 
@@ -60,7 +60,7 @@ Features
 * ``assert_that()`` is used for ALL assertions.
 * mock invocation order is relevant by default.
 * supports old and new style classes.
-* **supports Python versions: 2.6, 2.7, 3.3, 3.4, 3.5**
+* **supports Python versions: 2.6, 2.7, 3.3, 3.4, 3.5. 3.6, 3.7**
 
 
 Debian
