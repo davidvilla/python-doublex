@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2012 - 2018 David Villa Alises
+# Copyright (C) 2012-2018 David Villa Alises
 #
 #
 # This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,6 @@ def local_open(fname):
 
 
 exec(local_open('version.py').read())
-
-print(find_packages())
 
 config = dict(
     name             = 'doublex',
