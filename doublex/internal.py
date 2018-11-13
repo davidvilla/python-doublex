@@ -92,6 +92,7 @@ class Observable(object):
 class Method(Observable):
     def __init__(self, double, name):
         super(Method, self).__init__()
+        # FIXME: assert isinstance(double, Stub)
         self.double = double
         self.name = name
         self.__name__ = name
