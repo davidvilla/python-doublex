@@ -201,14 +201,12 @@ class Invocation(object):
     def returns(self, value):
         self.context.retval = value
         self.delegates(func_returning(value))
-        return self
 
     def returns_input(self):
         if not self.context.args:
             raise TypeError("%s has no input args" % self)
 
         self.delegates(func_returning_input(self))
-        return self
 
     def raises(self, e):
         self.delegates(func_raising(e))

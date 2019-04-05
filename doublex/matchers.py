@@ -98,7 +98,7 @@ class MethodCalled(OperationMatcher):
 
         if self._async_timeout:
             if self._times != any_time:
-                raise WrongApiUsage("'times' and 'async' are exclusive")
+                raise WrongApiUsage("'times' and 'async_mode' are exclusive")
             self.method._event.wait(self._async_timeout)
 
         return method._was_called(self.context, self._times)
@@ -127,7 +127,7 @@ class MethodCalled(OperationMatcher):
         self.context.check_some_args = True
         return self
 
-    def _async(self, timeout):
+    def async_mode(self, timeout):
         self._async_timeout = timeout
         return self
 
@@ -136,8 +136,9 @@ class MethodCalled(OperationMatcher):
         return self
 
 
+#  backward compatibility
 if sys.version_info < (3, 7):
-    setattr(MethodCalled, 'async', MethodCalled._async)
+    setattr(MethodCalled, 'async', MethodCalled.async_mode)
 
 
 def called():

@@ -1,3 +1,10 @@
+20190405
+========
+
+- Release 1.9.2
+- async() matcher is available as async_mode() for python3.7 and newer
+
+
 20141126
 ========
 

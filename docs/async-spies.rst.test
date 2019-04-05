@@ -1,4 +1,4 @@
-.. _async:
+.. async_mode:
 
 Asynchronous spies
 ==================
@@ -86,7 +86,7 @@ barrier. If the ``write()`` invocation never happens, the ``barrier.wait()`` con
 after 1 second but the test fails, as must do. When all is right, the barrier waits just
 the required time.
 
-Well, this mechanism is a doublex builtin (the ``async`` matcher) since release 1.5.1
+Well, this mechanism is a doublex builtin (the ``async_mode`` matcher) since release 1.5.1
 providing the same behavior in a clearer way. The next is functionally equivalent to the
 listing just above:
 
@@ -104,7 +104,7 @@ listing just above:
            sut.some_method()
 
            # then
-           assert_that(spy.write, called().async(timeout=1))
+           assert_that(spy.write, called().async_mode(timeout=1))
 
 
 .. Local Variables:

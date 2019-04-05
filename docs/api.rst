@@ -86,7 +86,7 @@ for Spy methods
 
    See :ref:`called`.
 
-.. py:method:: called.async(timeout)
+.. py:method:: called.async_mode(timeout)
 
    The ``called`` assertion waits the corresponding invocation a maximum of `timeout`
    seconds.
@@ -95,9 +95,9 @@ for Spy methods
 
    ::
 
-       assert_that(spy.method, called().async(1))
+       assert_that(spy.method, called().async_mode(1))
 
-   See :ref:`async`.
+   See :ref:`async_mode`.
 
 
 .. py:method:: called.times(value)

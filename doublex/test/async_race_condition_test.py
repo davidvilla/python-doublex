@@ -41,4 +41,4 @@ class AsyncTests(unittest.TestCase):
         sut.some_method()
 
         # then
-        assert_that(spy.write, called()._async(1))
+        assert_that(spy.write, called().async_mode(1))

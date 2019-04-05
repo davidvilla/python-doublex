@@ -1345,7 +1345,7 @@ class AsyncTests(TestCase):
         sut.send_data()
 
         # then
-        assert_that(spy.write, called()._async(timeout=1))
+        assert_that(spy.write, called().async_mode(timeout=1))
 
     def test_spy_async_support_1_call_only(self):
         # given
@@ -1358,7 +1358,7 @@ class AsyncTests(TestCase):
 
         # then
         with self.assertRaises(WrongApiUsage):
-            assert_that(spy.write, called()._async(timeout=1).with_args(3).times(2))
+            assert_that(spy.write, called().async_mode(timeout=1).with_args(3).times(2))
 
     def test_spy_async_stubbed(self):
         # given
@@ -1371,7 +1371,7 @@ class AsyncTests(TestCase):
         sut.send_data(3)
 
         # then
-        assert_that(spy.write, called()._async(timeout=1))
+        assert_that(spy.write, called().async_mode(timeout=1))
 
 
 # new on 1.7
