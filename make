@@ -28,7 +28,7 @@ wiki:
 
 push:
 	git push
-	git push git@github.com:davidvilla/python-doublex.git
+	git push --tags git@github.com:davidvilla/python-doublex.git
 
 clean:
 	find . -name *.pyc -delete
