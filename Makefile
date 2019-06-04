@@ -3,6 +3,7 @@
 
 URL_AUTH=svn+ssh://${ALIOTH_USER}@svn.debian.org/svn/python-modules/packages/doublex/trunk
 URL_ANON=svn://svn.debian.org/svn/python-modules/packages/doublex/trunk
+GITHUB=git@github.com:davidvilla/python-doublex.git
 
 debian:
 	if [ ! -z "$${ALIOTH_USER}" ]; then \
@@ -28,7 +29,9 @@ wiki:
 
 push:
 	git push
-	git push --tags git@github.com:davidvilla/python-doublex.git
+	git push ${GITHUB}
+	git push --tags ${GITHUB}
+
 
 clean:
 	find . -name *.pyc -delete
