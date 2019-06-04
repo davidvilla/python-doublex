@@ -26,6 +26,10 @@ doctests:
 wiki:
 	hg clone ssh://hg@bitbucket.org/DavidVilla/python-doublex/wiki
 
+push:
+	git push
+	git push git@github.com:davidvilla/python-doublex.git
+
 clean:
 	find . -name *.pyc -delete
 	find . -name *.pyo -delete
