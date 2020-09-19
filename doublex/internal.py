@@ -32,6 +32,10 @@ try:
 except ImportError:
     from .py27_backports import total_ordering
 
+try:
+    from collections.abc import Callable, Mapping
+except ImportError:
+    from collections import Callable, Mapping
 
 from .safeunicode import get_string
 
@@ -184,11 +188,11 @@ class Invocation(object):
         return Invocation(double, name, InvocationContext(*args, **kargs))
 
     def delegates(self, delegate):
-        if isinstance(delegate, collections.Callable):
+        if isinstance(delegate, Callable):
             self.__delegate = delegate
             return
 
-        if isinstance(delegate, collections.Mapping):
+        if isinstance(delegate, Mapping):
             self.__delegate = delegate.get
             return
 
