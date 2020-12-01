@@ -66,8 +66,8 @@ Features
 Debian
 ^^^^^^
 
+* amateur repository: ``deb https://uclm-arco.github.io/debian sid main`` (always updated)
 * `official package <http://packages.debian.org/source/sid/doublex>`_ (may be outdated)
-* amateur repository: ``deb http://pike.esi.uclm.es/arco/ sid main`` (always updated)
 * `official ubuntu package  <https://launchpad.net/ubuntu/+source/doublex>`_
 * debian dir: ``svn://svn.debian.org/svn/python-modules/packages/doublex/trunk``
 
