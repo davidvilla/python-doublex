@@ -24,14 +24,15 @@ docs:
 doctests:
 	$(MAKE) -C doctests
 
-wiki:
-	hg clone ssh://hg@bitbucket.org/DavidVilla/python-doublex/wiki
-
 push:
 	git push
 	git push ${GITHUB}
 	git push --tags ${GITHUB}
 
+pypi-release:
+	$(RM) -f dist
+	python3 setup.py sdist
+	twine upload dist/*
 
 clean:
 	find . -name *.pyc -delete
