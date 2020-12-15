@@ -1733,6 +1733,18 @@ class function_doubles(TestCase):
     #     assert_that(stub("hello"), is_("world"))
 
 
+# https://bitbucket.org/DavidVilla/python-doublex/issues/7/doublex-fails-on-methods-where-self-is
+class capture_self(TestCase):
+    def test_capture_self(self):
+        class MyClass:
+            def my_method(*args):
+                pass
+
+        with Spy(MyClass) as spy:
+            spy.my_method('hello').returns(True)
+
+
+
 class SomeException(Exception):
     pass
 

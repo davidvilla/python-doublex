@@ -208,7 +208,8 @@ class MethodSignature(Signature):
             args = (None,) + args  # self
 
         retval = getcallargs(self.method, *args, **context.kargs)
-        del retval['self']
+        if 'self' in retval:
+            del retval['self']
         return retval
 
     def assure_matches(self, context):
