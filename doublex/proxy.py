@@ -198,7 +198,7 @@ class MethodSignature(Signature):
         self.argspec = getfullargspec(self.method)
 
     def get_arg_spec(self):
-        retval = inspect.getargspec(self.method)
+        retval = getfullargspec(self.method)
         del retval.args[0]
         return retval
 
