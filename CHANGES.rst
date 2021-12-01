@@ -1,3 +1,8 @@
+Unreleased
+==========
+
+- drop support for Python 3.4 and earlier
+
 20190405
 ========
 
