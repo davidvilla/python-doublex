@@ -22,7 +22,6 @@
 from unittest import TestCase
 
 from hamcrest import assert_that, is_, is_not, contains_string, greater_than
-from nose.tools import nottest
 
 import doublex
 from doublex.internal import Invocation, InvocationContext
