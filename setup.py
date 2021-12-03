@@ -67,9 +67,4 @@ config = dict(
         ],
     )
 
-if sys.version_info >= (3,):
-    config.update(dict(
-        test_suite = 'doublex.test3',
-    ))
-
 setup(**config)
