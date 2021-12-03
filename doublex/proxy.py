@@ -30,10 +30,7 @@ from .internal import ANY_ARG
 
 
 def get_func(func):
-    if sys.version_info >= (3, 4):
-        return func.__func__
-    else:
-        return func.im_func
+    return func.__func__
 
 
 def create_proxy(collaborator):

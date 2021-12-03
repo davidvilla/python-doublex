@@ -27,16 +27,9 @@ try:
 except ImportError:
     import _thread as thread
 
-if sys.version_info >= (2, 7):
-    from unittest import TestCase, skipIf
-else:
-    from unittest2 import TestCase
+from unittest import TestCase, skipIf
 
-if sys.version_info >= (3, 0):
-    unicode = str
-    from io import StringIO
-else:
-    from io import BytesIO as StringIO
+from io import StringIO
 
 
 from hamcrest import (
@@ -175,11 +168,7 @@ class StubTests(TestCase):
                 self.stub.hello(1).returns("bye")
 
         except TypeError as e:
-            expected = "hello() takes exactly 1 argument (2 given)"
-            if sys.version_info >= (3,):
-                expected = "hello() takes exactly 1 positional argument (2 given)"
-            if sys.version_info >= (3, 3):
-                expected = "hello() takes 1 positional argument but 2 were given"
+            expected = "hello() takes 1 positional argument but 2 were given"
             assert_that(str(e), contains_string(expected))
 
     # bitbucket issue #6
@@ -733,11 +722,7 @@ class ApiMismatchTest(TestCase):
             self.fail("TypeError should be raised")
 
         except TypeError as e:
-            expected = "Collaborator.hello() takes exactly 1 argument (2 given)"
-            if sys.version_info >= (3,):
-                expected = "Collaborator.hello() takes exactly 1 positional argument (2 given)"
-            if sys.version_info >= (3, 3):
-                expected = "hello() takes 1 positional argument but 2 were given"
+            expected = "hello() takes 1 positional argument but 2 were given"
             assert_that(str(e), contains_string(expected))
 
     def test_fail_wrong_kargs(self):
