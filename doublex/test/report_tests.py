@@ -108,7 +108,7 @@ Expected: none of these calls:
             '''
 Expected: not these calls:
           Spy.unexpected(ANY_ARG)
-     but: was ''')
+     but: but was ''')
 
     def test_called_times_int(self):
         spy = doublex.Spy()
@@ -184,7 +184,7 @@ Expected: none of these calls:
             '''
 Expected: not these calls:
           Spy.unexpected(2)
-     but: was ''')
+     but: but was ''')
 
     def test_called_with_matcher(self):
         spy = doublex.Spy()
@@ -221,7 +221,7 @@ Expected: none of these calls:
             '''
 Expected: not these calls:
           Spy.unexpected(a value greater than <1>)
-     but: was ''')
+     but: but was ''')
 
 
 class MockReportTest(TestCase, MessageMixin):
