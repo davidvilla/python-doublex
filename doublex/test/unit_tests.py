@@ -1391,6 +1391,13 @@ class with_some_args_matcher_tests(TestCase):
         assert_that(spy.two_args_method, called().with_some_args(arg2=10))
         assert_that(spy.two_args_method, called().with_some_args())
 
+    def test_type_hinted_arg(self):
+        spy = Spy(Collaborator)
+        spy.type_hinted_two_args_method(20, 40)
+        assert_that(spy.type_hinted_two_args_method, called().with_some_args(arg1=20))
+        assert_that(spy.type_hinted_two_args_method, called().with_some_args(arg2=40))
+        assert_that(spy.type_hinted_two_args_method, called().with_some_args())
+
     def test_free_spy(self):
         spy = Spy()
         spy.foo(1, 3)
@@ -1813,6 +1820,9 @@ class Collaborator:
 
     def three_args_method(self, arg1, arg2, arg3):
         return arg1 + arg2 + arg3
+
+    def type_hinted_two_args_method(self, arg1: int, arg2: int) -> int:
+        return arg1 + arg2
 
     def kwarg_method(self, key_param=False):
         return key_param
