@@ -15,7 +15,7 @@ Homepage: https://bitbucket.org/DavidVilla/python-doublex
 
 Package: python-doublex
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-hamcrest, python-six
+Depends: ${misc:Depends}, ${python:Depends}, python, python-hamcrest, python-six
 Replaces: python-pydoubles
 Description: test doubles framework for Python 2
  doublex is a test doubles framework for the Python unittest module. It may be
@@ -33,7 +33,7 @@ Description: test doubles framework for Python 2
 
 Package: python3-doublex
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, python3-hamcrest, python3-six
+Depends: ${misc:Depends}, ${python3:Depends}, python3, python3-hamcrest, python3-six
 Description: test doubles framework for Python 3
  doublex is a test doubles framework for the Python unittest module. It may be
  used as a effective tool to perform Test Driven Development.

@@ -20,7 +20,7 @@
 
 
 import threading
-import collections
+import collections.abc
 import functools
 import six
 
@@ -184,11 +184,11 @@ class Invocation(object):
         return Invocation(double, name, InvocationContext(*args, **kargs))
 
     def delegates(self, delegate):
-        if isinstance(delegate, collections.Callable):
+        if isinstance(delegate, collections.abc.Callable):
             self.__delegate = delegate
             return
 
-        if isinstance(delegate, collections.Mapping):
+        if isinstance(delegate, collections.abc.Mapping):
             self.__delegate = delegate.get
             return
 
