@@ -1,7 +1,8 @@
 Unreleased
 ==========
 
-- drop support for Python 3.4 and earlier
+- Drop support for Python 3.4 and earlier
+- Allow using called().with_some_args() with type-hinted arguments.
 
 20190405
 ========
