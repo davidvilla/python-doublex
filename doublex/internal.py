@@ -369,7 +369,8 @@ class InvocationContext(object):
             raise WrongApiUsage(
                 'free spies does not support the with_some_args() matcher')
 
-        if arg_spec.keywords is not None:
+        if ((hasattr(arg_spec, 'keywords') and arg_spec.keywords is not None)
+                or (hasattr(arg_spec, 'varkw') and arg_spec.varkw is not None)):
             raise WrongApiUsage(
                 'with_some_args() can not be applied to method %s' % self.signature)
 
