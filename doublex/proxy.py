@@ -224,7 +224,7 @@ class MethodSignature(Signature):
     def __repr__(self):
         return "%s.%s%s" % (self.proxy.collaborator_classname(),
                             self.name,
-                            inspect.formatargspec(*self.argspec))
+                            inspect.signature(self.method))
 
 
 class PropertySignature(Signature):
