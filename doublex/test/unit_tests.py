@@ -1532,7 +1532,7 @@ class custom_types_tests(TestCase):
                 self.value = value
 
             def __eq__(self, other):
-                return self.value == other.value
+                return isinstance(other, A) and self.value == other.value
 
         with Stub() as stub:
             stub.foo(A(1)).returns(A(1))
