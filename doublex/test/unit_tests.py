@@ -1529,7 +1529,7 @@ class custom_types_tests(TestCase):
         with Stub() as stub:
             stub.foo(A(1)).returns(A(1))
 
-        self.assertEquals(A(1), stub.foo(A(1)))
+        self.assertEqual(A(1), stub.foo(A(1)))
 
 
 class when_tests(TestCase):
