@@ -41,7 +41,7 @@ else:
 
 from hamcrest import (
     is_, is_not, instance_of, all_of, has_length, has_entry, starts_with,
-    anything, greater_than, less_than,
+    anything, greater_than, less_than, any_of,
     contains_string, string_contains_in_order)
 
 from doublex import (
@@ -455,16 +455,15 @@ class BuiltinSpyTests(TestCase):
         spy.append(10)
         assert_that(spy.append, called().with_args(10))
 
-    @skipIf(sys.version_info >= (3, 7),
-            "FIXME: argument checking not working with python3.7")
     def test_builtin_method_wrong_num_args(self):
         spy = Spy(list)
         try:
             spy.append(10, 20)
             self.fail('AttributeError should be raised')
         except TypeError as e:
-            expected = "list.append() takes exactly 1 argument (2 given)"
-            assert_that(str(e), contains_string(expected))
+            expected_1 = "list.append() takes exactly 1 argument (2 given)"
+            expected_2 = "append() takes 2 positional arguments but 3 were given"
+            assert_that(str(e), any_of(contains_string(expected_1), contains_string(expected_2)))
 
     def test_wrong_builtin_method(self):
         spy = Spy(list)
@@ -1540,7 +1539,7 @@ class custom_types_tests(TestCase):
                 self.value = value
 
             def __eq__(self, other):
-                return self.value == other.value
+                return isinstance(other, A) and self.value == other.value
 
         with Stub() as stub:
             stub.foo(A(1)).returns(A(1))

@@ -450,8 +450,9 @@ class PropertySet(PropertyInvocation):
         return setattr(self.double._proxy.collaborator, self.name, self.value)
 
     def __eq__(self, other):
-        return PropertyInvocation.__eq__(self, other) \
-            and self.context.matches(other.context)
+        if isinstance(other, PropertySet):
+            return super().__eq__(other) and self.context.matches(other.context)
+        return super().__eq__(other)
 
     def __repr__(self):
         return "set %s.%s to %s" % (self.double._classname(),

@@ -168,6 +168,12 @@ class DummySignature(Signature):
 class BuiltinSignature(Signature):
     "builtin collaborator method signature"
     def assure_matches(self, context):
+        if self.method.__text_signature__:
+            args = context.args
+            if self.proxy.isclass():
+                args = (None,) + args  # self
+            getcallargs(self.method, *args, **context.kargs)
+            return
         doc = self.method.__doc__
         if not ')' in doc:
             return
