@@ -188,10 +188,7 @@ class BuiltinSignature(Signature):
 # Thanks to David Pärsson (https://github.com/davidparsson)
 # issue: https://bitbucket.org/DavidVilla/python-doublex/issues/25/support-from-python-35-type-hints-when
 def getfullargspec(method):
-    try:
-        return inspect.getargspec(method)
-    except ValueError:
-        return inspect.getfullargspec(method)
+    return inspect.getfullargspec(method)
 
 
 class MethodSignature(Signature):
