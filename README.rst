@@ -10,9 +10,9 @@
     :target: http://pypi.python.org/pypi/doublex
     :alt: Supported Python Versions
 
-.. image:: https://travis-ci.org/davidvilla/python-doublex.svg?branch=master
-    :target: https://travis-ci.org/davidvilla/python-doublex
-    :alt: Travis CI status
+.. image:: https://github.com/DavidVilla/python-doublex/actions/workflows/tests.yml/badge.svg
+    :target: https://github.com/DavidVilla/python-doublex
+    :alt: GitHub Actions CI status
 
 Powerful test doubles framework for Python
 
