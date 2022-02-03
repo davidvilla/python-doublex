@@ -24,8 +24,7 @@ Powerful test doubles framework for Python
 `sources   <https://bitbucket.org/DavidVilla/python-doublex>`_ |
 `issues    <https://bitbucket.org/DavidVilla/python-doublex/issues>`_ |
 `PyPI      <http://pypi.python.org/pypi/doublex>`_ |
-`github clone <https://github.com/davidvilla/python-doublex>`_ |
-`travis  <https://travis-ci.org/davidvilla/python-doublex>`_
+`github clone <https://github.com/davidvilla/python-doublex>`_ 
 ]
 
 
