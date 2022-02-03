@@ -3,7 +3,7 @@
 
 URL_AUTH=svn+ssh://${ALIOTH_USER}@svn.debian.org/svn/python-modules/packages/doublex/trunk
 URL_ANON=svn://svn.debian.org/svn/python-modules/packages/doublex/trunk
-GITHUB=git@github.com:davidvilla/python-doublex.git
+BITBUCKET=git@bitbucket.org:DavidVilla/python-doublex.git
 
 debian:
 	if [ ! -z "$${ALIOTH_USER}" ]; then \
@@ -26,8 +26,9 @@ doctests:
 
 push:
 	git push
-	git push ${GITHUB}
-	git push --tags ${GITHUB}
+	git push --tags
+	git push ${BITBUCKET}
+	git push --tags ${BITBUCKET}
 
 pypi-release:
 	$(RM) -f dist
