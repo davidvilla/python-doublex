@@ -3,7 +3,7 @@
 APP=doublex
 VERSION=$(shell head -n 1 debian/changelog | cut -f2 -d " " | tr -d "()" | cut -f1 -d "-")
 
-ORIG_REPO=git clone --branch v$(VERSION) http://bitbucket.org/DavidVilla/python-doublex
+ORIG_REPO=git clone --branch v$(VERSION) https://github.com/davidvilla/python-doublex
 ORIG_DIR=$(APP)-$(VERSION)
 EXCLUDE=--exclude=debian --exclude=\*~ --exclude=.hg --exclude=.svn --exclude=\*.pyc
 

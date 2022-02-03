@@ -35,3 +35,9 @@ nosetests.xml
 .project
 .pydevproject
 .vscode/
+
+debian/files
+debian/.debhelper/
+debian/python-doublex*
+debian/python3-doublex*
+debian/tmp
