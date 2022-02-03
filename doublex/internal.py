@@ -19,10 +19,16 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
+import sys
 import threading
-import collections.abc
 import functools
 import six
+
+if sys.version_info < (3, 3):
+    from collection.abc import Callable as abc_Callable, Mapping as abc_Mapping
+else:
+    from collections import Callable as abc_Callable, Mapping as abc_Mapping
+
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
@@ -184,11 +190,11 @@ class Invocation(object):
         return Invocation(double, name, InvocationContext(*args, **kargs))
 
     def delegates(self, delegate):
-        if isinstance(delegate, collections.abc.Callable):
+        if isinstance(delegate, abc_Callable):
             self.__delegate = delegate
             return
 
-        if isinstance(delegate, collections.abc.Mapping):
+        if isinstance(delegate, abc_Mapping):
             self.__delegate = delegate.get
             return
 
@@ -267,7 +273,7 @@ class InvocationContext(object):
             raise ValueError
 
         try:
-#            if args.index(ANY_ARG) != len(args) - 1:
+            # if args.index(ANY_ARG) != len(args) - 1:
             if find_ANY_ARG(args) != len(args) - 1:
                 raise WrongApiUsage(ANY_ARG_MUST_BE_LAST + ANY_ARG_DOC)
 

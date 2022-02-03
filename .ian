@@ -5,8 +5,7 @@ function ian-release-hook() {
     log-info "setting version to $version"
     sc-assert-files-exist version.py
     echo "__version__ = '$version'" > version.py
-	git tag -d v"$version"
-	git tag v"$version"
+	git tag -f v"$version"
 }
 
 function ian-clean-hook {
