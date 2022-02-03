@@ -24,8 +24,8 @@ import threading
 import functools
 import six
 
-if sys.version_info < (3, 3):
-    from collection.abc import Callable as abc_Callable, Mapping as abc_Mapping
+if sys.version_info > (3, 3):
+    from collections.abc import Callable as abc_Callable, Mapping as abc_Mapping
 else:
     from collections import Callable as abc_Callable, Mapping as abc_Mapping
 
