@@ -202,14 +202,19 @@ class MethodSignature(Signature):
         del retval.args[0]
         return retval
 
+    def is_classmethod(self):
+        return (
+            inspect.ismethod(self.method) and self.method.__self__ is self.proxy.collaborator_class
+        )
+
     def get_call_args(self, context):
         args = context.args
-        if self.proxy.isclass():
+        is_classmethod = self.is_classmethod()
+        if self.proxy.isclass() and not is_classmethod:
             args = (None,) + args  # self
 
         retval = getcallargs(self.method, *args, **context.kargs)
-        if 'self' in retval:
-            del retval['self']
+        retval.pop('cls' if is_classmethod else 'self', None)
         return retval
 
     def assure_matches(self, context):

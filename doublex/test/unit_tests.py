@@ -135,6 +135,12 @@ class FreeStubTests(TestCase):
         except SomeException:
             pass
 
+    def test_cls_keyword_works(self):
+        with self.stub:
+            self.stub.foo(cls=2).returns(5)
+
+        assert_that(self.stub.foo(cls=2), is_(5))
+
 
 class StubTests(TestCase):
     def setUp(self):
@@ -184,7 +190,7 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
     # new on 1.7
-    def test_keyworked_or_positional_are_equivalent(self):
+    def test_keyword_or_positional_are_equivalent(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
             self.stub.kwarg_method(key_param=6).returns(6000)
@@ -215,6 +221,26 @@ class StubTests(TestCase):
             self.stub.hello().returns((3, 4))
 
         assert_that(self.stub.hello(), is_((3, 4)))
+
+    def test_stubbing_classmethod(self):
+        with self.stub:
+            self.stub.class_method().returns(5)
+        assert_that(self.stub.class_method(), is_(5))
+
+    def test_stubbing_classmethod_with_args(self):
+        with self.stub:
+            self.stub.class_method_with_args(2).returns(5)
+        assert_that(self.stub.class_method_with_args(2), is_(5))
+
+    def test_stubbing_method_with_cls_as_arg(self):
+        with self.stub:
+            self.stub.method_with_cls_as_arg(cls=2).returns(5)
+        assert_that(self.stub.method_with_cls_as_arg(cls=2), is_(5))
+
+    def test_stubbing_classmethod_with_self_arg(self):
+        with self.stub:
+            self.stub.class_method_with_self_arg(2).returns(5)
+        assert_that(self.stub.class_method_with_self_arg(2), is_(5))
 
 
 class AccessingActualAttributes(TestCase):
@@ -345,6 +371,11 @@ class FreeSpyTests(TestCase):
         assert_that(self.spy.foo, called().with_args(2))
         assert_that(self.spy.foo, called().times(3))
 
+    def test_cls_keyword_works(self):
+        self.spy.foo(cls=2)
+
+        assert_that(self.spy.foo, called().with_args(cls=2))
+
 #    def test_called_anything_and_value(self):
 #        spy = Spy(Collaborator)
 #        spy.two_args_method(10, 20)
@@ -436,6 +467,10 @@ class SpyTests(TestCase):
         self.spy.hello()
         with self.assertRaises(TypeError):
             assert_that(self.spy.hello, called().with_args('some'))
+
+    def test_classmethod_called_with_self_arg(self):
+        self.spy.class_method_with_self_arg(2)
+        assert_that(self.spy.class_method_with_self_arg, called().with_args(2))
 
 
 class BuiltinSpyTests(TestCase):
@@ -1824,3 +1859,18 @@ class Collaborator:
         return len(args)
 
     alias_method = one_arg_method
+
+    @classmethod
+    def class_method(cls):
+        pass
+
+    @classmethod
+    def class_method_with_args(cls, *args):
+        pass
+
+    @classmethod
+    def class_method_with_self_arg(cls, self):
+        pass
+
+    def method_with_cls_as_arg(self, cls):
+        pass
