@@ -190,7 +190,7 @@ class StubTests(TestCase):
         assert_that(self.stub.kwarg_method(key_param=6), is_(6000))
 
     # new on 1.7
-    def test_keyworked_or_positional_are_equivalent(self):
+    def test_keyword_or_positional_are_equivalent(self):
         with self.stub:
             self.stub.kwarg_method(1).returns(1000)
             self.stub.kwarg_method(key_param=6).returns(6000)
