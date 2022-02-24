@@ -209,14 +209,12 @@ class MethodSignature(Signature):
 
     def get_call_args(self, context):
         args = context.args
-        if self.proxy.isclass() and not self.is_classmethod():
+        is_classmethod = self.is_classmethod()
+        if self.proxy.isclass() and not is_classmethod:
             args = (None,) + args  # self
 
         retval = getcallargs(self.method, *args, **context.kargs)
-        if 'self' in retval:
-            del retval['self']
-        if 'cls' in retval and self.is_classmethod():
-            del retval['cls']
+        retval.pop('cls' if is_classmethod else 'self', None)
         return retval
 
     def assure_matches(self, context):

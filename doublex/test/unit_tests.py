@@ -237,6 +237,11 @@ class StubTests(TestCase):
             self.stub.method_with_cls_as_arg(cls=2).returns(5)
         assert_that(self.stub.method_with_cls_as_arg(cls=2), is_(5))
 
+    def test_stubbing_classmethod_with_self_arg(self):
+        with self.stub:
+            self.stub.class_method_with_self_arg(2).returns(5)
+        assert_that(self.stub.class_method_with_self_arg(2), is_(5))
+
 
 class AccessingActualAttributes(TestCase):
     def test_read_class_attribute_providing_class(self):
@@ -462,6 +467,10 @@ class SpyTests(TestCase):
         self.spy.hello()
         with self.assertRaises(TypeError):
             assert_that(self.spy.hello, called().with_args('some'))
+
+    def test_classmethod_called_with_self_arg(self):
+        self.spy.class_method_with_self_arg(2)
+        assert_that(self.spy.class_method_with_self_arg, called().with_args(2))
 
 
 class BuiltinSpyTests(TestCase):
@@ -1857,6 +1866,10 @@ class Collaborator:
 
     @classmethod
     def class_method_with_args(cls, *args):
+        pass
+
+    @classmethod
+    def class_method_with_self_arg(cls, self):
         pass
 
     def method_with_cls_as_arg(self, cls):
