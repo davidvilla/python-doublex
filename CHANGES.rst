@@ -4,6 +4,7 @@ Unreleased
 - Drop support for Python 3.5 and earlier
 - Allow using called().with_some_args() with type-hinted arguments
 - Fix deprecation warnings
+- Mock support for classmethods on instances
 
 20190405
 ========
