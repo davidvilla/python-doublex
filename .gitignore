@@ -8,6 +8,7 @@
 *.egg-info
 dist
 build
+_build
 eggs
 parts
 bin
@@ -26,6 +27,8 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
+
+doctests/*.inc
 
 # Translations
 *.mo
