@@ -248,13 +248,14 @@ sequence does not match, an AssertionError is raised. "free" mocks are provided 
 .. testcode::
 .. sourcecode:: python
 
-   from doublex import Mock, assert_that, verify
+   from doublex import ANY_ARG, Mock, assert_that, verify
 
    with Mock() as smtp:
        smtp.helo()
        smtp.mail(ANY_ARG)
        smtp.rcpt("bill@apple.com")
-       smtp.data(ANY_ARG).returns(True).times(2)
+       smtp.data(ANY_ARG)
+       smtp.data(ANY_ARG)
 
    smtp.helo()
    smtp.mail("poormen@home.net")

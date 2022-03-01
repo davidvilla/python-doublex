@@ -1,4 +1,4 @@
-.. async_mode:
+.. _async_mode:
 
 Asynchronous spies
 ==================
@@ -17,7 +17,7 @@ Something like that:
 
    class Collaborator(object):
        def write(self, data):
-           print "your code here"
+           print("your code here")
 
    class SUT(object):
        def __init__(self, collaborator):
