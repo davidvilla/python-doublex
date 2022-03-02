@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-import sys
 import inspect
+from typing import NamedTuple
 
 try:
     from inspect import getcallargs
@@ -48,7 +47,7 @@ class Proxy(object):
         return None
 
     def get_signature(self, method_name):
-        if self.is_property(method_name):
+        if self.is_property(method_name) or self.is_namedtuple_field(method_name):
             return PropertySignature(self, method_name)
 
         if not self.is_method_or_func(method_name):
@@ -59,6 +58,13 @@ class Proxy(object):
     def is_property(self, attr_name):
         attr = getattr(self.collaborator_class, attr_name)
         return isinstance(attr, property)
+
+    def collaborator_is_namedtuple(self):
+        return issubclass(self.collaborator_class, tuple) and hasattr(self.collaborator_class, '_fields')
+
+    def is_namedtuple_field(self, attr_name):
+        attr = getattr(self.collaborator_class, attr_name)
+        return self.collaborator_is_namedtuple() and type(attr).__name__ == '_tuplegetter'
 
     def is_method_or_func(self, method_name):
         func = getattr(self.collaborator, method_name)

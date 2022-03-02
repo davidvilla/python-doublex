@@ -5,6 +5,7 @@ Unreleased
 - Allow using called().with_some_args() with type-hinted arguments
 - Fix deprecation warnings
 - Mock support for classmethods on instances
+- Fix namedtuple support for python 3.8 and newer
 
 20190405
 ========

@@ -505,6 +505,7 @@ class AttributeFactory(object):
         # -- python3 --
         method             = Method,
         function           = Method,
+        _tuplegetter       = Property,
         )
 
     @classmethod
