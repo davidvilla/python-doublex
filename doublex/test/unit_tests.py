@@ -1611,6 +1611,18 @@ class when_tests(TestCase):
         when(spy).one_arg_method(all_of(starts_with('h'), instance_of(str))).returns(1000)
         assert_that(spy.one_arg_method('hello'), is_(1000))
 
+    def test_stub_when_can_get_property(self):
+        stub = Stub(ObjCollaborator)
+        when(stub).prop_deco_readonly.returns(5)
+
+        assert_that(stub.prop_deco_readonly, is_(5))
+
+    def test_stub_when_can_set_property(self):
+        stub = Stub(ObjCollaborator)
+        when(stub).prop = 5
+
+        assert_that(stub.prop, is_(5))
+
 
 class expect_call_tests(TestCase):
     def test_expect_call(self):

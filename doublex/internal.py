@@ -99,6 +99,10 @@ class Observable(object):
         for ob in self.observers:
             ob(*args, **kargs)
 
+    def _apply_deactivation(self, double):
+        if double._deactivate:
+            double._setting_up = self.double._deactivate = False
+
 
 class Method(Observable):
     def __init__(self, double, name):
@@ -117,9 +121,7 @@ class Method(Observable):
             self._event.set()
             self.notify(*args, **kargs)
 
-        if self.double._deactivate:
-            self.double._setting_up = self.double._deactivate = False
-
+        self._apply_deactivation(self.double)
         return retval
 
     def _create_invocation(self, args, kargs):
@@ -484,7 +486,9 @@ class Property(property, Observable):
         if not self.double._setting_up:
             self.notify()
 
-        return self.manage(PropertyGet(self.double, self.key))
+        property_get = self.manage(PropertyGet(self.double, self.key))
+        self._apply_deactivation(self.double)
+        return property_get
 
     def set_value(self, obj, value):
         prop = self.double._proxy.get_class_attr(self.key)
@@ -497,6 +501,8 @@ class Property(property, Observable):
             invocation.returns(value)
         else:
             self.notify(value)
+
+        self._apply_deactivation(self.double)
 
 
 class AttributeFactory(object):
