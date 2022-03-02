@@ -22,6 +22,8 @@
 import sys
 import threading
 import functools
+from enum import Enum
+
 import six
 
 if sys.version_info > (3, 3):
@@ -46,16 +48,19 @@ class WrongApiUsage(Exception):
     pass
 
 
-class Constant(str):
+class Constant(str, Enum):
+    ANY_ARG = 'ANY_ARG'
+    UNSPECIFIED = 'UNSPECIFIED'
+
+    def __str__(self):
+        return self.value
+
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, other):
-        return self is other
 
-
-ANY_ARG = Constant('ANY_ARG')
-UNSPECIFIED = Constant('UNSPECIFIED')
+ANY_ARG = Constant.ANY_ARG
+UNSPECIFIED = Constant.UNSPECIFIED
 
 
 def add_indent(text, indent=0):
