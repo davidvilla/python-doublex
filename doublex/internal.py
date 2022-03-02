@@ -58,6 +58,8 @@ class Constant(str, Enum):
     def __repr__(self):
         return str(self)
 
+    def is_in(self, container):
+        return any(item is self for item in container)
 
 ANY_ARG = Constant.ANY_ARG
 UNSPECIFIED = Constant.UNSPECIFIED
@@ -289,7 +291,7 @@ class InvocationContext(object):
         except ValueError:
             pass
 
-        if ANY_ARG in kargs.values():
+        if ANY_ARG.is_in(kargs.values()):
             raise WrongApiUsage(ANY_ARG_CAN_BE_KARG + ANY_ARG_DOC)
 
     def apply_on(self, method):
@@ -356,7 +358,7 @@ class InvocationContext(object):
         return retval
 
     def matches(self, other):
-        if ANY_ARG in self.args:
+        if ANY_ARG.is_in(self.args):
             matcher, actual = self, other
         else:
             matcher, actual = other, self
@@ -393,7 +395,7 @@ class InvocationContext(object):
         return retval
 
     def __lt__(self, other):
-        if ANY_ARG in other.args or self.args < other.args:
+        if ANY_ARG.is_in(other.args) or self.args < other.args:
             return True
 
         return sorted(self.kargs.items()) < sorted(other.kargs.items())
