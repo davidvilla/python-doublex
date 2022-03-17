@@ -224,7 +224,7 @@ class MethodSignature(Signature):
         return retval
 
     def assure_matches(self, context):
-        if ANY_ARG in context.args:
+        if ANY_ARG.is_in(context.args):
             return
 
         try:

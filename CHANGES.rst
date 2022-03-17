@@ -6,6 +6,7 @@ Unreleased
 - Fix deprecation warnings
 - Mock support for classmethods on instances
 - Fix namedtuple support for python 3.8 and newer
+- Fix issue with property stubbing using when() leaving stubs in setting up state
 
 20190405
 ========

@@ -22,6 +22,8 @@
 import sys
 import threading
 import functools
+from enum import Enum
+
 import six
 
 if sys.version_info > (3, 3):
@@ -46,16 +48,21 @@ class WrongApiUsage(Exception):
     pass
 
 
-class Constant(str):
+class Constant(str, Enum):
+    ANY_ARG = 'ANY_ARG'
+    UNSPECIFIED = 'UNSPECIFIED'
+
+    def __str__(self):
+        return self.value
+
     def __repr__(self):
         return str(self)
 
-    def __eq__(self, other):
-        return self is other
+    def is_in(self, container):
+        return any(item is self for item in container)
 
-
-ANY_ARG = Constant('ANY_ARG')
-UNSPECIFIED = Constant('UNSPECIFIED')
+ANY_ARG = Constant.ANY_ARG
+UNSPECIFIED = Constant.UNSPECIFIED
 
 
 def add_indent(text, indent=0):
@@ -94,6 +101,10 @@ class Observable(object):
         for ob in self.observers:
             ob(*args, **kargs)
 
+    def _apply_deactivation(self, double):
+        if double._deactivate:
+            double._setting_up = self.double._deactivate = False
+
 
 class Method(Observable):
     def __init__(self, double, name):
@@ -112,9 +123,7 @@ class Method(Observable):
             self._event.set()
             self.notify(*args, **kargs)
 
-        if self.double._deactivate:
-            self.double._setting_up = self.double._deactivate = False
-
+        self._apply_deactivation(self.double)
         return retval
 
     def _create_invocation(self, args, kargs):
@@ -282,7 +291,7 @@ class InvocationContext(object):
         except ValueError:
             pass
 
-        if ANY_ARG in kargs.values():
+        if ANY_ARG.is_in(kargs.values()):
             raise WrongApiUsage(ANY_ARG_CAN_BE_KARG + ANY_ARG_DOC)
 
     def apply_on(self, method):
@@ -349,7 +358,7 @@ class InvocationContext(object):
         return retval
 
     def matches(self, other):
-        if ANY_ARG in self.args:
+        if ANY_ARG.is_in(self.args):
             matcher, actual = self, other
         else:
             matcher, actual = other, self
@@ -386,7 +395,7 @@ class InvocationContext(object):
         return retval
 
     def __lt__(self, other):
-        if ANY_ARG in other.args or self.args < other.args:
+        if ANY_ARG.is_in(other.args) or self.args < other.args:
             return True
 
         return sorted(self.kargs.items()) < sorted(other.kargs.items())
@@ -479,7 +488,9 @@ class Property(property, Observable):
         if not self.double._setting_up:
             self.notify()
 
-        return self.manage(PropertyGet(self.double, self.key))
+        property_get = self.manage(PropertyGet(self.double, self.key))
+        self._apply_deactivation(self.double)
+        return property_get
 
     def set_value(self, obj, value):
         prop = self.double._proxy.get_class_attr(self.key)
@@ -492,6 +503,8 @@ class Property(property, Observable):
             invocation.returns(value)
         else:
             self.notify(value)
+
+        self._apply_deactivation(self.double)
 
 
 class AttributeFactory(object):
