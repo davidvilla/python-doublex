@@ -288,8 +288,7 @@ Match explicit argument values:
 
 
 Remember that `hamcrest matchers
-<https://code.google.com/p/hamcrest/wiki/TutorialPython>`_ matchers
-are fully supported:
+<https://code.google.com/p/hamcrest/wiki/TutorialPython>`_ are fully supported:
 
 
 .. sourcecode:: python
