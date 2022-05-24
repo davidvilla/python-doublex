@@ -20,6 +20,7 @@
 
 
 import inspect
+from typing import Generic
 
 import hamcrest
 
@@ -179,9 +180,10 @@ def Mimic(double, collab):
         "Mimic() takes a double class as first argument (got %s instead)" & double
 
     collab_class = get_class(collab)
+    base_classes = tuple(base for base in collab_class.__bases__ if base is not Generic)
     generated_class = type(
         "Mimic_%s_for_%s" % (double.__name__, collab_class.__name__),
-        (double, collab_class) + collab_class.__bases__,
+        (double, collab_class) + base_classes,
         dict(_methods = {},
              __getattribute__ = __getattribute__hook,
              _get_method = _get_method))

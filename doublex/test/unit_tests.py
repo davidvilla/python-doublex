@@ -26,6 +26,7 @@ try:
     import thread
 except ImportError:
     import _thread as thread
+from typing import Generic, TypeVar
 
 from unittest import TestCase, skipIf
 
@@ -50,6 +51,8 @@ from doublex import (
 
 from doublex.matchers import MatcherRequiredError
 from doublex.internal import InvocationContext, Method
+
+T = TypeVar('T')
 
 
 class InvocationContextTests(TestCase):
@@ -1086,6 +1089,10 @@ class MimicTests(TestCase):
         def method_b(self):
             return "hi"
 
+    class GenericSubclass(Generic[T]):
+        def method_c(self):
+            return "hello"
+
     def test_normal_spy_does_not_inherit_collaborator_superclasses(self):
         spy = Spy(self.B)
         assert_that(not isinstance(spy, self.B))
@@ -1134,6 +1141,13 @@ class MimicTests(TestCase):
         mock.method_a(2)
 
         assert_that(mock, verify())
+
+    def test_mimic_generic_subclass_works(self):
+        stub = Mimic(Stub, self.GenericSubclass)
+        with stub:
+            stub.method_c().returns("hello")
+
+        assert_that(stub.method_c(), is_("hello"))
 
 
 class PropertyTests(TestCase):
