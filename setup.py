@@ -44,7 +44,6 @@ config = dict(
     author_email     = 'David.Villa@gmail.com, david@parsson.se',
     url              = 'https://github.com/DavidVilla/python-doublex',
     packages         = ['doublex'],
-    data_files       = [('', ['README.rst'])],
     test_suite       = 'doublex.test',
     license          = 'GPLv3',
     long_description = local_open('README.rst').read(),
