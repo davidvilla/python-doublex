@@ -2,7 +2,6 @@
     :target: http://pypi.python.org/pypi/doublex
     :alt: Latest PyPI version
 
-
 .. image:: https://img.shields.io/pypi/l/doublex.png?maxAge=2592000
     :alt: License
 
@@ -24,7 +23,7 @@ Powerful test doubles framework for Python
 `sources   <https://bitbucket.org/DavidVilla/python-doublex>`_ |
 `issues    <https://bitbucket.org/DavidVilla/python-doublex/issues>`_ |
 `PyPI      <http://pypi.python.org/pypi/doublex>`_ |
-`github clone <https://github.com/davidvilla/python-doublex>`_ 
+`github    <https://github.com/davidvilla/python-doublex>`_
 ]
 
 
@@ -74,7 +73,6 @@ Debian
 related
 -------
 
-* `slides           <http://arco.esi.uclm.es/~david.villa/python-doublex/slides>`_
 * `pyDoubles        <http://python-doublex.readthedocs.org/en/latest/pyDoubles.html>`_
 * `doublex-expects  <https://pypi.python.org/pypi/doublex-expects>`_
 * `crate            <https://crate.io/packages/doublex/>`_
