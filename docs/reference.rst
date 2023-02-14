@@ -53,7 +53,7 @@ independently of the value of ``bar``. A more obvious example:
 
    assert_that(2 + 2, 5)  # OMG! that assertion IS satisfied!
 
-For this reason, when you need compare values (equivalent to the unit ``assertEquals``) you must always use a matcher, like ``is_`` or ``equal_to``:
+For this reason, when you need compare values (equivalent to the unittest ``assertEquals``) you must always use a matcher, like ``is_`` or ``equal_to``:
 
 .. sourcecode:: python
 
@@ -80,10 +80,10 @@ To avoid the issues described in the previous section, doublex provides an alter
 .. sourcecode:: python
 
    >>> from doublex import assert_that
-   >>> assert_that(1, 1)
+   >>> assert_that(1, 2)
    Traceback (most recent call last):
    ...
-   MatcherRequiredError: 1 should be a hamcrest Matcher
+   MatcherRequiredError: 2 should be a hamcrest Matcher
 
 
 .. index::
