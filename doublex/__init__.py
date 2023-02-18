@@ -5,6 +5,10 @@ from .matchers import *
 from .tracer import Tracer
 from .internal import WrongApiUsage
 
+try:
+    from ._version import *
+except ImportError:
+    pass
 
 def set_default_behavior(double, func):
     double._default_behavior = func

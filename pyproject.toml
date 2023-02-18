@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "doublex"
+dynamic = ["version"]
+description = "Python test doubles"
+readme = "README.rst"
+requires-python = ">=3.7"
+license = { file = "LICENSE" }
+keywords = ["unit tests", "doubles", "stub", "spy", "mock"]
+authors = [
+    { name = "David Villa Alises", email = "David.Villa@gmail.com" },
+    { name = "David Pärsson", email = "david@parsson.se" },
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "PyHamcrest",
+]
+
+[project.urls]
+repository = "https://github.com/DavidVilla/python-doublex"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+only-packages = true
+exclude = ["doublex/test/*"]
+
+[tool.hatch.publish.index]
+disable = true
+
+[tool.hatch.build.hooks.vcs]
+version-file = "doublex/_version.py"
