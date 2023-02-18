@@ -26,7 +26,6 @@ from enum import Enum
 from functools import total_ordering
 
 import hamcrest
-import six
 from hamcrest.core.base_matcher import BaseMatcher
 
 from .safeunicode import get_string
@@ -196,7 +195,7 @@ class Invocation(object):
             return
 
         try:
-            self.__delegate = functools.partial(six.next, iter(delegate))
+            self.__delegate = functools.partial(next, iter(delegate))
         except TypeError:
             reason = "delegates() must be called with callable or iterable instance (got '%s' instead)" % delegate
             raise WrongApiUsage(reason)
@@ -419,7 +418,7 @@ class InvocationFormatter(object):
 
     @classmethod
     def _format_value(cls, arg):
-        if isinstance(arg, six.text_type):
+        if isinstance(arg, str):
             arg = get_string(arg)
 
         if isinstance(arg, (int, str, dict)):
