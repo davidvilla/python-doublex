@@ -28,8 +28,6 @@ from functools import total_ordering
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
 
-from .safeunicode import get_string
-
 
 class WrongApiUsage(Exception):
     pass
@@ -418,9 +416,6 @@ class InvocationFormatter(object):
 
     @classmethod
     def _format_value(cls, arg):
-        if isinstance(arg, str):
-            arg = get_string(arg)
-
         if isinstance(arg, (int, str, dict)):
             return repr(arg)
         return str(arg)
