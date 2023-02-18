@@ -31,15 +31,9 @@ if sys.version_info > (3, 3):
 else:
     from collections import Callable as abc_Callable, Mapping as abc_Mapping
 
-
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
-
-try:
-    from functools import total_ordering
-except ImportError:
-    from .py27_backports import total_ordering
-
+from functools import total_ordering
 
 from .safeunicode import get_string
 

@@ -18,12 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import inspect
-from typing import NamedTuple
-
-try:
-    from inspect import getcallargs
-except ImportError:
-    from .py27_backports import getcallargs
+from inspect import getcallargs
 
 from .internal import ANY_ARG
 
