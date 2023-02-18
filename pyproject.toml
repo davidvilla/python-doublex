@@ -44,3 +44,6 @@ exclude = ["doublex/test/*"]
 
 [tool.hatch.publish.index]
 disable = true
+
+[tool.hatch.build.hooks.vcs]
+version-file = "doublex/_version.py"

@@ -19,6 +19,7 @@ develop-eggs
 lib
 lib64
 __pycache__
+doublex/_version.py
 
 # Installer logs
 pip-log.txt
