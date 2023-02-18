@@ -19,21 +19,15 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import sys
-import threading
 import functools
+import threading
+from collections.abc import Callable as abc_Callable, Mapping as abc_Mapping
 from enum import Enum
-
-import six
-
-if sys.version_info > (3, 3):
-    from collections.abc import Callable as abc_Callable, Mapping as abc_Mapping
-else:
-    from collections import Callable as abc_Callable, Mapping as abc_Mapping
+from functools import total_ordering
 
 import hamcrest
+import six
 from hamcrest.core.base_matcher import BaseMatcher
-from functools import total_ordering
 
 from .safeunicode import get_string
 
