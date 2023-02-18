@@ -44,3 +44,5 @@ debian/.debhelper/
 debian/python-doublex*
 debian/python3-doublex*
 debian/tmp
+
+.idea
