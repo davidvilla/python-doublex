@@ -48,7 +48,7 @@ config = dict(
     license          = 'GPLv3',
     long_description = local_open('README.rst').read(),
     install_requires = local_open('requirements.txt').readlines(),
-    python_requires  = '>=3.6',
+    python_requires  = '>=3.7',
     classifiers      = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
