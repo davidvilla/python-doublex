@@ -19,29 +19,14 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import sys
-import threading
 import functools
+import threading
+from collections.abc import Callable as abc_Callable, Mapping as abc_Mapping
 from enum import Enum
-
-import six
-
-if sys.version_info > (3, 3):
-    from collections.abc import Callable as abc_Callable, Mapping as abc_Mapping
-else:
-    from collections import Callable as abc_Callable, Mapping as abc_Mapping
-
+from functools import total_ordering
 
 import hamcrest
 from hamcrest.core.base_matcher import BaseMatcher
-
-try:
-    from functools import total_ordering
-except ImportError:
-    from .py27_backports import total_ordering
-
-
-from .safeunicode import get_string
 
 
 class WrongApiUsage(Exception):
@@ -208,7 +193,7 @@ class Invocation(object):
             return
 
         try:
-            self.__delegate = functools.partial(six.next, iter(delegate))
+            self.__delegate = functools.partial(next, iter(delegate))
         except TypeError:
             reason = "delegates() must be called with callable or iterable instance (got '%s' instead)" % delegate
             raise WrongApiUsage(reason)
@@ -431,9 +416,6 @@ class InvocationFormatter(object):
 
     @classmethod
     def _format_value(cls, arg):
-        if isinstance(arg, six.text_type):
-            arg = get_string(arg)
-
         if isinstance(arg, (int, str, dict)):
             return repr(arg)
         return str(arg)
