@@ -19,6 +19,7 @@ develop-eggs
 lib
 lib64
 __pycache__
+doublex/_version.py
 
 # Installer logs
 pip-log.txt
@@ -44,3 +45,5 @@ debian/.debhelper/
 debian/python-doublex*
 debian/python3-doublex*
 debian/tmp
+
+.idea
